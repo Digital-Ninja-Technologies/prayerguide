@@ -28,17 +28,43 @@ This creates `profiles`, `journal_entries`, `prayer_requests`,
 `challenge_progress`, `reading_plan_progress`, `fasting_sessions`, `groups`,
 and `subscriptions` — all with RLS policies scoping rows to their owner.
 
-**Enable auth providers** you want to use, in the Supabase dashboard
-(Authentication → Providers):
-- Email is on by default.
-- Google — add your OAuth client ID/secret.
-- Apple — add your Services ID + key; also add the Sign in with Apple
-  capability in Xcode for the iOS target.
+**Social auth (Google / Apple) via Supabase** — the app code side is done:
+`AuthRepository.signInWithGoogle/signInWithApple` call `signInWithOAuth` with
+`redirectTo: kOAuthRedirect` (`io.supabase.prayerguide://login-callback/`,
+defined in `lib/data/repositories/auth_repository.dart`), and that URL scheme
+is already registered on both platforms (`android/app/src/main/AndroidManifest.xml`'s
+`login-callback` intent-filter, `ios/Runner/Info.plist`'s `CFBundleURLTypes`).
+`supabase_flutter` handles the incoming deep link and session exchange
+automatically — no extra Dart wiring needed. What's left is dashboard +
+provider-console configuration, which can't be done from this repo:
 
-Both OAuth flows use `supabase_flutter`'s `signInWithOAuth`, which opens a
-browser/deep-link redirect — you'll need a redirect URL configured in both
-Supabase and your app's URL scheme (see the [supabase_flutter OAuth
-docs](https://supabase.com/docs/guides/auth/social-login)).
+1. **Supabase Dashboard → Authentication → URL Configuration → Redirect URLs**
+   — add `io.supabase.prayerguide://login-callback/` to the allow list (in
+   addition to whatever your Site URL is). OAuth will fail silently without
+   this.
+2. **Google** — in [Google Cloud Console](https://console.cloud.google.com/apis/credentials),
+   create an OAuth 2.0 Client ID (Web application type — Supabase's hosted
+   authorize/callback endpoint does the redirect, so the *web* client type is
+   correct even though you're calling it from mobile). Add
+   `https://<project-ref>.supabase.co/auth/v1/callback` as an authorized
+   redirect URI on that client. Paste the client ID + secret into Supabase
+   Dashboard → Authentication → Providers → Google, and enable it.
+3. **Apple** — in [Apple Developer](https://developer.apple.com/account/resources/identifiers/list/serviceId),
+   create a Services ID, enable "Sign in with Apple", and set its return URL
+   to `https://<project-ref>.supabase.co/auth/v1/callback`. Generate a
+   private key for Sign in with Apple, and enter the Services ID, Team ID,
+   Key ID, and private key into Supabase Dashboard → Authentication →
+   Providers → Apple. Separately, add the **Sign in with Apple capability**
+   to the iOS target in Xcode (`ios/Runner.xcodeproj`) — Apple requires this
+   entitlement for the native app regardless of Supabase's config, and (per
+   App Store guideline 4.8) requires it if the app offers other social
+   logins at all.
+4. If you ever change the bundle ID / package name from `com.prayerguide.*`,
+   update `kOAuthRedirect`'s scheme (`io.supabase.prayerguide`) to match, in
+   all three places: `auth_repository.dart`, the Android intent-filter, and
+   the iOS `CFBundleURLTypes` entry.
+
+Full reference: [supabase_flutter OAuth docs](https://supabase.com/docs/guides/auth/social-login).
 
 ## 3. AI Prayer Assistant (Phase 4)
 
