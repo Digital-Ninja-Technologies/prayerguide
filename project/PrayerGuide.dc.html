@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Spectral:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0b100f;font-family:Manrope,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+input,textarea{font-family:inherit}
+::-webkit-scrollbar{display:none}
+*{scrollbar-width:none}
+@keyframes breathe{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.05);opacity:1}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes shimmer{0%,100%{opacity:.45}50%{opacity:.85}}
+@keyframes slowspin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;gap:20px;padding:30px 16px 60px;background:radial-gradient(1200px 720px at 50% -8%, #17231f 0%, #0b100f 62%)">
+
+  <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;max-width:560px">
+    <div style="display:flex;background:#1a2523;border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:3px">
+      <button onClick="{{ setIos }}" style="{{ segIos }}">iOS</button>
+      <button onClick="{{ setAndroid }}" style="{{ segAndroid }}">Android</button>
+    </div>
+    <div style="display:flex;background:#1a2523;border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:3px">
+      <button onClick="{{ setDark }}" style="{{ segDark }}">Dark</button>
+      <button onClick="{{ setLight }}" style="{{ segLight }}">Light</button>
+    </div>
+    <button onClick="{{ restart }}" style="background:#1a2523;border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:8px 14px;color:#9AA8A3;font-size:12.5px;font-weight:600">↺ Restart</button>
+    <button onClick="{{ toggleEmpty }}" style="{{ emptyBtn }}">First-run empty states</button>
+    <select onChange="{{ jump }}" value="{{ screen }}" style="background:#1a2523;border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:9px 12px;color:#cfd8d5;font-size:12.5px;font-weight:600;appearance:none">
+      <option value="splash">Splash</option>
+      <option value="onboarding">Onboarding</option>
+      <option value="home">Home / Today</option>
+      <option value="guide">Daily Prayer Guide</option>
+      <option value="timer">Prayer Timer</option>
+      <option value="scripture">Scripture of the Day</option>
+      <option value="bible">Bible Reader</option>
+      <option value="journal">Journal</option>
+      <option value="journalNew">New Journal Entry</option>
+      <option value="requests">Prayer Requests</option>
+      <option value="requestNew">New Request</option>
+      <option value="streak">Prayer Streak</option>
+      <option value="settings">Settings / Profile</option>
+      <optgroup label="Phase 1 depth">
+      <option value="guideLibrary">Prayer Guide Library</option>
+      <option value="notifications">Notifications</option>
+      <option value="bibleNotes">Bookmarks &amp; Notes</option>
+      </optgroup>
+      <optgroup label="Phase 2 · Depth">
+      <option value="focusSetup">Focus Mode · setup</option>
+      <option value="focusActive">Focus Mode · active overlay</option>
+      <option value="companion">Prayer Companion</option>
+      <option value="invite">Invite a Companion</option>
+      <option value="challenges">Prayer Challenges</option>
+      <option value="challengeDetail">Challenge detail</option>
+      <option value="challengeNew">Create a Challenge</option>
+      <option value="plans">Reading Plans</option>
+      <option value="planDetail">Plan detail</option>
+      <option value="devotional">Daily Devotional</option>
+      <option value="fasting">Fasting Companion</option>
+      </optgroup>
+      <optgroup label="Phase 3 · Live">
+      <option value="together">Prayer Together (live)</option>
+      <option value="groups">Prayer Groups</option>
+      <option value="room">Audio Prayer Room</option>
+      </optgroup>
+      <optgroup label="Phase 4 · Intelligence">
+      <option value="assistant">AI Prayer Assistant</option>
+      <option value="insights">Growth Insights</option>
+      <option value="upgrade">Upgrade / Premium</option>
+      </optgroup>
+    </select>
+  </div>
+
+  <div style="{{ bezelStyle }}">
+    <div style="position:relative;width:390px;height:844px;border-radius:46px;overflow:hidden;{{ rootVars }}">
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg);color:var(--text)">
+
+        <!-- status bar -->
+        <div style="flex:none;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 28px 0 32px;position:relative;z-index:30;color:var(--text)">
+          <span style="font-size:15px;font-weight:700;letter-spacing:.2px">8:15</span>
+          <sc-if value="{{ isIos }}" hint-placeholder-val="{{ true }}">
+            <div style="position:absolute;left:50%;top:9px;transform:translateX(-50%);width:104px;height:30px;background:#000;border-radius:20px"></div>
+          </sc-if>
+          <sc-if value="{{ isAndroid }}">
+            <div style="position:absolute;left:50%;top:16px;transform:translateX(-50%);width:9px;height:9px;background:#000;border-radius:50%"></div>
+          </sc-if>
+          <div style="display:flex;align-items:center;gap:6px">
+            <svg width="17" height="12" viewBox="0 0 17 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="4.5" y="4.5" width="3" height="7.5" rx="1"/><rect x="9" y="2" width="3" height="10" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1 4.5C4.5 1.5 11.5 1.5 15 4.5M3.4 7C5.8 5 10.2 5 12.6 7M6 9.4c1.2-1 2.8-1 4 0" stroke-linecap="round"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="1" y="1" width="20" height="10" rx="3" stroke="currentColor" stroke-width="1.2" opacity=".5"/><rect x="3" y="3" width="15" height="6" rx="1.5" fill="currentColor"/><rect x="22.5" y="4" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".5"/></svg>
+          </div>
+        </div>
+
+        <!-- ONBOARDING -->
+        <sc-if value="{{ showOnb }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative">
+          <div style="position:absolute;inset:0;background:radial-gradient(140% 70% at 50% 0%, var(--amberSoft) 0%, transparent 46%),radial-gradient(120% 60% at 50% 110%, var(--tealSoft) 0%, transparent 50%)"></div>
+          <sc-if value="{{ showAuth }}">
+            <div style="position:relative;flex:1;display:flex;flex-direction:column;padding:36px 30px 30px;animation:fadeUp .5s ease">
+              <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:18px">
+                <div style="width:72px;height:72px;border-radius:24px;background:var(--tealSoft);display:flex;align-items:center;justify-content:center;border:1px solid var(--line)">
+                  <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c0 3 0 6 0 9m0 0c-1.8 1.2-4 1-5.5-.6M12 12c1.8 1.2 4 1 5.5-.6M12 12v8"/><path d="M9 21h6"/></svg>
+                </div>
+                <div>
+                  <h1 style="font-family:Spectral,serif;font-size:29px;font-weight:600;margin:0 0 8px;letter-spacing:.2px">Prayer Guide</h1>
+                  <p style="margin:0;font-size:15px;line-height:1.5;color:var(--dim);max-width:250px">A quiet place to return to, each day.</p>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:11px">
+                <button onClick="{{ finishAuth }}" style="display:flex;align-items:center;justify-content:center;gap:10px;background:var(--text);color:var(--bg);border:none;border-radius:16px;padding:15px;font-size:15px;font-weight:700">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M16.4 12.6c0-2.4 1.9-3.5 2-3.6-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9-.7 0-1.8-.8-3-.8-1.5 0-2.9.9-3.7 2.3-1.6 2.7-.4 6.8 1.1 9 .8 1.1 1.6 2.3 2.8 2.3 1.1 0 1.5-.7 2.9-.7 1.3 0 1.7.7 2.9.7 1.2 0 2-1.1 2.7-2.2.9-1.2 1.2-2.5 1.2-2.5s-2.3-.9-2.3-3.6zM14.2 5c.6-.8 1-1.8.9-2.9-.9 0-2 .6-2.6 1.4-.6.7-1.1 1.7-.9 2.7 1 .1 2-.5 2.6-1.2z"/></svg>
+                  Continue with Apple
+                </button>
+                <button onClick="{{ finishAuth }}" style="display:flex;align-items:center;justify-content:center;gap:10px;background:var(--surface);color:var(--text);border:1px solid var(--line2);border-radius:16px;padding:15px;font-size:15px;font-weight:700">
+                  <svg width="17" height="17" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.3-.98 2.4-2.08 3.1v2.6h3.36C20.7 18 21.8 15.4 21.8 12.3c0-.7-.06-1.4-.18-2.1z" opacity="0"/><path fill="#4285F4" d="M12 22c2.7 0 4.96-.9 6.62-2.4l-3.36-2.6c-.93.62-2.12.98-3.26.98-2.5 0-4.62-1.68-5.38-3.95H3.15v2.68C4.8 19.98 8.14 22 12 22z" opacity="0"/><g><path fill="#4285F4" d="M21.8 12.23c0-.72-.06-1.4-.18-2.06H12v3.9h5.5c-.24 1.28-.97 2.37-2.07 3.1v2.58h3.35c1.96-1.8 3.02-4.46 3.02-7.52z"/><path fill="#34A853" d="M12 22c2.7 0 4.97-.9 6.63-2.42l-3.35-2.58c-.93.62-2.12.99-3.28.99-2.52 0-4.66-1.7-5.42-3.98H3.13v2.66C4.78 19.98 8.13 22 12 22z"/><path fill="#FBBC05" d="M6.58 13.99c-.2-.6-.3-1.23-.3-1.88s.11-1.28.3-1.88V7.57H3.13A9.99 9.99 0 0 0 2 12.1c0 1.6.38 3.13 1.13 4.53l3.45-2.64z"/><path fill="#EA4335" d="M12 6.04c1.47 0 2.78.5 3.82 1.5l2.85-2.85C16.96 3.06 14.7 2.2 12 2.2 8.13 2.2 4.78 4.22 3.13 7.57l3.45 2.66C7.34 7.94 9.48 6.04 12 6.04z"/></g></svg>
+                  Continue with Google
+                </button>
+                <button onClick="{{ onEmail }}" style="display:flex;align-items:center;justify-content:center;gap:10px;background:transparent;color:var(--text);border:1px solid var(--line2);border-radius:16px;padding:15px;font-size:15px;font-weight:700">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/></svg>
+                  Continue with email
+                </button>
+                <p style="margin:6px 0 0;text-align:center;font-size:11.5px;line-height:1.5;color:var(--faint)">By continuing you agree to our Terms &amp;<br>Privacy. Your journal is private and encrypted.</p>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ showEmail }}">
+            <div style="position:relative;flex:1;display:flex;flex-direction:column;padding:26px 30px 30px;animation:fadeUp .4s ease">
+              <button onClick="{{ backAuth }}" style="align-self:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:12px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button>
+              <div style="margin-top:26px">
+                <h1 style="font-family:Spectral,serif;font-size:27px;font-weight:600;margin:0 0 8px">Welcome back</h1>
+                <p style="margin:0 0 26px;font-size:14.5px;color:var(--dim)">Sign in to continue your prayer life.</p>
+                <label style="display:block;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin:0 0 8px">Email</label>
+                <input type="email" placeholder="you@email.com" style="width:100%;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:15px;color:var(--text);font-size:15.5px;margin-bottom:16px;outline:none">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin:0 0 8px"><label style="font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim)">Password</label><button onClick="{{ onResetPw }}" style="background:none;border:none;color:var(--teal);font-size:12.5px;font-weight:700">Forgot?</button></div>
+                <input type="password" placeholder="••••••••" style="width:100%;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:15px;color:var(--text);font-size:15.5px;outline:none">
+              </div>
+              <div style="flex:1"></div>
+              <button onClick="{{ finishAuth }}" style="background:var(--teal);color:#052019;border:none;border-radius:16px;padding:16px;font-size:16px;font-weight:800;margin-bottom:14px">Sign in</button>
+              <p style="text-align:center;font-size:13px;color:var(--dim);margin:0">New here? <button onClick="{{ onCreate }}" style="background:none;border:none;color:var(--teal);font-weight:700;font-size:13px;padding:0">Create an account</button></p>
+            </div>
+          </sc-if>
+          <sc-if value="{{ showReset }}">
+            <div style="position:relative;flex:1;display:flex;flex-direction:column;padding:26px 30px 30px;animation:fadeUp .4s ease">
+              <button onClick="{{ onEmail }}" style="align-self:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:12px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button>
+              <div style="margin-top:26px">
+                <div style="width:60px;height:60px;border-radius:18px;background:var(--tealSoft);display:flex;align-items:center;justify-content:center;margin-bottom:20px"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/></svg></div>
+                <h1 style="font-family:Spectral,serif;font-size:27px;font-weight:600;margin:0 0 8px">Reset password</h1>
+                <p style="margin:0 0 26px;font-size:14.5px;line-height:1.6;color:var(--dim)">Enter your email and we’ll send you a secure link to set a new password.</p>
+                <label style="display:block;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin:0 0 8px">Email</label>
+                <input type="email" placeholder="you@email.com" style="width:100%;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:15px;color:var(--text);font-size:15.5px;outline:none">
+              </div>
+              <div style="flex:1"></div>
+              <button onClick="{{ onEmail }}" style="background:var(--teal);color:#052019;border:none;border-radius:16px;padding:16px;font-size:16px;font-weight:800">Send reset link</button>
+            </div>
+          </sc-if>
+          <sc-if value="{{ showCreate }}">
+            <div style="position:relative;flex:1;display:flex;flex-direction:column;padding:26px 30px 30px;animation:fadeUp .4s ease">
+              <button onClick="{{ onEmail }}" style="align-self:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:12px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button>
+              <div style="margin-top:22px">
+                <h1 style="font-family:Spectral,serif;font-size:27px;font-weight:600;margin:0 0 8px">Create your account</h1>
+                <p style="margin:0 0 22px;font-size:14.5px;color:var(--dim)">Begin a prayer life you can return to.</p>
+                <label style="display:block;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin:0 0 8px">Name</label>
+                <input placeholder="Your name" style="width:100%;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;color:var(--text);font-size:15.5px;margin-bottom:14px;outline:none">
+                <label style="display:block;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin:0 0 8px">Email</label>
+                <input type="email" placeholder="you@email.com" style="width:100%;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;color:var(--text);font-size:15.5px;margin-bottom:14px;outline:none">
+                <label style="display:block;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin:0 0 8px">Password</label>
+                <input type="password" placeholder="At least 8 characters" style="width:100%;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;color:var(--text);font-size:15.5px;outline:none">
+              </div>
+              <div style="flex:1;min-height:16px"></div>
+              <button onClick="{{ finishAuth }}" style="background:var(--teal);color:#052019;border:none;border-radius:16px;padding:16px;font-size:16px;font-weight:800;margin-bottom:12px">Create account</button>
+              <p style="text-align:center;font-size:11.5px;line-height:1.5;color:var(--faint);margin:0">By creating an account you agree to our Terms &amp; Privacy.<br>Your journal stays private and encrypted.</p>
+            </div>
+          </sc-if>
+          <sc-if value="{{ showSlides }}">
+            <div style="position:relative;flex:1;display:flex;flex-direction:column;padding:20px 32px 30px">
+              <div style="display:flex;justify-content:flex-end"><button onClick="{{ skipOnb }}" style="background:none;border:none;color:var(--faint);font-size:13.5px;font-weight:600;padding:6px">Skip</button></div>
+              <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:26px">
+                <div style="width:150px;height:150px;border-radius:50%;background:radial-gradient(circle at 50% 40%, var(--amberSoft), var(--tealSoft));display:flex;align-items:center;justify-content:center;position:relative">
+                  <div style="position:absolute;inset:-14px;border-radius:50%;border:1px solid var(--line);animation:shimmer 4s ease-in-out infinite"></div>
+                  <div style="color:var(--teal);animation:breathe 5s ease-in-out infinite">{{ onbIcon }}</div>
+                </div>
+                <div style="animation:fadeUp .5s ease" key="{{ onbStep }}">
+                  <h1 style="font-family:Spectral,serif;font-size:28px;font-weight:600;line-height:1.25;margin:0 0 14px;letter-spacing:.2px">{{ onbTitle }}</h1>
+                  <p style="margin:0 auto;font-size:15.5px;line-height:1.6;color:var(--dim);max-width:270px">{{ onbBody }}</p>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:center;gap:8px;margin-bottom:24px">
+                <div style="width:8px;height:8px;border-radius:50%;background:{{ d0 }}"></div>
+                <div style="width:8px;height:8px;border-radius:50%;background:{{ d1 }}"></div>
+                <div style="width:8px;height:8px;border-radius:50%;background:{{ d2 }}"></div>
+              </div>
+              <button onClick="{{ onbNext }}" style="background:var(--teal);color:#052019;border:none;border-radius:16px;padding:16px;font-size:16px;font-weight:700">{{ onbCta }}</button>
+            </div>
+          </sc-if>
+        </div>
+        </sc-if>
+
+        <!-- APP SCREENS mount here -->
+        <sc-if value="{{ showApp }}">
+        <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+          <div id="scroll" style="flex:1;overflow-y:auto;overflow-x:hidden">
+            <!-- HOME / TODAY -->
+            <sc-if value="{{ isHome }}">
+            <div style="padding:6px 22px 34px;display:flex;flex-direction:column;gap:18px">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;padding-top:8px">
+                <div>
+                  <p style="margin:0 0 5px;font-size:12.5px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--dim)">{{ dateStr }}</p>
+                  <h1 style="font-family:Spectral,serif;font-size:27px;font-weight:600;margin:0;line-height:1.15">Good morning,<br>Sarah</h1>
+                </div>
+                <button onClick="{{ goStreak }}" style="display:flex;align-items:center;gap:6px;background:var(--amberSoft);border:1px solid var(--line);border-radius:100px;padding:8px 13px;color:var(--amber)">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c1.5 3 4.5 4.2 4.5 8a4.5 4.5 0 0 1-9 0c0-1.6.8-2.8 1.6-3.6C10 8.8 11.4 8 12 3z"/></svg>
+                  <span style="font-size:14px;font-weight:800">{{ streak }}</span>
+                </button>
+              </div>
+
+              <button onClick="{{ goScripture }}" style="text-align:left;background:linear-gradient(155deg,var(--surface2),var(--surface));border:1px solid var(--line);border-radius:24px;padding:22px 22px 24px;color:var(--text);position:relative;overflow:hidden">
+                <div style="position:absolute;right:-30px;top:-30px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,var(--amberSoft),transparent 70%)"></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;position:relative">
+                  <span style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--teal)">Scripture of the day</span>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--dim)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+                </div>
+                <p style="font-family:Spectral,serif;font-size:22px;line-height:1.4;font-weight:500;margin:0 0 12px;position:relative">“Be still, and know that I am God.”</p>
+                <p style="margin:0;font-size:13.5px;font-weight:600;color:var(--amber);position:relative">Psalm 46:10</p>
+              </button>
+
+              <button onClick="{{ goGuide }}" style="text-align:left;background:var(--teal);border:none;border-radius:22px;padding:20px 22px;color:#052019;display:flex;align-items:center;gap:16px">
+                <div style="flex:none;width:52px;height:52px;border-radius:16px;background:rgba(5,32,25,.14);display:flex;align-items:center;justify-content:center">
+                  <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="#052019" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5v14l11-7z"/></svg>
+                </div>
+                <div style="flex:1">
+                  <p style="margin:0 0 3px;font-size:17px;font-weight:800">Start today’s prayer</p>
+                  <p style="margin:0;font-size:13px;font-weight:600;opacity:.72">Morning · Thanksgiving · 8 min</p>
+                </div>
+              </button>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <button onClick="{{ goJournal }}" style="text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:17px;color:var(--text)">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px"><path d="M5 4h11l3 3v13H5z"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></svg>
+                  <p style="margin:0 0 2px;font-size:15px;font-weight:700">Journal</p>
+                  <p style="margin:0;font-size:12.5px;color:var(--dim)">4 entries</p>
+                </button>
+                <button onClick="{{ goRequests }}" style="text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:17px;color:var(--text)">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px"><path d="M20.8 8.6c0 5-8.8 9.9-8.8 9.9s-8.8-4.9-8.8-9.9A4.6 4.6 0 0 1 12 6.5a4.6 4.6 0 0 1 8.8 2.1z"/></svg>
+                  <p style="margin:0 0 2px;font-size:15px;font-weight:700">Requests</p>
+                  <p style="margin:0;font-size:12.5px;color:var(--dim)">3 active · 1 answered</p>
+                </button>
+              </div>
+
+              <p style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:4px 0 0">More ways to pray</p>
+              <div style="display:flex;gap:10px;overflow-x:auto;margin:0 -22px;padding:2px 22px 4px">
+                <button onClick="{{ goDevotional }}" style="flex:none;width:130px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:15px;color:var(--text)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:10px"><path d="M12 6c-2-1.5-4.5-2-7-1.7v12C7.5 16 10 16.5 12 18M12 6c2-1.5 4.5-2 7-1.7v12C16.5 16 14 16.5 12 18M12 6v12"/></svg><p style="margin:0 0 2px;font-size:14px;font-weight:700">Devotional</p><p style="margin:0;font-size:11.5px;color:var(--dim)">Today · Anchored</p></button>
+                <button onClick="{{ goChallenges }}" style="flex:none;width:130px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:15px;color:var(--text)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:10px"><path d="M8 4h8v4a4 4 0 0 1-8 0z"/><path d="M8 5H5v1a3 3 0 0 0 3 3M16 5h3v1a3 3 0 0 1-3 3M9 20h6M12 12v8"/></svg><p style="margin:0 0 2px;font-size:14px;font-weight:700">Challenges</p><p style="margin:0;font-size:11.5px;color:var(--dim)">40 Days · Day 12</p></button>
+                <button onClick="{{ goCompanion }}" style="flex:none;width:130px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:15px;color:var(--text)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:10px"><circle cx="9" cy="9" r="3"/><path d="M3.5 19c.5-3 2.7-4.5 5.5-4.5s5 1.5 5.5 4.5"/><circle cx="17" cy="7" r="2.4"/><path d="M15.5 13.6c2.2.2 3.7 1.6 4.2 4.4"/></svg><p style="margin:0 0 2px;font-size:14px;font-weight:700">Companion</p><p style="margin:0;font-size:11.5px;color:var(--dim)">Pray with David</p></button>
+                <button onClick="{{ goAssistant }}" style="flex:none;width:130px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:15px;color:var(--text)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:10px"><path d="M12 3l1.6 3.4L17 8l-3.4 1.6L12 13l-1.6-3.4L7 8l3.4-1.6z"/><path d="M6 16l.8 1.7L8.5 18.5l-1.7.8L6 21l-.8-1.7L3.5 18.5l1.7-.8z"/></svg><p style="margin:0 0 2px;font-size:14px;font-weight:700">Assistant</p><p style="margin:0;font-size:11.5px;color:var(--dim)">Ask · reflect</p></button>
+              </div>
+            </div>
+            </sc-if>
+
+            <!-- DAILY PRAYER GUIDE -->
+            <sc-if value="{{ isGuide }}">
+            <div style="display:flex;flex-direction:column">
+              <div style="display:flex;align-items:center;gap:12px;padding:6px 20px 10px">
+                <button onClick="{{ goHome }}" style="background:var(--surface);border:1px solid var(--line);border-radius:12px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button>
+                <span style="font-size:13px;font-weight:700;letter-spacing:.4px;color:var(--dim)">DAILY PRAYER GUIDE</span>
+              </div>
+              <div style="padding:8px 24px 120px">
+                <div style="display:flex;gap:8px;margin-bottom:14px">
+                  <span style="background:var(--tealSoft);color:var(--teal);font-size:12px;font-weight:700;padding:6px 12px;border-radius:100px">☀ Morning</span>
+                  <span style="background:var(--amberSoft);color:var(--amber);font-size:12px;font-weight:700;padding:6px 12px;border-radius:100px">8 min</span>
+                </div>
+                <h1 style="font-family:Spectral,serif;font-size:32px;font-weight:600;margin:0 0 8px">Thanksgiving</h1>
+                <p style="margin:0 0 26px;font-size:15px;line-height:1.6;color:var(--dim)">Begin the day by naming what God has done. Let gratitude quiet the noise before you ask for anything.</p>
+
+                <div style="border-left:2px solid var(--amber);padding:2px 0 2px 18px;margin-bottom:28px">
+                  <p style="font-family:Spectral,serif;font-style:italic;font-size:18px;line-height:1.55;margin:0 0 10px">“Be careful for nothing; but in every thing by prayer and supplication with thanksgiving let your requests be made known unto God.”</p>
+                  <p style="margin:0;font-size:13px;font-weight:600;color:var(--amber)">Philippians 4:6</p>
+                </div>
+
+                <p style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--teal);margin:0 0 14px">Prayer points</p>
+                <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:28px">
+                  <div style="display:flex;gap:14px;align-items:flex-start"><span style="flex:none;width:26px;height:26px;border-radius:50%;background:var(--tealSoft);color:var(--teal);font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center">1</span><p style="margin:0;font-size:15px;line-height:1.5;padding-top:2px">Thank God for his faithfulness through the night.</p></div>
+                  <div style="display:flex;gap:14px;align-items:flex-start"><span style="flex:none;width:26px;height:26px;border-radius:50%;background:var(--tealSoft);color:var(--teal);font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center">2</span><p style="margin:0;font-size:15px;line-height:1.5;padding-top:2px">Give thanks for provision and daily bread.</p></div>
+                  <div style="display:flex;gap:14px;align-items:flex-start"><span style="flex:none;width:26px;height:26px;border-radius:50%;background:var(--tealSoft);color:var(--teal);font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center">3</span><p style="margin:0;font-size:15px;line-height:1.5;padding-top:2px">Praise him for his timing, even in unanswered prayers.</p></div>
+                  <div style="display:flex;gap:14px;align-items:flex-start"><span style="flex:none;width:26px;height:26px;border-radius:50%;background:var(--tealSoft);color:var(--teal);font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center">4</span><p style="margin:0;font-size:15px;line-height:1.5;padding-top:2px">Offer gratitude for the people he has placed in your life.</p></div>
+                </div>
+
+                <div style="background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px">
+                  <p style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0 0 8px">Reflection</p>
+                  <p style="font-family:Spectral,serif;font-size:17px;line-height:1.5;margin:0">Where have you seen God’s hand at work this week?</p>
+                </div>
+              </div>
+              <div style="position:absolute;bottom:0;left:0;right:0;padding:16px 24px 34px;background:linear-gradient(to top,var(--bg) 62%,transparent)">
+                <button onClick="{{ goTimer }}" style="width:100%;background:var(--teal);color:#052019;border:none;border-radius:16px;padding:17px;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:9px"><svg width="20" height="20" viewBox="0 0 24 24" fill="#052019"><path d="M8 5v14l11-7z"/></svg>Begin — 8 min</button>
+              </div>
+            </div>
+            </sc-if>
+
+            <!-- PRAYER TIMER -->
+            <sc-if value="{{ isTimer }}">
+            <div style="display:flex;flex-direction:column;height:100%;position:relative">
+              <div style="position:absolute;inset:0;background:radial-gradient(120% 55% at 50% 24%, var(--tealSoft) 0%, transparent 55%)"></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 22px 0;position:relative">
+                <button onClick="{{ goGuide }}" style="background:var(--surface);border:1px solid var(--line);border-radius:12px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+                <span style="font-size:13px;font-weight:700;letter-spacing:.5px;color:var(--dim)">THANKSGIVING</span>
+                <div style="width:38px"></div>
+              </div>
+
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;position:relative;padding:0 24px">
+                <div style="position:relative;width:280px;height:280px;display:flex;align-items:center;justify-content:center">
+                  <div style="position:absolute;inset:24px;border-radius:50%;background:radial-gradient(circle,var(--tealSoft),transparent 72%);animation:breathe 6s ease-in-out infinite"></div>
+                  <svg width="280" height="280" viewBox="0 0 280 280" style="position:absolute;inset:0;transform:rotate(-90deg)">
+                    <circle cx="140" cy="140" r="120" fill="none" stroke="var(--line2)" stroke-width="5"/>
+                    <circle cx="140" cy="140" r="120" fill="none" stroke="var(--teal)" stroke-width="5" stroke-linecap="round" stroke-dasharray="753.98" stroke-dashoffset="{{ ringOffset }}" style="transition:stroke-dashoffset 1s linear"/>
+                  </svg>
+                  <div style="text-align:center">
+                    <p style="font-size:58px;font-weight:300;letter-spacing:1px;margin:0;font-variant-numeric:tabular-nums">{{ timerLabel }}</p>
+                    <p style="font-size:12.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin:6px 0 0">{{ timerState }}</p>
+                  </div>
+                </div>
+
+                <button onClick="{{ toggleRun }}" style="width:74px;height:74px;border-radius:50%;background:var(--teal);border:none;color:#052019;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px -8px var(--teal)">
+                  <sc-if value="{{ running }}"><svg width="26" height="26" viewBox="0 0 24 24" fill="#052019"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></sc-if>
+                  <sc-if value="{{ notRunning }}"><svg width="28" height="28" viewBox="0 0 24 24" fill="#052019"><path d="M8 5v14l11-7z"/></svg></sc-if>
+                </button>
+              </div>
+
+              <div style="position:relative;padding:0 22px 30px;display:flex;flex-direction:column;gap:16px">
+                <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+                  <sc-for list="{{ presets }}" as="p" hint-placeholder-count="6">
+                    <button onClick="{{ p.onClick }}" style="{{ p.style }}">{{ p.label }}</button>
+                  </sc-for>
+                </div>
+                <div style="display:flex;gap:9px;justify-content:center">
+                  <sc-for list="{{ ambiences }}" as="a" hint-placeholder-count="3">
+                    <button onClick="{{ a.onClick }}" style="{{ a.style }}">{{ a.label }}</button>
+                  </sc-for>
+                </div>
+                <button onClick="{{ goFocusSetup }}" style="display:flex;align-items:center;justify-content:center;gap:9px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px;color:var(--dim);font-size:13.5px;font-weight:700"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Focus Mode · silence distractions</button>
+              </div>
+
+              <sc-if value="{{ done }}">
+              <div style="position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:40px;text-align:center;animation:fadeUp .5s ease;z-index:10">
+                <div style="width:96px;height:96px;border-radius:50%;background:var(--tealSoft);display:flex;align-items:center;justify-content:center;border:1px solid var(--line)"><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17.5 19.5 7"/></svg></div>
+                <div>
+                  <h1 style="font-family:Spectral,serif;font-size:27px;font-weight:600;margin:0 0 10px">Well prayed.</h1>
+                  <p style="margin:0;font-size:15px;line-height:1.6;color:var(--dim);max-width:250px">You spent time with God today. Your streak continues — no pressure, only presence.</p>
+                </div>
+                <div style="display:flex;align-items:center;gap:9px;background:var(--amberSoft);color:var(--amber);border-radius:100px;padding:10px 18px;font-weight:800;font-size:15px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c1.5 3 4.5 4.2 4.5 8a4.5 4.5 0 0 1-9 0c0-1.6.8-2.8 1.6-3.6C10 8.8 11.4 8 12 3z"/></svg>{{ nextStreak }} day streak</div>
+                <button onClick="{{ finishSession }}" style="background:var(--teal);color:#052019;border:none;border-radius:16px;padding:15px 40px;font-size:16px;font-weight:800">Done</button>
+              </div>
+              </sc-if>
+            </div>
+            </sc-if>
+
+            <!-- SCRIPTURE OF THE DAY -->
+            <sc-if value="{{ isScripture }}">
+            <div style="display:flex;flex-direction:column">
+              <div style="display:flex;align-items:center;gap:12px;padding:6px 20px 4px">
+                <button onClick="{{ goHome }}" style="background:var(--surface);border:1px solid var(--line);border-radius:12px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button>
+                <span style="font-size:13px;font-weight:700;letter-spacing:.4px;color:var(--dim)">JULY 21</span>
+              </div>
+              <div style="padding:14px 26px 40px">
+                <div style="text-align:center;padding:24px 0 30px;position:relative">
+                  <div style="position:absolute;left:50%;top:0;transform:translateX(-50%);width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,var(--amberSoft),transparent 70%);z-index:0"></div>
+                  <p style="font-family:Spectral,serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--teal);margin:0 0 20px;position:relative">Scripture of the day</p>
+                  <p style="font-family:Spectral,serif;font-size:27px;line-height:1.5;font-weight:500;margin:0 0 18px;position:relative">“Be still, and know that I am God: I will be exalted among the heathen, I will be exalted in the earth.”</p>
+                  <p style="margin:0;font-size:15px;font-weight:700;color:var(--amber);position:relative">Psalm 46:10 · KJV</p>
+                </div>
+
+                <div style="display:flex;flex-direction:column;gap:14px">
+                  <div style="background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px">
+                    <p style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--teal);margin:0 0 10px">Explanation</p>
+                    <p style="margin:0;font-size:15px;line-height:1.65;color:var(--text)">In the middle of chaos, God’s invitation is not to strive harder but to grow still. Stillness is where we remember who holds the world — and that it isn’t us.</p>
+                  </div>
+                  <div style="background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px">
+                    <p style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--amber);margin:0 0 10px">Prayer focus</p>
+                    <p style="margin:0;font-size:15px;line-height:1.65;color:var(--text)">Ask God to quiet an anxious part of your heart today, and to help you rest in his authority.</p>
+                  </div>
+                  <div style="background:var(--surface2);border:1px solid var(--line);border-radius:20px;padding:20px">
+                    <p style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0 0 10px">Reflection question</p>
+                    <p style="font-family:Spectral,serif;font-size:18px;line-height:1.5;margin:0">What are you trying to control that you could hand to God today?</p>
+                  </div>
+                  <button onClick="{{ goTimer }}" style="margin-top:8px;background:var(--teal);color:#052019;border:none;border-radius:16px;padding:16px;font-size:16px;font-weight:800">Pray on this</button>
+                </div>
+              </div>
+            </div>
+            </sc-if>
+
+            <!-- BIBLE READER -->
+            <sc-if value="{{ isBible }}">
+            <div style="padding:6px 0 40px">
+              <div style="display:flex;gap:8px;overflow-x:auto;padding:2px 22px 12px">
+                <span style="flex:none;background:var(--teal);color:#052019;font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:100px">Read</span>
+                <button onClick="{{ goPlans }}" style="flex:none;background:var(--surface);border:1px solid var(--line);color:var(--dim);font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:100px">Reading plans</button>
+                <button onClick="{{ goDevotional }}" style="flex:none;background:var(--surface);border:1px solid var(--line);color:var(--dim);font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:100px">Devotional</button>
+                <button onClick="{{ goBibleNotes }}" style="flex:none;background:var(--surface);border:1px solid var(--line);color:var(--dim);font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:100px">Notes</button>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 22px 14px">
+                <button style="display:flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:9px 14px;color:var(--text);font-weight:700;font-size:14px">Psalm 23 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+                <div style="display:flex;gap:6px">
+                  <span style="width:38px;height:38px;border-radius:11px;background:var(--surface);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--dim)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12v16l-6-3.5L6 20z"/></svg></span>
+                  <span style="width:38px;height:38px;border-radius:11px;background:var(--surface);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--dim)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span>
+                </div>
+              </div>
+              <div style="padding:4px 28px">
+                <h1 style="font-family:Spectral,serif;font-size:26px;font-weight:600;margin:0 0 4px">Psalm 23</h1>
+                <p style="margin:0 0 22px;font-size:13px;color:var(--dim);font-weight:600">A Psalm of David · KJV</p>
+                <div style="font-family:Spectral,serif;font-size:18.5px;line-height:1.85;color:var(--text)">
+                  <p style="margin:0 0 14px"><sup style="color:var(--teal);font-family:Manrope,sans-serif;font-size:11px;font-weight:800;margin-right:6px">1</sup>The LORD is my shepherd; I shall not want.</p>
+                  <p style="margin:0 0 14px"><sup style="color:var(--teal);font-family:Manrope,sans-serif;font-size:11px;font-weight:800;margin-right:6px">2</sup>He maketh me to lie down in green pastures: he leadeth me beside the still waters.</p>
+                  <p style="margin:0 0 14px;background:var(--amberSoft);border-radius:6px;padding:2px 4px;display:inline"><sup style="color:var(--amber);font-family:Manrope,sans-serif;font-size:11px;font-weight:800;margin-right:6px">3</sup>He restoreth my soul: he leadeth me in the paths of righteousness for his name’s sake.</p>
+                  <p style="margin:14px 0 14px"><sup style="color:var(--teal);font-family:Manrope,sans-serif;font-size:11px;font-weight:800;margin-right:6px">4</sup>Yea, though I walk through the valley of the shadow of death, I will fear no evil: for thou art with me; thy rod and thy staff they comfort me.</p>
+                  <p style="margin:0 0 14px"><sup style="color:var(--teal);font-family:Manrope,sans-serif;font-size:11px;font-weight:800;margin-right:6px">5</sup>Thou preparest a table before me in the presence of mine enemies: thou anointest my head with oil; my cup runneth over.</p>
+                  <p style="margin:0"><sup style="color:var(--teal);font-family:Manrope,sans-serif;font-size:11px;font-weight:800;margin-right:6px">6</sup>Surely goodness and mercy shall follow me all the days of my life: and I will dwell in the house of the LORD for ever.</p>
+                </div>
+              </div>
+            </div>
+            </sc-if>
+
+            <!-- JOURNAL -->
+            <sc-if value="{{ isJournal }}">
+            <div style="padding:6px 22px 40px;position:relative;min-height:100%">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0 16px">
+                <h1 style="font-family:Spectral,serif;font-size:26px;font-weight:600;margin:0">Journal</h1>
+                <button onClick="{{ goJournalNew }}" style="display:flex;align-items:center;gap:6px;background:var(--teal);color:#052019;border:none;border-radius:12px;padding:9px 14px;font-size:13.5px;font-weight:800"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#052019" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>New</button>
+              </div>
+              <sc-if value="{{ notEmpty }}">
+              <div style="display:flex;gap:8px;overflow-x:auto;margin:0 -22px 18px;padding:0 22px">
+                <span style="flex:none;background:var(--teal);color:#052019;font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:100px">All</span>
+                <span style="flex:none;background:var(--surface);border:1px solid var(--line);color:var(--dim);font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:100px">Gratitude</span>
+                <span style="flex:none;background:var(--surface);border:1px solid var(--line);color:var(--dim);font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:100px">Requests</span>
+                <span style="flex:none;background:var(--surface);border:1px solid var(--line);color:var(--dim);font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:100px">Testimony</span>
+                <span style="flex:none;background:var(--surface);border:1px solid var(--line);color:var(--dim);font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:100px">Reflection</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <sc-for list="{{ journalEntries }}" as="e" hint-placeholder-count="4">
+                  <div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:17px 18px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px">
+                      <span style="{{ e.tagStyle }}">{{ e.type }}</span>
+                      <span style="font-size:12px;color:var(--faint);font-weight:600">{{ e.date }}</span>
+                    </div>
+                    <p style="font-family:Spectral,serif;font-size:17px;font-weight:600;margin:0 0 5px">{{ e.title }}</p>
+                    <p style="margin:0;font-size:13.5px;line-height:1.55;color:var(--dim)">{{ e.excerpt }}</p>
+                  </div>
+                </sc-for>
+              </div>
+              </sc-if>
+              <sc-if value="{{ isEmpty }}">
+              <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px;padding:70px 30px">
+                <div style="width:78px;height:78px;border-radius:24px;background:var(--tealSoft);display:flex;align-items:center;justify-content:center"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11l3 3v13H5z"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></svg></div>
+                <div>
+                  <h2 style="font-family:Spectral,serif;font-size:21px;font-weight:600;margin:0 0 8px">Your journal is quiet</h2>
+                  <p style="margin:0;font-size:14.5px;line-height:1.6;color:var(--dim);max-width:250px">Capture a prayer request, a moment of gratitude, or a testimony of what God has done.</p>
+                </div>
+                <button onClick="{{ goJournalNew }}" style="background:var(--teal);color:#052019;border:none;border-radius:14px;padding:13px 26px;font-size:15px;font-weight:800">Write your first entry</button>
+              </div>
+              </sc-if>
+            </div>
+            </sc-if>
+
+            <!-- NEW JOURNAL ENTRY -->
+            <sc-if value="{{ isJournalNew }}">
+            <div style="display:flex;flex-direction:column;height:100%">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 20px 10px">
+                <button onClick="{{ goJournal }}" style="background:none;border:none;color:var(--dim);font-size:14px;font-weight:700">Cancel</button>
+                <span style="font-size:15px;font-weight:700">New entry</span>
+                <button onClick="{{ goJournal }}" style="background:none;border:none;color:var(--teal);font-size:14px;font-weight:800">Save</button>
+              </div>
+              <div style="padding:14px 24px;flex:1;overflow-y:auto">
+                <p style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0 0 10px">Type</p>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px">
+                  <span style="background:var(--teal);color:#052019;font-size:13px;font-weight:700;padding:8px 14px;border-radius:100px">Gratitude</span>
+                  <span style="background:var(--surface);border:1px solid var(--line);color:var(--dim);font-size:13px;font-weight:700;padding:8px 14px;border-radius:100px">Request</span>
+                  <span style="background:var(--surface);border:1px solid var(--line);color:var(--dim);font-size:13px;font-weight:700;padding:8px 14px;border-radius:100px">Testimony</span>
+                  <span style="background:var(--surface);border:1px solid var(--line);color:var(--dim);font-size:13px;font-weight:700;padding:8px 14px;border-radius:100px">Reflection</span>
+                </div>
+                <input placeholder="Title" style="width:100%;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:15px;color:var(--text);font-size:16px;font-weight:600;margin-bottom:12px;outline:none">
+                <textarea placeholder="Write freely — this stays private and encrypted." rows="8" style="width:100%;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:15px;color:var(--text);font-size:15px;line-height:1.6;font-family:Spectral,serif;resize:none;outline:none"></textarea>
+                <div style="display:flex;align-items:center;gap:8px;margin-top:14px;color:var(--faint);font-size:12.5px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>End-to-end encrypted · only you can read this</div>
+              </div>
+            </div>
+            </sc-if>
+
+            <!-- PRAYER REQUESTS -->
+            <sc-if value="{{ isRequests }}">
+            <div style="padding:6px 22px 40px;min-height:100%">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0 16px">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <button onClick="{{ goHome }}" style="background:var(--surface);border:1px solid var(--line);border-radius:12px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button>
+                  <h1 style="font-family:Spectral,serif;font-size:23px;font-weight:600;margin:0">Requests</h1>
+                </div>
+                <button onClick="{{ goRequestNew }}" style="display:flex;align-items:center;gap:6px;background:var(--teal);color:#052019;border:none;border-radius:12px;padding:9px 14px;font-size:13.5px;font-weight:800"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#052019" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add</button>
+              </div>
+              <sc-if value="{{ notEmpty }}">
+              <div style="display:flex;gap:8px;margin-bottom:18px">
+                <sc-for list="{{ reqTabs }}" as="t" hint-placeholder-count="3">
+                  <button onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }}</button>
+                </sc-for>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <sc-for list="{{ reqList }}" as="r" hint-placeholder-count="3">
+                  <div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px 18px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                      <span style="{{ r.tagStyle }}">{{ r.category }}</span>
+                      <span style="{{ r.stateStyle }}">{{ r.stateLabel }}</span>
+                    </div>
+                    <p style="font-size:15.5px;font-weight:700;margin:0 0 4px">{{ r.title }}</p>
+                    <p style="margin:0 0 14px;font-size:12.5px;color:var(--faint);font-weight:600">{{ r.meta }}</p>
+                    <sc-if value="{{ r.showActive }}">
+                    <div style="display:flex;gap:8px">
+                      <button onClick="{{ r.onRemind }}" style="{{ r.remStyle }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>Remind</button>
+                      <button onClick="{{ r.onAnswer }}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;border-radius:11px;padding:9px;font-size:12px;font-weight:700;background:transparent;color:var(--amber);border:1px solid var(--line)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17 19 7"/></svg>Answered</button>
+                      <button onClick="{{ r.onArchive }}" style="flex:none;width:40px;display:flex;align-items:center;justify-content:center;border-radius:11px;padding:9px;background:transparent;color:var(--dim);border:1px solid var(--line)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
+                    </div>
+                    </sc-if>
+                    <sc-if value="{{ r.showAnswered }}">
+                    <div style="display:flex;gap:8px">
+                      <button onClick="{{ r.onRestore }}" style="flex:1;border-radius:11px;padding:9px;font-size:12px;font-weight:700;background:transparent;color:var(--dim);border:1px solid var(--line)">Reopen</button>
+                      <button onClick="{{ r.onArchive }}" style="flex:1;border-radius:11px;padding:9px;font-size:12px;font-weight:700;background:transparent;color:var(--dim);border:1px solid var(--line)">Archive</button>
+                    </div>
+                    </sc-if>
+                    <sc-if value="{{ r.showArchived }}">
+                    <button onClick="{{ r.onRestore }}" style="width:100%;border-radius:11px;padding:9px;font-size:12px;font-weight:700;background:transparent;color:var(--teal);border:1px solid var(--line)">Restore to active</button>
+                    </sc-if>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ reqEmpty }}">
+                <div style="text-align:center;padding:40px 20px;color:var(--faint)"><p style="margin:0;font-size:14px">Nothing here yet.</p></div>
+                </sc-if>
+              </div>
+              </sc-if>
+              <sc-if value="{{ isEmpty }}">
+              <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px;padding:64px 30px">
+                <div style="width:78px;height:78px;border-radius:24px;background:var(--amberSoft);display:flex;align-items:center;justify-content:center"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 8.6c0 5-8.8 9.9-8.8 9.9s-8.8-4.9-8.8-9.9A4.6 4.6 0 0 1 12 6.5a4.6 4.6 0 0 1 8.8 2.1z"/></svg></div>
+                <div>
+                  <h2 style="font-family:Spectral,serif;font-size:21px;font-weight:600;margin:0 0 8px">Nothing to carry yet</h2>
+                  <p style="margin:0;font-size:14.5px;line-height:1.6;color:var(--dim);max-width:250px">Add the people and needs on your heart. We’ll help you remember to lift them up — and celebrate when they’re answered.</p>
+                </div>
+                <button onClick="{{ goRequestNew }}" style="background:var(--teal);color:#052019;border:none;border-radius:14px;padding:13px 26px;font-size:15px;font-weight:800">Add a request</button>
+              </div>
+              </sc-if>
+            </div>
+            </sc-if>
+
+            <!-- NEW REQUEST -->
+            <sc-if value="{{ isRequestNew }}">
+            <div style="display:flex;flex-direction:column;height:100%">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 20px 10px">
+                <button onClick="{{ goRequests }}" style="background:none;border:none;color:var(--dim);font-size:14px;font-weight:700">Cancel</button>
+                <span style="font-size:15px;font-weight:700">New request</span>
+                <button onClick="{{ goRequests }}" style="background:none;border:none;color:var(--teal);font-size:14px;font-weight:800">Save</button>
+              </div>
+              <div style="padding:14px 24px;flex:1;overflow-y:auto">
+                <p style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0 0 10px">Category</p>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px">
+                  <span style="background:var(--teal);color:#052019;font-size:13px;font-weight:700;padding:8px 14px;border-radius:100px">Healing</span>
+                  <span style="background:var(--surface);border:1px solid var(--line);color:var(--dim);font-size:13px;font-weight:700;padding:8px 14px;border-radius:100px">Family</span>
+                  <span style="background:var(--surface);border:1px solid var(--line);color:var(--dim);font-size:13px;font-weight:700;padding:8px 14px;border-radius:100px">Provision</span>
+                  <span style="background:var(--surface);border:1px solid var(--line);color:var(--dim);font-size:13px;font-weight:700;padding:8px 14px;border-radius:100px">Guidance</span>
+                  <span style="background:var(--surface);border:1px solid var(--line);color:var(--dim);font-size:13px;font-weight:700;padding:8px 14px;border-radius:100px">Other</span>
+                </div>
+                <input placeholder="What are you praying for?" style="width:100%;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:15px;color:var(--text);font-size:16px;font-weight:600;margin-bottom:12px;outline:none">
+                <textarea placeholder="Add a note (optional)" rows="4" style="width:100%;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:15px;color:var(--text);font-size:15px;line-height:1.6;resize:none;outline:none;margin-bottom:16px"></textarea>
+                <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:5px 16px">
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--line)">
+                    <div style="display:flex;align-items:center;gap:11px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span style="font-size:14.5px;font-weight:600">Daily reminder</span></div>
+                    <div style="width:44px;height:26px;border-radius:100px;background:var(--teal);position:relative"><div style="position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:#fff"></div></div>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 0">
+                    <div style="display:flex;align-items:center;gap:11px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--dim)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 8.6c0 5-8.8 9.9-8.8 9.9s-8.8-4.9-8.8-9.9A4.6 4.6 0 0 1 12 6.5a4.6 4.6 0 0 1 8.8 2.1z"/></svg><span style="font-size:14.5px;font-weight:600">Add to today’s prayer</span></div>
+                    <div style="width:44px;height:26px;border-radius:100px;background:var(--line2);position:relative"><div style="position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--dim)"></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            </sc-if>
+
+            <!-- STREAK -->
+            <sc-if value="{{ isStreak }}">
+            <div style="padding:6px 22px 40px">
+              <div style="padding:8px 0 4px"><h1 style="font-family:Spectral,serif;font-size:26px;font-weight:600;margin:0">Your rhythm</h1></div>
+              <sc-if value="{{ notEmpty }}">
+              <div style="background:linear-gradient(150deg,var(--surface2),var(--surface));border:1px solid var(--line);border-radius:24px;padding:24px;text-align:center;margin:16px 0 20px;position:relative;overflow:hidden">
+                <div style="position:absolute;left:50%;top:-40px;transform:translateX(-50%);width:200px;height:160px;background:radial-gradient(circle,var(--amberSoft),transparent 70%)"></div>
+                <div style="position:relative">
+                  <div style="display:inline-flex;align-items:center;justify-content:center;gap:8px;color:var(--amber);margin-bottom:6px"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c1.5 3 4.5 4.2 4.5 8a4.5 4.5 0 0 1-9 0c0-1.6.8-2.8 1.6-3.6C10 8.8 11.4 8 12 3z"/></svg></div>
+                  <p style="font-size:52px;font-weight:800;margin:0;line-height:1;letter-spacing:-1px">{{ streak }}</p>
+                  <p style="font-size:15px;font-weight:700;color:var(--dim);margin:4px 0 0">day streak</p>
+                  <p style="font-size:13.5px;line-height:1.5;color:var(--dim);margin:14px auto 0;max-width:250px">You’ve shown up 12 days in a row. Rest when you need to — a single freeze keeps your rhythm safe.</p>
+                </div>
+              </div>
+
+              <div style="background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:20px;margin-bottom:18px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><span style="font-size:15px;font-weight:700">July</span><div style="display:flex;gap:14px;font-size:11.5px;font-weight:600;color:var(--dim)"><span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:50%;background:var(--teal)"></span>Prayed</span><span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:50%;border:1.5px solid var(--amber)"></span>Frozen</span></div></div>
+                <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:8px">
+                  <span style="text-align:center;font-size:11px;font-weight:700;color:var(--faint)">S</span><span style="text-align:center;font-size:11px;font-weight:700;color:var(--faint)">M</span><span style="text-align:center;font-size:11px;font-weight:700;color:var(--faint)">T</span><span style="text-align:center;font-size:11px;font-weight:700;color:var(--faint)">W</span><span style="text-align:center;font-size:11px;font-weight:700;color:var(--faint)">T</span><span style="text-align:center;font-size:11px;font-weight:700;color:var(--faint)">F</span><span style="text-align:center;font-size:11px;font-weight:700;color:var(--faint)">S</span>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px">
+                  <sc-for list="{{ calCells }}" as="c" hint-placeholder-count="35">
+                    <div style="{{ c.style }}">{{ c.label }}</div>
+                  </sc-for>
+                </div>
+              </div>
+
+              <p style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0 0 14px">Milestones</p>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px">
+                <sc-for list="{{ milestones }}" as="m" hint-placeholder-count="6">
+                  <div style="{{ m.cardStyle }}">
+                    <div style="{{ m.badgeStyle }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v4a4 4 0 0 1-8 0z"/><path d="M8 5H5v1a3 3 0 0 0 3 3M16 5h3v1a3 3 0 0 1-3 3M9 20h6M12 12v8"/></svg></div>
+                    <p style="font-size:17px;font-weight:800;margin:8px 0 0">{{ m.days }}</p>
+                    <p style="font-size:11px;font-weight:600;color:var(--dim);margin:1px 0 0">days</p>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:15px 17px">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--dim)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12s3-7 9-7 9 7 9 7-3 7-9 7-9-7-9-7z"/><path d="M4 4l16 16"/></svg>
+                <div style="flex:1"><p style="font-size:14px;font-weight:600;margin:0">Hide streak count</p><p style="font-size:12px;color:var(--faint);margin:2px 0 0">If numbers ever add pressure, tuck them away.</p></div>
+                <div style="width:44px;height:26px;border-radius:100px;background:var(--line2);position:relative;flex:none"><div style="position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--dim)"></div></div>
+              </div>
+              </sc-if>
+              <sc-if value="{{ isEmpty }}">
+              <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px;padding:70px 30px">
+                <div style="width:82px;height:82px;border-radius:50%;background:var(--tealSoft);display:flex;align-items:center;justify-content:center;animation:breathe 5s ease-in-out infinite"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c1.5 3 4.5 4.2 4.5 8a4.5 4.5 0 0 1-9 0c0-1.6.8-2.8 1.6-3.6C10 8.8 11.4 8 12 3z"/></svg></div>
+                <div>
+                  <h2 style="font-family:Spectral,serif;font-size:22px;font-weight:600;margin:0 0 8px">Every rhythm begins with one day</h2>
+                  <p style="margin:0;font-size:14.5px;line-height:1.6;color:var(--dim);max-width:255px">Complete today’s prayer to begin your streak. There’s no wrong pace — just keep coming back.</p>
+                </div>
+                <button onClick="{{ goHome }}" style="background:var(--teal);color:#052019;border:none;border-radius:14px;padding:13px 26px;font-size:15px;font-weight:800">Begin today</button>
+              </div>
+              </sc-if>
+            </div>
+            </sc-if>
+
+            <!-- SETTINGS / PROFILE -->
+            <sc-if value="{{ isSettings }}">
+            <div style="padding:6px 22px 40px">
+              <div style="padding:8px 0 4px"><h1 style="font-family:Spectral,serif;font-size:26px;font-weight:600;margin:0">Profile</h1></div>
+              <div style="display:flex;align-items:center;gap:15px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:18px;margin:16px 0 22px">
+                <div style="width:58px;height:58px;border-radius:50%;background:linear-gradient(140deg,var(--teal),var(--tealDeep));display:flex;align-items:center;justify-content:center;color:#052019;font-size:22px;font-weight:800">S</div>
+                <div style="flex:1"><p style="font-size:17px;font-weight:700;margin:0 0 2px">Sarah Bennett</p><p style="font-size:13px;color:var(--dim);margin:0">sarah.b@email.com</p></div>
+                <button style="background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:9px 14px;color:var(--dim);font-size:13px;font-weight:700">Edit</button>
+              </div>
+
+              <button onClick="{{ goUpgrade }}" style="width:100%;display:flex;align-items:center;gap:14px;text-align:left;background:linear-gradient(150deg,var(--amberSoft),var(--surface));border:1px solid var(--amber);border-radius:20px;padding:17px;color:var(--text);margin-bottom:22px"><div style="flex:none;width:44px;height:44px;border-radius:13px;background:linear-gradient(150deg,var(--amber),#8a5a1a);display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2a1a05" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l4 5 4-7 4 7 4-5-1.5 12H5.5z"/></svg></div><div style="flex:1"><p style="font-size:15px;font-weight:800;margin:0 0 2px">Go Premium</p><p style="font-size:12.5px;color:var(--dim);margin:0">Audio Bible, AI assistant, unlimited companions</p></div><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button>
+
+              <p style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0 0 12px">Notifications</p>
+              <div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:4px 16px;margin-bottom:20px">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--line)"><span style="font-size:14.5px;font-weight:600">Daily prayer reminder</span><div style="width:44px;height:26px;border-radius:100px;background:var(--teal);position:relative"><div style="position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:#fff"></div></div></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--line)"><span style="font-size:14.5px;font-weight:600">Scripture of the day</span><div style="width:44px;height:26px;border-radius:100px;background:var(--teal);position:relative"><div style="position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:#fff"></div></div></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0"><div><span style="font-size:14.5px;font-weight:600">Streak protection</span><p style="font-size:11.5px;color:var(--faint);margin:2px 0 0">A gentle nudge only if you’re about to miss a day</p></div><div style="width:44px;height:26px;border-radius:100px;background:var(--line2);position:relative;flex:none;margin-left:12px"><div style="position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--dim)"></div></div></div>
+              </div>
+
+              <p style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0 0 12px">Appearance</p>
+              <div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:20px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><span style="font-size:14.5px;font-weight:600">Theme</span></div>
+                <div style="display:flex;gap:10px">
+                  <button onClick="{{ setDark }}" style="{{ themeDarkBtn }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>Dark</button>
+                  <button onClick="{{ setLight }}" style="{{ themeLightBtn }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2M12 19.5v2M4.2 4.2l1.5 1.5M18.3 18.3l1.5 1.5M2.5 12h2M19.5 12h2M4.2 19.8l1.5-1.5M18.3 5.7l1.5-1.5"/></svg>Light</button>
+                </div>
+              </div>
+
+              <div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:4px 16px;margin-bottom:24px">
+                <div style="display:flex;align-items:center;gap:12px;padding:15px 0;border-bottom:1px solid var(--line)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span style="font-size:14.5px;font-weight:600;flex:1">Privacy &amp; encryption</span><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--faint)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></div>
+                <div style="display:flex;align-items:center;gap:12px;padding:15px 0"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg><span style="font-size:14.5px;font-weight:600;flex:1">About &amp; help</span><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--faint)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></div>
+              </div>
+              <button style="width:100%;background:transparent;border:1px solid var(--line2);border-radius:14px;padding:14px;color:var(--danger);font-size:14.5px;font-weight:700">Sign out</button>
+              <p style="text-align:center;font-size:11.5px;color:var(--faint);margin:16px 0 0">Prayer Guide · v1.0.0</p>
+            </div>
+            </sc-if>
+
+            <!-- GUIDE LIBRARY -->
+            <sc-if value="{{ isGuideLib }}">
+            <div style="padding:6px 22px 40px">
+              <div style="display:flex;align-items:center;gap:12px;padding:6px 0 6px"><button onClick="{{ goHome }}" style="background:var(--surface);border:1px solid var(--line);border-radius:12px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button><h1 style="font-family:Spectral,serif;font-size:23px;font-weight:600;margin:0">Prayer Guide</h1></div>
+              <p style="margin:6px 0 14px;font-size:14.5px;color:var(--dim)">Choose how you’ll pray today.</p>
+              <div style="display:flex;gap:8px;margin-bottom:18px"><span style="background:var(--teal);color:#052019;font-size:12.5px;font-weight:700;padding:8px 15px;border-radius:100px">☀ Morning</span><span style="background:var(--surface);border:1px solid var(--line);color:var(--dim);font-size:12.5px;font-weight:700;padding:8px 15px;border-radius:100px">☾ Evening</span></div>
+              <div style="display:flex;flex-direction:column;gap:11px">
+                <sc-for list="{{ guideCats }}" as="g" hint-placeholder-count="6">
+                  <button onClick="{{ g.onClick }}" style="display:flex;align-items:center;gap:15px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:15px 16px;color:var(--text)">
+                    <div style="flex:none;width:46px;height:46px;border-radius:14px;background:{{ g.bg }};display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{ g.c }}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2 2M16.4 16.4l2 2M18.4 5.6l-2 2M7.6 16.4l-2 2"/><circle cx="12" cy="12" r="3.4"/></svg></div>
+                    <div style="flex:1"><p style="margin:0 0 2px;font-size:15.5px;font-weight:700">{{ g.name }}</p><p style="margin:0;font-size:12.5px;color:var(--dim)">{{ g.desc }}</p></div>
+                    <span style="font-size:12px;font-weight:700;color:var(--faint)">{{ g.dur }}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+            </sc-if>
+
+            <!-- NOTIFICATIONS -->
+            <sc-if value="{{ isNotif }}">
+            <div style="padding:6px 22px 40px">
+              <div style="display:flex;align-items:center;gap:12px;padding:6px 0 14px"><button onClick="{{ goSettings }}" style="background:var(--surface);border:1px solid var(--line);border-radius:12px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button><h1 style="font-family:Spectral,serif;font-size:23px;font-weight:600;margin:0">Notifications</h1></div>
+              <p style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0 0 12px">Prayer reminders</p>
+              <div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:4px 16px;margin-bottom:20px">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--line)"><div><p style="font-size:14.5px;font-weight:600;margin:0">Morning prayer</p><p style="font-size:12px;color:var(--faint);margin:2px 0 0">6:30 AM</p></div><div style="width:44px;height:26px;border-radius:100px;background:var(--teal);position:relative"><div style="position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:#fff"></div></div></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0"><div><p style="font-size:14.5px;font-weight:600;margin:0">Evening prayer</p><p style="font-size:12px;color:var(--faint);margin:2px 0 0">8:00 PM</p></div><div style="width:44px;height:26px;border-radius:100px;background:var(--teal);position:relative"><div style="position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:#fff"></div></div></div>
+              </div>
+              <p style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0 0 12px">Gentle nudges</p>
+              <div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:4px 16px;margin-bottom:20px">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--line)"><span style="font-size:14.5px;font-weight:600">Scripture of the day</span><div style="width:44px;height:26px;border-radius:100px;background:var(--teal);position:relative"><div style="position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:#fff"></div></div></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--line)"><div style="flex:1;padding-right:12px"><p style="font-size:14.5px;font-weight:600;margin:0">Streak protection</p><p style="font-size:11.5px;color:var(--faint);margin:2px 0 0">Only if you’re about to miss a day</p></div><div style="width:44px;height:26px;border-radius:100px;background:var(--line2);position:relative;flex:none"><div style="position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--dim)"></div></div></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0"><span style="font-size:14.5px;font-weight:600">Companion check-ins</span><div style="width:44px;height:26px;border-radius:100px;background:var(--teal);position:relative"><div style="position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:#fff"></div></div></div>
+              </div>
+              <p style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0 0 12px">Quiet hours</p>
+              <div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:11px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><span style="font-size:14.5px;font-weight:600">10:00 PM – 6:00 AM</span></div><span style="font-size:13px;font-weight:700;color:var(--teal)">Edit</span></div>
+            </div>
+            </sc-if>
+
+            <!-- BOOKMARKS & NOTES -->
+            <sc-if value="{{ isBibleNotes }}">
+            <div style="padding:6px 22px 40px">
+              <div style="display:flex;align-items:center;gap:12px;padding:6px 0 14px"><button onClick="{{ goBible }}" style="background:var(--surface);border:1px solid var(--line);border-radius:12px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button><h1 style="font-family:Spectral,serif;font-size:23px;font-weight:600;margin:0">Bookmarks &amp; Notes</h1></div>
+              <div style="display:flex;gap:8px;margin-bottom:18px"><span style="background:var(--teal);color:#052019;font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:100px">Highlights</span><span style="background:var(--surface);border:1px solid var(--line);color:var(--dim);font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:100px">Bookmarks</span><span style="background:var(--surface);border:1px solid var(--line);color:var(--dim);font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:100px">Notes</span></div>
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:14px;padding:15px 16px"><p style="font-size:12px;font-weight:700;color:var(--amber);margin:0 0 6px">Psalm 23:3</p><p style="font-family:Spectral,serif;font-size:15.5px;line-height:1.5;margin:0">He restoreth my soul: he leadeth me in the paths of righteousness.</p></div>
+                <div style="background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--teal);border-radius:14px;padding:15px 16px"><p style="font-size:12px;font-weight:700;color:var(--teal);margin:0 0 6px">Philippians 4:6</p><p style="font-family:Spectral,serif;font-size:15.5px;line-height:1.5;margin:0 0 8px">Be careful for nothing; but in every thing by prayer…</p><p style="font-size:13px;color:var(--dim);margin:0;font-style:italic">Note: memorize this week.</p></div>
+                <div style="background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:14px;padding:15px 16px"><p style="font-size:12px;font-weight:700;color:var(--amber);margin:0 0 6px">Isaiah 40:31</p><p style="font-family:Spectral,serif;font-size:15.5px;line-height:1.5;margin:0">They that wait upon the LORD shall renew their strength.</p></div>
+              </div>
+            </div>
+            </sc-if>
+
+            <!-- FOCUS MODE SETUP -->
+            <sc-if value="{{ isFocusSetup }}">
+            <div style="padding:6px 22px 40px">
+              <div style="display:flex;align-items:center;gap:12px;padding:6px 0 14px"><button onClick="{{ goTimer }}" style="background:var(--surface);border:1px solid var(--line);border-radius:12px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button><h1 style="font-family:Spectral,serif;font-size:23px;font-weight:600;margin:0">Focus Mode</h1></div>
+              <p style="margin:0 0 18px;font-size:14.5px;line-height:1.6;color:var(--dim)">Quiet distracting apps while you pray. Calls and messages always come through.</p>
+              <p style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0 0 12px">Mode</p>
+              <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:22px">
+                <div style="background:var(--tealSoft);border:1px solid var(--teal);border-radius:16px;padding:16px;display:flex;align-items:center;gap:14px"><div style="flex:none;width:24px;height:24px;border-radius:50%;border:6px solid var(--teal);background:var(--bg)"></div><div style="flex:1"><p style="font-size:15px;font-weight:700;margin:0">Gentle</p><p style="font-size:12.5px;color:var(--dim);margin:2px 0 0">A calm reminder overlay you can dismiss</p></div><span style="font-size:11px;font-weight:700;color:var(--teal)">Free</span></div>
+                <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;align-items:center;gap:14px"><div style="flex:none;width:24px;height:24px;border-radius:50%;border:1.5px solid var(--line2)"></div><div style="flex:1"><p style="font-size:15px;font-weight:700;margin:0">Full block</p><p style="font-size:12.5px;color:var(--dim);margin:2px 0 0">OS-enforced app shield for the session</p></div><span style="background:var(--amberSoft);color:var(--amber);font-size:10.5px;font-weight:800;padding:4px 9px;border-radius:100px">Premium</span></div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><p style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0">Apps to quiet</p><span style="font-size:12.5px;font-weight:700;color:var(--teal)">Social preset</span></div>
+              <div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:4px 16px;margin-bottom:24px">
+                <sc-for list="{{ focusApps }}" as="a" hint-placeholder-count="6">
+                  <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)"><div style="flex:none;width:34px;height:34px;border-radius:9px;background:{{ a.col }}"></div><span style="flex:1;font-size:14.5px;font-weight:600">{{ a.name }}</span><div style="{{ a.tstyle }}"><div style="{{ a.kstyle }}"></div></div></div>
+                </sc-for>
+              </div>
+              <button onClick="{{ startFocus }}" style="width:100%;background:var(--teal);color:#052019;border:none;border-radius:16px;padding:16px;font-size:16px;font-weight:800">Begin focused prayer</button>
+            </div>
+            </sc-if>
+
+            <!-- PRAYER COMPANION -->
+            <sc-if value="{{ isCompanion }}">
+            <div style="padding:6px 22px 40px">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0 16px"><div style="display:flex;align-items:center;gap:12px"><button onClick="{{ goHome }}" style="background:var(--surface);border:1px solid var(--line);border-radius:12px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button><h1 style="font-family:Spectral,serif;font-size:23px;font-weight:600;margin:0">Companion</h1></div><button onClick="{{ goInvite }}" style="display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:9px 13px;color:var(--dim);font-size:13px;font-weight:700"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Invite</button></div>
+              <div style="background:linear-gradient(150deg,var(--surface2),var(--surface));border:1px solid var(--line);border-radius:22px;padding:20px;margin-bottom:18px;display:flex;align-items:center;gap:16px"><div style="flex:none;width:56px;height:56px;border-radius:50%;background:linear-gradient(140deg,var(--amber),#8a5a1a);display:flex;align-items:center;justify-content:center;color:#2a1a05;font-size:22px;font-weight:800">D</div><div style="flex:1"><p style="font-size:17px;font-weight:700;margin:0 0 3px">David M.</p><div style="display:flex;align-items:center;gap:6px;color:var(--amber);font-size:13px;font-weight:700"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c1.5 3 4.5 4.2 4.5 8a4.5 4.5 0 0 1-9 0c0-1.6.8-2.8 1.6-3.6C10 8.8 11.4 8 12 3z"/></svg>9-day shared streak</div></div></div>
+              <div style="background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px;margin-bottom:18px"><p style="font-size:15px;font-weight:700;margin:0 0 4px">Today’s check-in</p><p style="font-size:12.5px;color:var(--dim);margin:0 0 14px">Let David know you prayed — no pressure either way.</p><div style="display:flex;gap:9px"><button onClick="{{ setPrayed }}" style="{{ ciPrayed }}">Prayed</button><button onClick="{{ setLater }}" style="{{ ciLater }}">Later</button><button onClick="{{ setMissed }}" style="{{ ciMissed }}">Missed</button></div></div>
+              <p style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0 0 12px">Shared requests</p>
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:15px 16px"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:11px;font-weight:800;color:var(--teal)">FROM DAVID</span><span style="font-size:11.5px;color:var(--faint)">2d</span></div><p style="font-size:14.5px;font-weight:600;margin:0">Wisdom for a big decision at work</p></div>
+                <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:15px 16px"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:11px;font-weight:800;color:var(--amber)">YOU SHARED</span><span style="font-size:11.5px;color:var(--faint)">4d</span></div><p style="font-size:14.5px;font-weight:600;margin:0">Mom’s recovery after surgery</p></div>
+              </div>
+            </div>
+            </sc-if>
+
+            <!-- INVITE COMPANION -->
+            <sc-if value="{{ isInvite }}">
+            <div style="padding:6px 22px 40px">
+              <div style="display:flex;align-items:center;gap:12px;padding:6px 0 8px"><button onClick="{{ goCompanion }}" style="background:var(--surface);border:1px solid var(--line);border-radius:12px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button><h1 style="font-family:Spectral,serif;font-size:23px;font-weight:600;margin:0">Invite a companion</h1></div>
+              <p style="margin:6px 0 22px;font-size:14.5px;line-height:1.6;color:var(--dim)">Pray alongside someone you trust. You’ll share encouragement and chosen requests — never your private journal.</p>
+
+              <div style="display:flex;flex-direction:column;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:26px 20px;margin-bottom:22px">
+                <div style="width:150px;height:150px;border-radius:20px;background:#fff;display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(7,1fr);gap:3px;padding:12px">
+                  <div style="background:#0E1513;border-radius:2px;grid-column:1/3;grid-row:1/3"></div><div style="background:#0E1513;border-radius:2px;grid-column:6/8;grid-row:1/3"></div><div style="background:#0E1513;border-radius:2px;grid-column:1/3;grid-row:6/8"></div>
+                  <div style="background:#0E1513;border-radius:2px;grid-column:4"></div><div style="background:#0E1513;border-radius:2px;grid-column:5;grid-row:3"></div><div style="background:#0E1513;border-radius:2px;grid-column:4;grid-row:5"></div><div style="background:#0E1513;border-radius:2px;grid-column:6;grid-row:5"></div><div style="background:#0E1513;border-radius:2px;grid-column:5;grid-row:6"></div><div style="background:#0E1513;border-radius:2px;grid-column:7;grid-row:6"></div><div style="background:#0E1513;border-radius:2px;grid-column:6;grid-row:7"></div>
+                </div>
+                <p style="margin:0;font-size:13px;color:var(--dim);text-align:center">Have them scan this to pair instantly</p>
+              </div>
+
+              <p style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0 0 12px">Or share your invite</p>
+              <div style="display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:6px 6px 6px 16px;margin-bottom:12px">
+                <span style="flex:1;font-size:13.5px;color:var(--dim);font-family:ui-monospace,Menlo,monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">prayerguide.app/j/sarah-9f2k</span>
+                <button style="flex:none;background:var(--teal);color:#052019;border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:800">Copy</button>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px"><input placeholder="Invite by username or email" style="flex:1;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;color:var(--text);font-size:14.5px;outline:none"><button style="flex:none;width:48px;height:48px;border-radius:14px;background:var(--surface);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;color:var(--teal)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
+
+              <div style="display:flex;gap:10px">
+                <button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:15px;color:var(--text)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 3v13M8 7l4-4 4 4"/></svg><span style="font-size:12.5px;font-weight:700">Share link</span></button>
+                <button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:15px;color:var(--text)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><path d="M13 13h3v3M20 16v4h-4"/></svg><span style="font-size:12.5px;font-weight:700">Show QR</span></button>
+                <button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:15px;color:var(--text)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16M4 5l1.5 13a1 1 0 0 0 1 .9h11a1 1 0 0 0 1-.9L20 5M9 5V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/></svg><span style="font-size:12.5px;font-weight:700">Message</span></button>
+              </div>
+              <p style="text-align:center;font-size:11.5px;line-height:1.5;color:var(--faint);margin:22px 0 0">Free plan includes one companion. You can change or remove them anytime.</p>
+            </div>
+            </sc-if>
+
+            <!-- CHALLENGES -->
+            <sc-if value="{{ isChallenges }}">
+            <div style="padding:6px 22px 40px">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0 4px"><div style="display:flex;align-items:center;gap:12px"><button onClick="{{ goHome }}" style="background:var(--surface);border:1px solid var(--line);border-radius:12px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button><h1 style="font-family:Spectral,serif;font-size:23px;font-weight:600;margin:0">Challenges</h1></div><button onClick="{{ goChallengeNew }}" style="display:flex;align-items:center;gap:6px;background:var(--teal);color:#052019;border:none;border-radius:12px;padding:9px 14px;font-size:13.5px;font-weight:800"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#052019" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Create</button></div>
+              <div style="background:linear-gradient(150deg,var(--tealSoft),var(--surface));border:1px solid var(--teal);border-radius:22px;padding:20px;margin:16px 0 22px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><span style="font-size:11px;font-weight:800;letter-spacing:1px;color:var(--teal)">IN PROGRESS</span><span style="font-size:13px;font-weight:800;color:var(--teal)">Day 12 / 40</span></div><p style="font-family:Spectral,serif;font-size:20px;font-weight:600;margin:0 0 12px">40 Days of Growth</p><div style="height:8px;border-radius:100px;background:var(--surface2);overflow:hidden;margin-bottom:14px"><div style="height:100%;width:30%;border-radius:100px;background:var(--teal)"></div></div><button onClick="{{ goChallenge }}" style="width:100%;background:var(--teal);color:#052019;border:none;border-radius:14px;padding:13px;font-size:14.5px;font-weight:800">Continue — Day 13</button></div>
+              <p style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0 0 12px">Start a new challenge</p>
+              <div style="display:flex;flex-direction:column;gap:11px">
+                <sc-for list="{{ challenges }}" as="c" hint-placeholder-count="4">
+                  <button onClick="{{ c.onClick }}" style="display:flex;align-items:center;gap:14px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:15px 16px;color:var(--text)"><div style="flex:none;width:44px;height:44px;border-radius:13px;background:var(--tealSoft);display:flex;align-items:center;justify-content:center;color:var(--teal)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v4a4 4 0 0 1-8 0z"/><path d="M8 5H5v1a3 3 0 0 0 3 3M16 5h3v1a3 3 0 0 1-3 3M9 20h6M12 12v8"/></svg></div><div style="flex:1"><p style="font-size:15.5px;font-weight:700;margin:0 0 2px">{{ c.name }}</p><p style="font-size:12.5px;color:var(--dim);margin:0">{{ c.len }}</p></div><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--faint)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button>
+                </sc-for>
+              </div>
+            </div>
+            </sc-if>
+
+            <!-- CHALLENGE DETAIL -->
+            <sc-if value="{{ isChallenge }}">
+            <div style="padding:6px 22px 40px">
+              <div style="display:flex;align-items:center;gap:12px;padding:6px 0 14px"><button onClick="{{ goChallenges }}" style="background:var(--surface);border:1px solid var(--line);border-radius:12px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button><span style="font-size:13px;font-weight:700;color:var(--dim)">{{ chLen }}</span></div>
+              <h1 style="font-family:Spectral,serif;font-size:29px;font-weight:600;margin:0 0 6px">{{ chName }}</h1>
+              <p style="margin:0 0 22px;font-size:14.5px;line-height:1.6;color:var(--dim)">{{ chDesc }}</p>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><span style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--teal)">Progress</span><span style="font-size:13px;font-weight:800;color:var(--dim)">{{ chPctLabel }}</span></div>
+              <div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:20px"><div style="display:grid;grid-template-columns:repeat(10,1fr);gap:6px"><sc-for list="{{ chDots }}" as="d" hint-placeholder-count="40"><div style="{{ d.style }}"></div></sc-for></div></div>
+              <div style="background:var(--tealSoft);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:24px"><p style="font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--teal);margin:0 0 8px">Today’s focus</p><p style="font-family:Spectral,serif;font-size:17px;margin:0">{{ chFocus }}</p></div>
+              <button onClick="{{ goGuide }}" style="width:100%;background:var(--teal);color:#052019;border:none;border-radius:16px;padding:16px;font-size:16px;font-weight:800;margin-bottom:11px">{{ chContinueLabel }}</button>
+              <button onClick="{{ goInvite }}" style="width:100%;display:flex;align-items:center;justify-content:center;gap:9px;background:var(--surface);border:1px solid var(--line2);border-radius:16px;padding:15px;color:var(--text);font-size:15px;font-weight:700"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 19c.5-3.4 2.8-5 6.5-5 1.4 0 2.6.2 3.6.7"/><path d="M18 13v6M15 16h6"/></svg>Invite a companion</button>
+            </div>
+            </sc-if>
+
+            <!-- CREATE CHALLENGE -->
+            <sc-if value="{{ isChallengeNew }}">
+            <div style="display:flex;flex-direction:column;height:100%">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 20px 10px"><button onClick="{{ goChallenges }}" style="background:none;border:none;color:var(--dim);font-size:14px;font-weight:700">Cancel</button><span style="font-size:15px;font-weight:700">New challenge</span><button onClick="{{ goChallenges }}" style="background:none;border:none;color:var(--teal);font-size:14px;font-weight:800">Create</button></div>
+              <div style="padding:14px 24px;flex:1;overflow-y:auto">
+                <input placeholder="Name your challenge" style="width:100%;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:15px;color:var(--text);font-size:16px;font-weight:600;margin-bottom:22px;outline:none">
+                <p style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0 0 10px">Length</p>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px"><span style="background:var(--surface);border:1px solid var(--line);color:var(--dim);font-size:13.5px;font-weight:700;padding:9px 15px;border-radius:100px">7 days</span><span style="background:var(--surface);border:1px solid var(--line);color:var(--dim);font-size:13.5px;font-weight:700;padding:9px 15px;border-radius:100px">21 days</span><span style="background:var(--teal);color:#052019;font-size:13.5px;font-weight:700;padding:9px 15px;border-radius:100px">30 days</span><span style="background:var(--surface);border:1px solid var(--line);color:var(--dim);font-size:13.5px;font-weight:700;padding:9px 15px;border-radius:100px">40 days</span><span style="background:var(--surface);border:1px solid var(--line);color:var(--dim);font-size:13.5px;font-weight:700;padding:9px 15px;border-radius:100px">Custom</span></div>
+                <p style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0 0 10px">Focus</p>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px"><span style="background:var(--teal);color:#052019;font-size:13px;font-weight:700;padding:8px 14px;border-radius:100px">Growth</span><span style="background:var(--surface);border:1px solid var(--line);color:var(--dim);font-size:13px;font-weight:700;padding:8px 14px;border-radius:100px">Fasting</span><span style="background:var(--surface);border:1px solid var(--line);color:var(--dim);font-size:13px;font-weight:700;padding:8px 14px;border-radius:100px">Revival</span><span style="background:var(--surface);border:1px solid var(--line);color:var(--dim);font-size:13px;font-weight:700;padding:8px 14px;border-radius:100px">Thanksgiving</span></div>
+                <p style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0 0 10px">Daily reminder</p>
+                <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:22px"><span style="font-size:14.5px;font-weight:600">8:00 AM</span><div style="width:44px;height:26px;border-radius:100px;background:var(--teal);position:relative"><div style="position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:#fff"></div></div></div>
+                <button onClick="{{ goInvite }}" style="width:100%;display:flex;align-items:center;gap:13px;background:var(--surface);border:1px dashed var(--line2);border-radius:16px;padding:16px;color:var(--text);text-align:left;margin-bottom:6px"><div style="flex:none;width:40px;height:40px;border-radius:50%;background:var(--tealSoft);display:flex;align-items:center;justify-content:center;color:var(--teal)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 19c.5-3.4 2.8-5 6.5-5 1.4 0 2.6.2 3.6.7"/><path d="M18 13v6M15 16h6"/></svg></div><div style="flex:1"><p style="font-size:14.5px;font-weight:700;margin:0">Invite a companion</p><p style="font-size:12px;color:var(--dim);margin:2px 0 0">Take it on together and cheer each other on</p></div><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--faint)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button>
+              </div>
+              <div style="padding:12px 24px 30px"><button onClick="{{ goChallenges }}" style="width:100%;background:var(--teal);color:#052019;border:none;border-radius:16px;padding:16px;font-size:16px;font-weight:800">Create challenge</button></div>
+            </div>
+            </sc-if>
+
+            <!-- READING PLANS -->
+            <sc-if value="{{ isPlans }}">
+            <div style="padding:6px 22px 40px">
+              <div style="display:flex;align-items:center;gap:12px;padding:6px 0 6px"><button onClick="{{ goBible }}" style="background:var(--surface);border:1px solid var(--line);border-radius:12px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button><h1 style="font-family:Spectral,serif;font-size:23px;font-weight:600;margin:0">Reading Plans</h1></div>
+              <p style="margin:6px 0 16px;font-size:14.5px;color:var(--dim)">Read through Scripture at a pace that fits your life.</p>
+              <div style="display:flex;flex-direction:column;gap:11px">
+                <sc-for list="{{ plans }}" as="p" hint-placeholder-count="4">
+                  <button onClick="{{ p.onClick }}" style="display:flex;align-items:center;gap:14px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:15px 16px;color:var(--text)"><div style="flex:none;width:44px;height:44px;border-radius:13px;background:var(--tealSoft);display:flex;align-items:center;justify-content:center;color:var(--teal)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H18a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6.5A1.5 1.5 0 0 0 5 20.5z"/></svg></div><div style="flex:1"><p style="font-size:15.5px;font-weight:700;margin:0 0 2px">{{ p.name }}</p><p style="font-size:12.5px;color:var(--dim);margin:0">{{ p.sub }}</p></div><span style="font-size:12px;font-weight:700;color:var(--teal)">{{ p.pctLabel }}</span></button>
+                </sc-for>
+              </div>
+            </div>
+            </sc-if>
+
+            <!-- PLAN DETAIL -->
+            <sc-if value="{{ isPlan }}">
+            <div style="padding:6px 22px 40px">
+              <div style="display:flex;align-items:center;gap:12px;padding:6px 0 14px"><button onClick="{{ goPlans }}" style="background:var(--surface);border:1px solid var(--line);border-radius:12px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button><span style="font-size:13px;font-weight:700;color:var(--dim)">{{ plSub }}</span></div>
+              <h1 style="font-family:Spectral,serif;font-size:27px;font-weight:600;margin:0 0 18px">{{ plName }}</h1>
+              <div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:18px"><div style="display:flex;justify-content:space-between;margin-bottom:10px"><span style="font-size:13px;font-weight:700;color:var(--dim)">Progress</span><span style="font-size:13px;font-weight:800;color:var(--teal)">{{ plPctW }}</span></div><div style="height:8px;border-radius:100px;background:var(--surface2);overflow:hidden"><div style="height:100%;width:{{ plPctW }};border-radius:100px;background:var(--teal)"></div></div></div>
+              <div style="background:var(--tealSoft);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:24px"><p style="font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--teal);margin:0 0 8px">Today’s reading</p><p style="font-family:Spectral,serif;font-size:18px;margin:0">{{ plToday }}</p></div>
+              <button onClick="{{ goBible }}" style="width:100%;background:var(--teal);color:#052019;border:none;border-radius:16px;padding:16px;font-size:16px;font-weight:800">Read now</button>
+            </div>
+            </sc-if>
+
+            <!-- DAILY DEVOTIONAL -->
+            <sc-if value="{{ isDevotional }}">
+            <div style="padding:6px 22px 40px">
+              <div style="display:flex;align-items:center;gap:12px;padding:6px 0 8px"><button onClick="{{ goHome }}" style="background:var(--surface);border:1px solid var(--line);border-radius:12px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button><span style="font-size:13px;font-weight:700;color:var(--dim)">DEVOTIONAL · JULY 21</span></div>
+              <h1 style="font-family:Spectral,serif;font-size:30px;font-weight:600;margin:6px 0 6px">Anchored</h1>
+              <p style="font-size:13.5px;font-weight:700;color:var(--amber);margin:0 0 20px">Hebrews 6:19</p>
+              <div style="border-left:2px solid var(--amber);padding-left:16px;margin-bottom:22px"><p style="font-family:Spectral,serif;font-style:italic;font-size:17px;line-height:1.55;margin:0">“Which hope we have as an anchor of the soul, both sure and stedfast…”</p></div>
+              <div style="font-size:15.5px;line-height:1.75;color:var(--text)"><p style="margin:0 0 14px">An anchor doesn’t stop the storm — it holds you steady inside it. The writer of Hebrews calls our hope in God exactly that: sure and steadfast.</p><p style="margin:0">Whatever waves are moving your circumstances today, they don’t move the One your hope is fastened to. Let that settle your heart before you pray.</p></div>
+              <div style="background:var(--surface2);border:1px solid var(--line);border-radius:18px;padding:18px;margin:24px 0 12px"><p style="font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0 0 8px">Reflect</p><p style="font-family:Spectral,serif;font-size:17px;line-height:1.5;margin:0">What storm are you asking God to calm, and can you trust the anchor to hold?</p></div>
+              <button onClick="{{ goTimer }}" style="width:100%;background:var(--teal);color:#052019;border:none;border-radius:16px;padding:16px;font-size:16px;font-weight:800;margin-top:10px">Pray &amp; mark complete</button>
+            </div>
+            </sc-if>
+
+            <!-- FASTING COMPANION -->
+            <sc-if value="{{ isFasting }}">
+            <div style="display:flex;flex-direction:column;height:100%;position:relative">
+              <div style="position:absolute;inset:0;background:radial-gradient(120% 50% at 50% 20%, var(--amberSoft) 0%, transparent 55%)"></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:6px 22px 0;position:relative"><button onClick="{{ goHome }}" style="background:var(--surface);border:1px solid var(--line);border-radius:12px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button><span style="font-size:13px;font-weight:700;color:var(--dim)">FASTING</span></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;position:relative;padding:20px"><p style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--amber);margin:0">Sunrise to Sunset</p><div style="position:relative;width:250px;height:250px;display:flex;align-items:center;justify-content:center;margin:6px 0"><svg width="250" height="250" viewBox="0 0 250 250" style="position:absolute;transform:rotate(-90deg)"><circle cx="125" cy="125" r="110" fill="none" stroke="var(--line2)" stroke-width="6"/><circle cx="125" cy="125" r="110" fill="none" stroke="var(--amber)" stroke-width="6" stroke-linecap="round" stroke-dasharray="691.15" stroke-dashoffset="290"/></svg><div style="text-align:center"><p style="font-size:44px;font-weight:300;margin:0;font-variant-numeric:tabular-nums">7h 12m</p><p style="font-size:12.5px;color:var(--dim);margin:4px 0 0;font-weight:700">of 12h · 5h left</p></div></div></div>
+              <div style="position:relative;padding:0 22px 34px;display:flex;flex-direction:column;gap:12px"><div style="display:flex;gap:12px"><div style="flex:1;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:15px;text-align:center"><p style="font-size:20px;font-weight:800;margin:0">3</p><p style="font-size:11.5px;color:var(--dim);margin:2px 0 0">Prayer sessions</p></div><div style="flex:1;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:15px;text-align:center"><p style="font-size:20px;font-weight:800;margin:0">2</p><p style="font-size:11.5px;color:var(--dim);margin:2px 0 0">Journal notes</p></div></div><button style="width:100%;background:transparent;border:1px solid var(--line2);border-radius:16px;padding:15px;color:var(--dim);font-size:15px;font-weight:700">End fast</button></div>
+            </div>
+            </sc-if>
+
+            <!-- PRAYER TOGETHER (live) -->
+            <sc-if value="{{ isTogether }}">
+            <div style="display:flex;flex-direction:column;height:100%;position:relative;background:radial-gradient(120% 60% at 50% 25%, var(--tealSoft) 0%, transparent 55%)">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 22px 0;position:relative"><button onClick="{{ goCompanion }}" style="background:var(--surface);border:1px solid var(--line);border-radius:12px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button><div style="display:flex;align-items:center;gap:6px;background:var(--tealSoft);border-radius:100px;padding:6px 12px"><span style="width:8px;height:8px;border-radius:50%;background:var(--teal);animation:shimmer 1.4s infinite"></span><span style="font-size:12px;font-weight:800;color:var(--teal)">LIVE TOGETHER</span></div><div style="width:38px"></div></div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding:0 24px;position:relative"><div style="display:flex"><div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(140deg,var(--teal),var(--tealDeep));display:flex;align-items:center;justify-content:center;color:#052019;font-weight:800;border:2px solid var(--bg)">S</div><div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(140deg,var(--amber),#8a5a1a);display:flex;align-items:center;justify-content:center;color:#2a1a05;font-weight:800;border:2px solid var(--bg);margin-left:-12px">D</div></div><p style="font-size:52px;font-weight:300;margin:0;font-variant-numeric:tabular-nums">6:20</p><div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px;text-align:center;max-width:280px"><p style="font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--teal);margin:0 0 8px">Praying together</p><p style="font-family:Spectral,serif;font-size:17px;line-height:1.5;margin:0">“Bear ye one another’s burdens, and so fulfil the law of Christ.”</p><p style="font-size:12.5px;color:var(--amber);font-weight:700;margin:8px 0 0">Galatians 6:2</p></div></div>
+              <div style="padding:0 22px 34px;position:relative"><button onClick="{{ goCompanion }}" style="width:100%;background:transparent;border:1px solid var(--line2);border-radius:16px;padding:15px;color:var(--dim);font-size:15px;font-weight:700">Leave session</button></div>
+            </div>
+            </sc-if>
+
+            <!-- PRAYER GROUPS -->
+            <sc-if value="{{ isGroups }}">
+            <div style="padding:6px 22px 40px">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0 16px"><h1 style="font-family:Spectral,serif;font-size:26px;font-weight:600;margin:0">Groups</h1><button onClick="{{ goTogether }}" style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:9px 13px;color:var(--dim);font-size:13px;font-weight:700">Pray together</button></div>
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <sc-for list="{{ groups }}" as="g" hint-placeholder-count="3">
+                  <button onClick="{{ g.onClick }}" style="display:flex;align-items:center;gap:14px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;color:var(--text)"><div style="flex:none;width:46px;height:46px;border-radius:14px;background:var(--tealSoft);display:flex;align-items:center;justify-content:center;color:var(--teal)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3"/><path d="M3.5 19c.5-3 2.7-4.5 5.5-4.5s5 1.5 5.5 4.5"/><circle cx="17" cy="7" r="2.4"/><path d="M15.5 13.6c2.2.2 3.7 1.6 4.2 4.4"/></svg></div><div style="flex:1"><p style="font-size:15.5px;font-weight:700;margin:0 0 2px">{{ g.name }}</p><p style="font-size:12.5px;color:var(--dim);margin:0">{{ g.members }}</p></div><div style="display:flex;align-items:center;gap:6px"><span style="{{ g.dotStyle }}"></span><span style="{{ g.metaStyle }}">{{ g.meta }}</span></div></button>
+                </sc-for>
+              </div>
+            </div>
+            </sc-if>
+
+            <!-- AUDIO PRAYER ROOM -->
+            <sc-if value="{{ isRoom }}">
+            <div style="display:flex;flex-direction:column;height:100%;position:relative;background:radial-gradient(120% 55% at 50% 20%, var(--tealSoft) 0%, transparent 55%)">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 22px 12px;position:relative"><button onClick="{{ goGroups }}" style="background:var(--surface);border:1px solid var(--line);border-radius:12px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button><div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--teal);animation:shimmer 1.4s infinite"></span><span style="font-size:12px;font-weight:800;color:var(--teal)">LIVE</span></div><div style="width:38px"></div></div>
+              <div style="padding:0 22px;position:relative"><p style="font-family:Spectral,serif;font-size:22px;font-weight:600;margin:0 0 4px">Tuesday Small Group</p><p style="font-size:13px;color:var(--dim);margin:0 0 22px">9 in the room · hosted by Grace</p><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px 10px"><div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="position:relative;width:58px;height:58px;border-radius:50%;background:linear-gradient(140deg,var(--teal),var(--tealDeep));display:flex;align-items:center;justify-content:center;color:#052019;font-weight:800;box-shadow:0 0 0 2px var(--teal)">G<span style="position:absolute;bottom:-2px;right:-2px;width:20px;height:20px;border-radius:50%;background:var(--teal);border:2px solid var(--bg);display:flex;align-items:center;justify-content:center"><svg width="10" height="10" viewBox="0 0 24 24" fill="#052019"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3z"/></svg></span></div><span style="font-size:11px;font-weight:700">Grace</span></div><div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:58px;height:58px;border-radius:50%;background:linear-gradient(140deg,var(--amber),#8a5a1a);display:flex;align-items:center;justify-content:center;color:#2a1a05;font-weight:800">D</div><span style="font-size:11px;font-weight:700;color:var(--dim)">David</span></div><div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:58px;height:58px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;color:var(--dim);font-weight:800">M</div><span style="font-size:11px;font-weight:700;color:var(--dim)">Maria</span></div><div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:58px;height:58px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;color:var(--dim);font-weight:800">J</div><span style="font-size:11px;font-weight:700;color:var(--dim)">John</span></div></div></div>
+              <div style="margin-top:auto;padding:20px 22px 34px;display:flex;gap:12px;position:relative"><button style="flex:1;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:15px;color:var(--text);font-size:14.5px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>Raise hand</button><button onClick="{{ goGroups }}" style="flex:1;background:var(--danger);border:none;border-radius:16px;padding:15px;color:#fff;font-size:14.5px;font-weight:800">Leave</button></div>
+            </div>
+            </sc-if>
+
+            <!-- AI PRAYER ASSISTANT -->
+            <sc-if value="{{ isAssistant }}">
+            <div style="display:flex;flex-direction:column;height:100%">
+              <div style="display:flex;align-items:center;gap:12px;padding:6px 22px 12px;border-bottom:1px solid var(--line)"><button onClick="{{ goHome }}" style="background:var(--surface);border:1px solid var(--line);border-radius:12px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button><div style="flex:1"><p style="font-size:16px;font-weight:700;margin:0">Prayer Assistant</p><p style="font-size:11.5px;color:var(--faint);margin:1px 0 0">Here to help you pray, not replace it</p></div><button onClick="{{ goUpgrade }}" style="background:var(--amberSoft);color:var(--amber);font-size:10.5px;font-weight:800;padding:5px 10px;border-radius:100px;border:none">Premium</button></div>
+              <div style="flex:1;overflow-y:auto;padding:20px 22px;display:flex;flex-direction:column;gap:14px">
+                <div style="align-self:flex-start;max-width:82%;background:var(--surface);border:1px solid var(--line);border-radius:18px 18px 18px 5px;padding:14px 16px"><p style="margin:0;font-size:14.5px;line-height:1.6">Peace to you, Sarah. What’s on your heart today? I can help you find scripture, shape a prayer, or sit with a hard question.</p></div>
+                <div style="align-self:flex-end;max-width:82%;background:var(--teal);color:#052019;border-radius:18px 18px 5px 18px;padding:14px 16px"><p style="margin:0;font-size:14.5px;line-height:1.6;font-weight:500">Help me pray through anxiety about my mom’s surgery.</p></div>
+                <div style="align-self:flex-start;max-width:82%;background:var(--surface);border:1px solid var(--line);border-radius:18px 18px 18px 5px;padding:14px 16px"><p style="margin:0 0 10px;font-size:14.5px;line-height:1.6">Let’s begin here — Philippians 4:6–7 invites us to trade anxiety for prayer with thanksgiving.</p><p style="margin:0;font-family:Spectral,serif;font-size:15px;line-height:1.55;font-style:italic;color:var(--dim)">“Cast all your care upon him; for he careth for you.”</p></div>
+              </div>
+              <div style="padding:10px 22px 4px;display:flex;gap:8px;overflow-x:auto"><span style="flex:none;background:var(--surface);border:1px solid var(--line);color:var(--dim);font-size:12.5px;font-weight:700;padding:8px 13px;border-radius:100px">Suggest a scripture</span><span style="flex:none;background:var(--surface);border:1px solid var(--line);color:var(--dim);font-size:12.5px;font-weight:700;padding:8px 13px;border-radius:100px">Prayer for my family</span><span style="flex:none;background:var(--surface);border:1px solid var(--line);color:var(--dim);font-size:12.5px;font-weight:700;padding:8px 13px;border-radius:100px">Explain this verse</span></div>
+              <div style="padding:10px 22px 30px;display:flex;gap:10px;align-items:center"><input placeholder="Ask or share what’s on your heart…" style="flex:1;background:var(--surface);border:1px solid var(--line);border-radius:100px;padding:13px 18px;color:var(--text);font-size:14.5px;outline:none"><button style="flex:none;width:46px;height:46px;border-radius:50%;background:var(--teal);border:none;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#052019" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
+            </div>
+            </sc-if>
+
+            <!-- UPGRADE / PREMIUM -->
+            <sc-if value="{{ isUpgrade }}">
+            <div style="display:flex;flex-direction:column;height:100%;position:relative;background:radial-gradient(120% 45% at 50% 0%, var(--amberSoft) 0%, transparent 55%)">
+              <div style="display:flex;justify-content:flex-end;padding:10px 20px 0;position:relative"><button onClick="{{ goSettings }}" style="background:var(--surface);border:1px solid var(--line);border-radius:12px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;color:var(--dim)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+              <div style="flex:1;overflow-y:auto;padding:6px 26px 20px;position:relative">
+                <div style="text-align:center;margin-bottom:24px">
+                  <div style="width:64px;height:64px;border-radius:20px;background:linear-gradient(150deg,var(--amber),#8a5a1a);display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#2a1a05" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l4 5 4-7 4 7 4-5-1.5 12H5.5z"/></svg></div>
+                  <h1 style="font-family:Spectral,serif;font-size:28px;font-weight:600;margin:0 0 8px">Prayer Guide Premium</h1>
+                  <p style="margin:0;font-size:14.5px;line-height:1.6;color:var(--dim)">Go deeper — for the seasons that ask more of your faith.</p>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px">
+                  <div style="display:flex;align-items:center;gap:12px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17 19 7"/></svg><span style="font-size:14.5px">Unlimited prayer companions</span></div>
+                  <div style="display:flex;align-items:center;gap:12px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17 19 7"/></svg><span style="font-size:14.5px">Offline Audio Bible</span></div>
+                  <div style="display:flex;align-items:center;gap:12px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17 19 7"/></svg><span style="font-size:14.5px">AI Prayer Assistant &amp; insights</span></div>
+                  <div style="display:flex;align-items:center;gap:12px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17 19 7"/></svg><span style="font-size:14.5px">Full Focus Mode &amp; extra streak freezes</span></div>
+                  <div style="display:flex;align-items:center;gap:12px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17 19 7"/></svg><span style="font-size:14.5px">Premium devotionals &amp; reading plans</span></div>
+                </div>
+                <div style="display:flex;gap:12px">
+                  <div style="flex:1;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;text-align:center"><p style="font-size:12.5px;font-weight:700;color:var(--dim);margin:0 0 6px">Monthly</p><p style="font-size:22px;font-weight:800;margin:0">$4.99</p><p style="font-size:11.5px;color:var(--faint);margin:2px 0 0">per month</p></div>
+                  <div style="flex:1;background:var(--tealSoft);border:2px solid var(--teal);border-radius:18px;padding:16px;text-align:center;position:relative"><span style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--teal);color:#052019;font-size:10px;font-weight:800;padding:3px 10px;border-radius:100px">SAVE 33%</span><p style="font-size:12.5px;font-weight:700;color:var(--teal);margin:0 0 6px">Annual</p><p style="font-size:22px;font-weight:800;margin:0">$39.99</p><p style="font-size:11.5px;color:var(--faint);margin:2px 0 0">$3.33/month</p></div>
+                </div>
+              </div>
+              <div style="padding:12px 26px 30px;position:relative"><button onClick="{{ goSettings }}" style="width:100%;background:var(--amber);color:#2a1a05;border:none;border-radius:16px;padding:16px;font-size:16px;font-weight:800;margin-bottom:10px">Start 7-day free trial</button><p style="text-align:center;font-size:11.5px;color:var(--faint);margin:0">Cancel anytime · Restore purchase</p></div>
+            </div>
+            </sc-if>
+
+            <!-- GROWTH INSIGHTS -->
+            <sc-if value="{{ isInsights }}">
+            <div style="padding:6px 22px 40px">
+              <div style="display:flex;align-items:center;gap:12px;padding:6px 0 8px"><button onClick="{{ goSettings }}" style="background:var(--surface);border:1px solid var(--line);border-radius:12px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button><h1 style="font-family:Spectral,serif;font-size:23px;font-weight:600;margin:0">Growth</h1></div>
+              <div style="display:flex;gap:12px;margin:14px 0 18px"><div style="flex:1;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px"><p style="font-size:24px;font-weight:800;margin:0">2h 27m</p><p style="font-size:11.5px;color:var(--dim);margin:3px 0 0">Prayed this week</p></div><div style="flex:1;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px"><p style="font-size:24px;font-weight:800;margin:0">12</p><p style="font-size:11.5px;color:var(--dim);margin:3px 0 0">Day streak</p></div></div>
+              <div style="background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px;margin-bottom:18px"><p style="font-size:13px;font-weight:700;margin:0 0 16px">Daily prayer time</p><div style="display:flex;align-items:flex-end;gap:8px;height:110px"><sc-for list="{{ insightBars }}" as="b" hint-placeholder-count="7"><div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;gap:8px"><div style="{{ b.style }}"></div><span style="text-align:center;font-size:10.5px;font-weight:700;color:var(--faint)">{{ b.label }}</span></div></sc-for></div></div>
+              <div style="background:var(--tealSoft);border:1px solid var(--line);border-radius:20px;padding:20px;display:flex;gap:14px;align-items:flex-start"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:2px"><path d="M12 3l1.6 3.4L17 8l-3.4 1.6L12 13l-1.6-3.4L7 8l3.4-1.6z"/></svg><div><p style="font-size:14px;font-weight:700;margin:0 0 5px">A gentle insight</p><p style="font-size:13.5px;line-height:1.6;color:var(--dim);margin:0">You pray most consistently in the mornings. Thanksgiving is your most-visited guide — a beautiful place to keep returning.</p></div></div>
+            </div>
+            </sc-if>
+          </div>
+          <!-- bottom nav -->
+          <sc-if value="{{ showNav }}">
+          <div style="flex:none;background:var(--bg);border-top:1px solid var(--line);padding:9px 14px 0;display:flex;justify-content:space-around;position:relative;z-index:20">
+            <button onClick="{{ goHome }}" style="background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 8px;color:{{ cHome }}">
+              <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/></svg>
+              <span style="font-size:10px;font-weight:600">Home</span>
+            </button>
+            <button onClick="{{ goBible }}" style="background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 8px;color:{{ cBible }}">
+              <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H18a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6.5A1.5 1.5 0 0 0 5 20.5z"/><path d="M12 7v6M9.5 9.5h5"/></svg>
+              <span style="font-size:10px;font-weight:600">Bible</span>
+            </button>
+            <button onClick="{{ goJournal }}" style="background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 8px;color:{{ cJournal }}">
+              <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11l3 3v13H5z"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></svg>
+              <span style="font-size:10px;font-weight:600">Journal</span>
+            </button>
+            <button onClick="{{ goStreak }}" style="background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 8px;color:{{ cStreak }}">
+              <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c1.5 3 4.5 4.2 4.5 8a4.5 4.5 0 0 1-9 0c0-1.6.8-2.8 1.6-3.6C10 8.8 11.4 8 12 3z"/><path d="M10.5 15.5c0 1 .7 1.8 1.5 1.8s1.5-.8 1.5-1.9"/></svg>
+              <span style="font-size:10px;font-weight:600">Streak</span>
+            </button>
+            <button onClick="{{ goSettings }}" style="background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 8px;color:{{ cProfile }}">
+              <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.5"/><path d="M5.5 20c.6-3.4 3.2-5.2 6.5-5.2s5.9 1.8 6.5 5.2"/></svg>
+              <span style="font-size:10px;font-weight:600">Profile</span>
+            </button>
+          </div>
+          </sc-if>
+        </div>
+        </sc-if>
+
+        <!-- SPLASH -->
+        <sc-if value="{{ showSplash }}" hint-placeholder-val="{{ true }}">
+        <div onClick="{{ leaveSplash }}" style="position:absolute;inset:0;z-index:70;background:radial-gradient(130% 80% at 50% 34%, #16302b 0%, #0a1210 62%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;color:#ECEAE3">
+          <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 40%, rgba(232,179,107,.12), transparent 55%)"></div>
+          <div style="position:relative;width:96px;height:96px;border-radius:30px;background:linear-gradient(155deg,rgba(91,194,179,.22),rgba(232,179,107,.14));border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;animation:breathe 4.5s ease-in-out infinite">
+            <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#5BC2B3" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c0 3 0 6 0 9m0 0c-1.8 1.2-4 1-5.5-.6M12 12c1.8 1.2 4 1 5.5-.6M12 12v8"/><path d="M9 21h6"/></svg>
+          </div>
+          <div style="position:relative;text-align:center">
+            <h1 style="font-family:Spectral,serif;font-size:30px;font-weight:600;letter-spacing:.3px;margin:0 0 6px">Prayer Guide</h1>
+            <p style="margin:0;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#5E6D69">Be still &amp; know</p>
+          </div>
+          <div style="position:absolute;bottom:64px;left:50%;transform:translateX(-50%);width:26px;height:26px;border:2px solid rgba(255,255,255,.14);border-top-color:#5BC2B3;border-radius:50%;animation:slowspin 0.9s linear infinite"></div>
+        </div>
+        </sc-if>
+
+        <!-- FOCUS MODE · gentle overlay -->
+        <sc-if value="{{ isFocusActive }}">
+        <div style="position:absolute;inset:0;z-index:60;background:radial-gradient(120% 70% at 50% 30%, #12201d 0%, #080d0c 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;color:#ECEAE3">
+          <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 34%, rgba(91,194,179,.14), transparent 55%)"></div>
+          <div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:26px">
+            <div style="width:120px;height:120px;border-radius:50%;border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;animation:breathe 6s ease-in-out infinite"><div style="width:76px;height:76px;border-radius:50%;background:radial-gradient(circle,rgba(91,194,179,.35),transparent 70%)"></div></div>
+            <div>
+              <p style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#5BC2B3;margin:0 0 16px">Focus mode · gentle</p>
+              <h1 style="font-family:Spectral,serif;font-size:30px;font-weight:600;margin:0 0 12px;line-height:1.3">You’re in prayer.</h1>
+              <p style="margin:0;font-size:16px;line-height:1.6;color:#9AA8A3;max-width:250px">Notifications are paused. Return when you’re ready — no rush, no guilt.</p>
+            </div>
+            <p style="font-size:40px;font-weight:300;margin:6px 0 0;font-variant-numeric:tabular-nums;color:#ECEAE3">7:42</p>
+          </div>
+          <div style="position:absolute;bottom:54px;left:40px;right:40px;display:flex;flex-direction:column;gap:12px">
+            <button onClick="{{ endFocus }}" style="background:#5BC2B3;color:#052019;border:none;border-radius:16px;padding:16px;font-size:16px;font-weight:800">End focus &amp; return</button>
+            <button onClick="{{ endFocus }}" style="background:transparent;border:none;color:#64726E;font-size:13px;font-weight:600">I need to step out (emergency bypass)</button>
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- home indicator / gesture -->
+        <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);z-index:40;pointer-events:none">
+          <sc-if value="{{ isIos }}" hint-placeholder-val="{{ true }}"><div style="width:130px;height:5px;border-radius:3px;background:var(--text);opacity:.32"></div></sc-if>
+          <sc-if value="{{ isAndroid }}"><div style="width:100px;height:4px;border-radius:3px;background:var(--text);opacity:.28"></div></sc-if>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:760,&quot;height&quot;:1020}}">
+class Component extends DCLogic {
+  state = {
+    theme: 'dark', device: 'ios', screen: 'splash', onbStep: 0,
+    tab: 'home', empty: false,
+    preset: 10, remaining: 600, running: false, done: false, ambience: null,
+    streak: 12,
+    selChallenge:'growth40', selPlan:'oneYear', checkin:null,
+    reqTab:'active',
+    reqs:[
+      {id:1,category:'Healing',title:'Mom\u2019s recovery after surgery',meta:'Added Jul 12',status:'active',reminder:true},
+      {id:2,category:'Family',title:'Reconciliation with David',meta:'Added Jul 9',status:'active',reminder:false},
+      {id:3,category:'Guidance',title:'Wisdom about the move',meta:'Added Jul 5',status:'active',reminder:false},
+      {id:4,category:'Provision',title:'Michael\u2019s new job',meta:'Answered Jul 18',status:'answered',reminder:false},
+    ],
+  };
+  tick = null;
+  componentDidMount(){ this.splashT=setTimeout(()=>{ if(this.state.screen==='splash') this.setState({screen:'onboarding'}); },2100); }
+  componentWillUnmount(){ clearInterval(this.tick); clearTimeout(this.splashT); }
+
+  set(p){ this.setState(p); }
+  jumpTo(s){ clearInterval(this.tick); this.setState({ screen:s, running:false, ...(['home','bible','journal','streak','settings'].includes(s)?{tab:s==='settings'?'profile':s}:{}) }, ()=>this.scrollTop()); }
+  go(sc, extra){ clearInterval(this.tick); this.setState({screen:sc, running:false, ...(extra||{})}, ()=>this.scrollTop()); }
+  scrollTop(){ const el=document.getElementById('scroll'); if(el) el.scrollTop=0; }
+
+  vars(){
+    const D = '--bg:#0E1513;--bg2:#0A100E;--surface:#17211F;--surface2:#1F2B28;--line:rgba(255,255,255,.075);--line2:rgba(255,255,255,.14);--teal:#5BC2B3;--tealDeep:#2E9488;--tealSoft:rgba(91,194,179,.13);--amber:#E8B36B;--amberSoft:rgba(232,179,107,.14);--text:#ECEAE3;--dim:#9AA8A3;--faint:#5E6D69;--danger:#C98B8B';
+    const L = '--bg:#F5F2EB;--bg2:#ECE7DD;--surface:#FFFFFF;--surface2:#F7F3EB;--line:rgba(24,46,42,.10);--line2:rgba(24,46,42,.18);--teal:#2E9488;--tealDeep:#1F726A;--tealSoft:rgba(46,148,136,.11);--amber:#B9821F;--amberSoft:rgba(185,130,31,.13);--text:#1A2523;--dim:#586662;--faint:#95A09B;--danger:#B26A6A';
+    return this.state.theme==='dark'?D:L;
+  }
+
+  seg(active){ return 'border:none;border-radius:9px;padding:6px 13px;font-size:12.5px;font-weight:700;'+(active?'background:#2E9488;color:#052019':'background:transparent;color:#9AA8A3'); }
+  navC(t){ return this.state.tab===t ? 'var(--teal)' : 'var(--faint)'; }
+  dot(i){ return this.state.onbStep===i ? 'var(--teal)' : 'var(--line2)'; }
+
+  // timer
+  fmt(s){ const m=Math.floor(s/60), r=s%60; return m+':'+String(r).padStart(2,'0'); }
+  setPreset(min){ clearInterval(this.tick); this.setState({preset:min, remaining:min*60, running:false, done:false}); }
+  toggleRun(){
+    if(this.state.done) return;
+    if(this.state.running){ clearInterval(this.tick); this.setState({running:false}); return; }
+    this.setState({running:true});
+    this.tick=setInterval(()=>{
+      this.setState(s=>{
+        if(s.remaining<=1){ clearInterval(this.tick); return {remaining:0, running:false, done:true}; }
+        return {remaining:s.remaining-1};
+      });
+    },1000);
+  }
+  finishSession(){ clearInterval(this.tick); this.setState(s=>({done:false, running:false, remaining:s.preset*60, streak:s.streak+1, screen:'home', tab:'home'})); }
+  setAmb(a){ this.setState(s=>({ambience:s.ambience===a?null:a})); }
+  selectChallenge(k){ clearInterval(this.tick); this.setState({selChallenge:k, screen:'challengeDetail', running:false}, ()=>this.scrollTop()); }
+  selectPlan(k){ clearInterval(this.tick); this.setState({selPlan:k, screen:'planDetail', running:false}, ()=>this.scrollTop()); }
+  setCheckin(v){ this.setState(s=>({checkin:s.checkin===v?null:v})); }
+  setReqTab(t){ this.setState({reqTab:t}); }
+  reqAction(id,patch){ this.setState(s=>({reqs:s.reqs.map(r=>r.id===id?{...r,...patch}:r)})); }
+
+  onbData(){
+    return [
+      {icon:'sun', title:'Build a prayer life that lasts', body:'A gentle daily rhythm of Scripture, guided prayer, and stillness — one quiet moment at a time.'},
+      {icon:'book', title:'Scripture at the center', body:'Every session begins in the Word. Read, reflect, and let the text shape how you pray.'},
+      {icon:'return', title:'Return, without pressure', body:'Streaks encourage — they never shame. Miss a day, use a freeze, and simply begin again.'},
+    ][this.state.onbStep] || {};
+  }
+  onbNext(){ this.setState(s=> s.onbStep>=2 ? {onbStep:3} : {onbStep:s.onbStep+1}); }
+
+  renderVals(){
+    const s=this.state, o=this.onbData();
+    const C=2*Math.PI*120;
+    const total=s.preset*60;
+    const pstd=[5,10,15,30,60];
+    const pill=(a)=>'border:none;border-radius:100px;padding:9px 16px;font-size:13.5px;font-weight:700;min-width:42px;'+(a?'background:var(--teal);color:#052019':'background:var(--surface);color:var(--dim);border:1px solid var(--line)');
+    const presets=pstd.map(m=>({label:String(m),style:pill(s.preset===m),onClick:()=>this.setPreset(m)}));
+    presets.push({label:'Custom',style:pill(!pstd.includes(s.preset)),onClick:()=>this.setPreset(45)});
+    const apill=(a)=>'border-radius:100px;padding:9px 15px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;'+(a?'background:var(--tealSoft);color:var(--teal);border:1px solid var(--teal)':'background:var(--surface);color:var(--dim);border:1px solid var(--line)');
+    const ambiences=[['rain','Rain'],['ocean','Ocean'],['instrumental','Instrumental']].map(([k,l])=>({label:l,style:apill(s.ambience===k),onClick:()=>this.setAmb(k)}));
+    const jtag=(bg,fg)=>'background:'+bg+';color:'+fg+';font-size:10.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;padding:4px 10px;border-radius:100px';
+    const journalEntries=[
+      {type:'Gratitude',tagStyle:jtag('var(--amberSoft)','var(--amber)'),title:'Morning light',excerpt:'Thankful for a slow start and quiet before the house woke up.',date:'Today'},
+      {type:'Request',tagStyle:jtag('var(--tealSoft)','var(--teal)'),title:'Mom\u2019s surgery',excerpt:'Praying for steady hands for the surgeons and peace for our family Thursday.',date:'Yesterday'},
+      {type:'Testimony',tagStyle:jtag('var(--tealSoft)','var(--teal)'),title:'The job came through',excerpt:'After three months of waiting \u2014 an answer. He was never late.',date:'Jul 18'},
+      {type:'Reflection',tagStyle:jtag('var(--surface2)','var(--dim)'),title:'On waiting well',excerpt:'Reading Psalm 27 again. Waiting is not the same as wasting.',date:'Jul 15'},
+    ];
+    const rtag='background:var(--tealSoft);color:var(--teal);font-size:10.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;padding:4px 10px;border-radius:100px';
+    const stRem='display:inline-flex;align-items:center;gap:4px;background:var(--surface2);color:var(--dim);font-size:11px;font-weight:700;padding:4px 10px;border-radius:100px';
+    const stAns='background:var(--amberSoft);color:var(--amber);font-size:11px;font-weight:800;padding:4px 10px;border-radius:100px';
+    const counts={active:0,answered:0,archived:0};
+    s.reqs.forEach(r=>{counts[r.status]=(counts[r.status]||0)+1;});
+    const reqTabs=[['active','Active'],['answered','Answered'],['archived','Archived']].map(([k,l])=>({label:l+' \u00b7 '+counts[k], style:'flex:none;font-size:12.5px;font-weight:700;padding:7px 15px;border-radius:100px;'+(s.reqTab===k?'background:var(--teal);color:#052019;border:none':'background:var(--surface);border:1px solid var(--line);color:var(--dim)'), onClick:()=>this.setReqTab(k)}));
+    const reqList=s.reqs.filter(r=>r.status===s.reqTab).map(r=>({category:r.category,tagStyle:rtag,title:r.title,meta:r.meta,stateLabel:r.status==='answered'?'Answered':(r.reminder?'\u23f0 Daily':''),stateStyle:r.status==='answered'?stAns:(r.reminder?stRem:'display:none'),showActive:r.status==='active',showArchived:r.status==='archived',showAnswered:r.status==='answered',remStyle:'flex:1;display:flex;align-items:center;justify-content:center;gap:5px;border-radius:11px;padding:9px;font-size:12px;font-weight:700;'+(r.reminder?'background:var(--tealSoft);color:var(--teal);border:1px solid var(--teal)':'background:transparent;color:var(--dim);border:1px solid var(--line)'),onRemind:()=>this.reqAction(r.id,{reminder:!r.reminder}),onAnswer:()=>this.reqAction(r.id,{status:'answered',reminder:false,meta:'Answered Jul 21'}),onArchive:()=>this.reqAction(r.id,{status:'archived',reminder:false}),onRestore:()=>this.reqAction(r.id,{status:'active'})}));
+    const reqEmpty=reqList.length===0;
+    const milestones=[7,21,30,40,100,365].map(d=>{const done=d<=s.streak;return{days:d,cardStyle:'background:var(--surface);border:1px solid '+(done?'var(--amber)':'var(--line)')+';border-radius:16px;padding:14px 8px;text-align:center;'+(done?'':'opacity:.5'),badgeStyle:'width:38px;height:38px;border-radius:50%;margin:0 auto;display:flex;align-items:center;justify-content:center;'+(done?'background:var(--amberSoft);color:var(--amber)':'background:var(--surface2);color:var(--faint)')};});
+    const cbase='height:34px;display:flex;align-items:center;justify-content:center;border-radius:11px;font-size:12.5px;font-weight:700;';
+    const cmap={active:cbase+'background:var(--teal);color:#052019',frozen:cbase+'background:transparent;border:1.5px solid var(--amber);color:var(--amber)',missed:cbase+'color:var(--faint)',future:cbase+'color:var(--line2)'};
+    const calCells=[];
+    for(let i=0;i<2;i++) calCells.push({label:'',style:'height:34px'});
+    for(let d=1;d<=30;d++){let st=(d>=10&&d<=21)?'active':d===9?'frozen':[4,7,8].includes(d)?'missed':d>21?'future':'active';calCells.push({label:String(d),style:cmap[st]});}
+    while(calCells.length<35) calCells.push({label:'',style:'height:34px'});
+    const themeBtn=(a)=>'flex:1;display:flex;align-items:center;justify-content:center;gap:7px;border-radius:12px;padding:12px;font-size:14px;font-weight:700;'+(a?'background:var(--teal);color:#052019;border:none':'background:var(--surface2);color:var(--dim);border:1px solid var(--line)');
+    const gcat=(c,bg,name,desc,dur)=>({name,desc,dur,c,bg,onClick:()=>this.go('guide')});
+    const guideCats=[gcat('var(--amber)','var(--amberSoft)','Thanksgiving','Begin the day in gratitude','8 min'),gcat('var(--teal)','var(--tealSoft)','Worship','Adore who God is','10 min'),gcat('var(--teal)','var(--tealSoft)','Repentance','Return with a soft heart','7 min'),gcat('var(--amber)','var(--amberSoft)','Family','Lift up those you love','9 min'),gcat('var(--teal)','var(--tealSoft)','Healing','Pray for restoration','10 min'),gcat('var(--amber)','var(--amberSoft)','Spiritual Growth','Grow deeper roots','12 min')];
+    const chData={growth40:{name:'40 Days of Growth',len:'40 days',day:12,total:40,focus:'Day 12 · Rooted in the Word',desc:'A guided journey to deepen your walk — daily scripture, a prayer focus, and a reflection.'},revival30:{name:'30-Day Revival',len:'30 days',day:0,total:30,focus:'Begin today',desc:'Thirty days to rekindle a first-love faith through focused prayer.'},fast21:{name:'21-Day Fasting',len:'21 days',day:0,total:21,focus:'Prepare your heart',desc:'A Daniel-style fast paired with daily prayer points and prompts.'},jumpstart7:{name:'7-Day Jumpstart',len:'7 days',day:0,total:7,focus:'Start small, start today',desc:'One week to build the habit — short guided sessions.'}};
+    const challenges=Object.keys(chData).map(k=>({key:k,name:chData[k].name,len:chData[k].len,day:chData[k].day,total:chData[k].total,active:k==='growth40',onClick:()=>this.selectChallenge(k)}));
+    const ch=chData[s.selChallenge]||chData.growth40;
+    const chPct=ch.total?ch.day/ch.total:0;
+    const chDots=Array.from({length:ch.total},(_,i)=>({style:'width:100%;aspect-ratio:1;border-radius:50%;'+(i<ch.day?'background:var(--teal)':'background:var(--surface2)')}));
+    const plData={oneYear:{name:'One Year Bible',sub:'365 days · Gen–Rev',pct:0.18,today:'Genesis 41–42 · Matthew 12',active:true},ninety:{name:'Bible in 90 Days',sub:'90 days',pct:0,today:'Genesis 1–16',active:false},nt:{name:'New Testament',sub:'60 days',pct:0,today:'Matthew 1–2',active:false},psalms:{name:'Psalms & Proverbs',sub:'31 days',pct:0,today:'Psalm 1 · Proverbs 1',active:false}};
+    const plans=Object.keys(plData).map(k=>({key:k,name:plData[k].name,sub:plData[k].sub,active:plData[k].active,pctLabel:plData[k].active?Math.round(plData[k].pct*100)+'%':'Start',onClick:()=>this.selectPlan(k)}));
+    const pl=plData[s.selPlan]||plData.oneYear;
+    const plPctW=Math.round(pl.pct*100)+'%';
+    const ciBtn=(v)=>'flex:1;border-radius:14px;padding:13px 6px;font-size:13.5px;font-weight:700;'+(s.checkin===v?'background:var(--teal);color:#052019;border:1px solid var(--teal)':'background:var(--surface);color:var(--dim);border:1px solid var(--line)');
+    const focusApps=[['Instagram','#E4405F'],['TikTok','#1DA1A9'],['X','#657786'],['Games','#8B5CF6'],['Mail','#3B82F6'],['News','#F97316']].map(([n,col],i)=>({name:n,col,tstyle:'width:44px;height:26px;border-radius:100px;position:relative;flex:none;'+(i<3?'background:var(--teal)':'background:var(--line2)'),kstyle:'position:absolute;top:3px;width:20px;height:20px;border-radius:50%;'+(i<3?'right:3px;background:#fff':'left:3px;background:var(--dim)')}));
+    const groups=[{name:'Family Prayer',members:'4 members',meta:'Tonight · 8:00 PM',live:false},{name:'Tuesday Small Group',members:'9 members',meta:'Live now',live:true},{name:'Grace Church',members:'120 members',meta:'Wednesdays · 7:00 PM',live:false}].map(g=>({name:g.name,members:g.members,meta:g.meta,live:g.live,dotStyle:'width:8px;height:8px;border-radius:50%;'+(g.live?'background:var(--teal);animation:shimmer 1.6s infinite':'background:var(--faint)'),metaStyle:'font-size:12px;font-weight:700;'+(g.live?'color:var(--teal)':'color:var(--faint)'),onClick:()=>this.go(g.live?'room':'groups')}));
+    const insightBars=[22,0,18,30,12,25,40].map((m,i)=>({label:['S','M','T','W','T','F','S'][i],style:'width:100%;border-radius:5px 5px 0 0;min-height:4px;background:'+(m?'var(--teal)':'var(--line2)')+';height:'+Math.max(m/40*100,3)+'%'}));
+    const iconMap={
+      sun: React.createElement('svg',{width:60,height:60,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','strokeWidth':1.4,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('circle',{cx:12,cy:12,r:4.2}),React.createElement('path',{d:'M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6'})),
+      book: React.createElement('svg',{width:60,height:60,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','strokeWidth':1.4,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:'M12 6c-2-1.5-4.5-2-7-1.7v12C7.5 16 10 16.5 12 18M12 6c2-1.5 4.5-2 7-1.7v12C16.5 16 14 16.5 12 18M12 6v12'})),
+      return: React.createElement('svg',{width:60,height:60,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','strokeWidth':1.4,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d:'M20 12a8 8 0 1 1-2.6-5.9'}),React.createElement('path',{d:'M20 3.5V8h-4.5'})),
+    };
+    return {
+      screen:s.screen, isIos:s.device==='ios', isAndroid:s.device==='android',
+      setIos:()=>this.set({device:'ios'}), setAndroid:()=>this.set({device:'android'}),
+      setDark:()=>this.set({theme:'dark'}), setLight:()=>this.set({theme:'light'}),
+      segIos:this.seg(s.device==='ios'), segAndroid:this.seg(s.device==='android'),
+      segDark:this.seg(s.theme==='dark'), segLight:this.seg(s.theme==='light'),
+      restart:()=>this.setState({screen:'onboarding',onbStep:0,running:false}),
+      toggleEmpty:()=>this.setState(x=>({empty:!x.empty})),
+      emptyBtn:'border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:8px 14px;font-size:12.5px;font-weight:600;'+(s.empty?'background:#2E9488;color:#052019':'background:#1a2523;color:#9AA8A3'),
+      jump:(e)=>this.jumpTo(e.target.value),
+      rootVars:this.vars(),
+      bezelStyle:'padding:'+(s.device==='ios'?'13px':'11px')+';background:linear-gradient(160deg,#2b3230,#14100f);border-radius:'+(s.device==='ios'?'58px':'48px')+';box-shadow:0 40px 90px -30px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.05),inset 0 0 3px rgba(255,255,255,.15)',
+
+      // onboarding
+      showOnb:s.screen==='onboarding',
+      showSlides:s.onbStep<3, showAuth:s.onbStep===3, showEmail:s.onbStep===4, showReset:s.onbStep===5, showCreate:s.onbStep===6,
+      onCreate:()=>this.set({onbStep:6}),
+      onbTitle:o.title, onbBody:o.body, onbIcon:iconMap[o.icon]||null, onbStep:s.onbStep,
+      onbCta:s.onbStep>=2?'Get started':'Continue',
+      onbNext:()=>this.onbNext(), skipOnb:()=>this.set({onbStep:3}),
+      finishAuth:()=>this.jumpTo('home'),
+      onEmail:()=>this.set({onbStep:4}), onResetPw:()=>this.set({onbStep:5}), backAuth:()=>this.set({onbStep:3}),
+      isUpgrade:s.screen==='upgrade', goUpgrade:()=>this.go('upgrade'),
+      d0:this.dot(0), d1:this.dot(1), d2:this.dot(2),
+
+      // app shell
+      showSplash:s.screen==='splash', leaveSplash:()=>this.set({screen:'onboarding'}),
+      showApp:!['onboarding','splash'].includes(s.screen),
+      isHome:s.screen==='home',
+      showNav:['home','bible','journal','streak','settings'].includes(s.screen),
+      cHome:this.navC('home'), cBible:this.navC('bible'), cJournal:this.navC('journal'), cStreak:this.navC('streak'), cProfile:this.navC('profile'),
+      goHome:()=>this.jumpTo('home'), goBible:()=>this.jumpTo('bible'), goJournal:()=>this.jumpTo('journal'), goStreak:()=>this.jumpTo('streak'), goSettings:()=>this.jumpTo('settings'),
+      dateStr:'Tuesday \u00b7 July 21', streak:s.streak,
+      isGuide:s.screen==='guide', isTimer:s.screen==='timer', isScripture:s.screen==='scripture', isBible:s.screen==='bible',
+      isJournal:s.screen==='journal', isJournalNew:s.screen==='journalNew', isRequests:s.screen==='requests', isRequestNew:s.screen==='requestNew',
+      isStreak:s.screen==='streak', isSettings:s.screen==='settings',
+      goGuide:()=>this.go('guide'), goTimer:()=>this.go('timer',{remaining:s.preset*60,done:false}), goScripture:()=>this.go('scripture'),
+      goJournalNew:()=>this.go('journalNew'), goRequests:()=>this.go('requests'), goRequestNew:()=>this.go('requestNew'),
+      notEmpty:!s.empty, isEmpty:s.empty,
+      presets, ambiences, journalEntries, reqTabs, reqList, reqEmpty, milestones, calCells,
+      timerLabel:this.fmt(s.remaining), ringOffset:C*(1-s.remaining/total),
+      timerState:s.done?'Complete':(s.running?'In prayer':(s.remaining<total?'Paused':'Ready')),
+      running:s.running, notRunning:!s.running, done:s.done, nextStreak:s.streak+1,
+      themeDarkBtn:themeBtn(s.theme==='dark'), themeLightBtn:themeBtn(s.theme==='light'),
+      isGuideLib:s.screen==='guideLibrary', isNotif:s.screen==='notifications', isBibleNotes:s.screen==='bibleNotes',
+      isFocusSetup:s.screen==='focusSetup', isFocusActive:s.screen==='focusActive',
+      isCompanion:s.screen==='companion', isInvite:s.screen==='invite', isChallenges:s.screen==='challenges', isChallenge:s.screen==='challengeDetail', isChallengeNew:s.screen==='challengeNew',
+      isPlans:s.screen==='plans', isPlan:s.screen==='planDetail', isDevotional:s.screen==='devotional',
+      isFasting:s.screen==='fasting', isTogether:s.screen==='together', isGroups:s.screen==='groups', isRoom:s.screen==='room',
+      isAssistant:s.screen==='assistant', isInsights:s.screen==='insights',
+      goGuideLib:()=>this.go('guideLibrary'), goNotif:()=>this.go('notifications'), goBibleNotes:()=>this.go('bibleNotes'),
+      goFocusSetup:()=>this.go('focusSetup'), startFocus:()=>this.go('focusActive'), endFocus:()=>this.go('timer'),
+      goCompanion:()=>this.go('companion'), goInvite:()=>this.go('invite'), goChallenges:()=>this.go('challenges'), goChallenge:()=>this.go('challengeDetail'), goChallengeNew:()=>this.go('challengeNew'),
+      goPlans:()=>this.go('plans'), goDevotional:()=>this.go('devotional'),
+      goFasting:()=>this.go('fasting'), goTogether:()=>this.go('together'), goGroups:()=>this.go('groups'), goRoom:()=>this.go('room'),
+      goAssistant:()=>this.go('assistant'), goInsights:()=>this.go('insights'),
+      guideCats, challenges, plans, focusApps, groups, insightBars, chDots,
+      chName:ch.name, chLen:ch.len, chDay:ch.day, chTotal:ch.total, chFocus:ch.focus, chDesc:ch.desc, chPctLabel:Math.round(chPct*100)+'%', chContinueLabel:ch.day>0?'Continue — Day '+(ch.day+1):'Start challenge',
+      plName:pl.name, plSub:pl.sub, plToday:pl.today, plPctW, plActive:pl.active,
+      ciPrayed:ciBtn('prayed'), ciLater:ciBtn('later'), ciMissed:ciBtn('missed'), setPrayed:()=>this.setCheckin('prayed'), setLater:()=>this.setCheckin('later'), setMissed:()=>this.setCheckin('missed'),
+    };
+  }
+}
+</script>
+</body>
+</html>
