@@ -26,8 +26,9 @@ order — `0001_init.sql` first, then `0002`, `0003`, `0004`, ...).
 This creates `profiles`, `journal_entries`, `prayer_requests`,
 `prayer_sessions` (feeds the streak via a DB trigger), `bible_notes`,
 `notification_prefs`, `companions`/`companion_invites`/`companion_checkins`,
-`challenge_progress`, `reading_plan_progress`, `fasting_sessions`, `groups`,
-and `subscriptions` — all with RLS policies scoping rows to their owner.
+`challenge_progress`, `reading_plan_progress`, `fasting_sessions`,
+`focus_sessions`, `encryption_keys`, `groups`, and `subscriptions` — all
+with RLS policies scoping rows to their owner.
 
 **Social auth (Google / Apple) via Supabase** — the app code side is done:
 `AuthRepository.signInWithGoogle/signInWithApple` call `signInWithOAuth` with
@@ -67,29 +68,14 @@ provider-console configuration, which can't be done from this repo:
 
 Full reference: [supabase_flutter OAuth docs](https://supabase.com/docs/guides/auth/social-login).
 
-## 3. AI Prayer Assistant (Phase 4)
-
-The Assistant screen calls a Supabase Edge Function
-(`supabase/functions/assistant-proxy`) that proxies to Claude. Your
-Anthropic API key is **never** put in the Flutter app — it lives only as a
-server-side secret:
-
-```
-supabase functions deploy assistant-proxy
-supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
-```
-
-Until this is deployed, the Assistant screen still works — it shows a
-friendly "not connected yet" message instead of a reply.
-
-## 4. Push notifications (Smart Notifications, PRD §5.8)
+## 3. Push notifications (Smart Notifications, PRD §5.8)
 
 Not wired up yet. The `notifications` screen's toggles are local-only UI.
 To make them real: add Firebase to the project (`flutterfire configure`),
 add `firebase_messaging` + `flutter_local_notifications`, and persist
 preferences to the `notification_prefs` table (schema already exists).
 
-## 5. What's real vs. prototype-visual
+## 4. What's real vs. prototype-visual
 
 **Wired to Supabase (real CRUD, survives app restart):**
 Auth (email/password + reset + create account; Google/Apple need the

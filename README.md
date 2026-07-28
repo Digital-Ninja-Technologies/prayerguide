@@ -12,7 +12,7 @@ below for where the visual system and product spec came from.
 ## Scope
 
 The app covers all four phases of the product spec
-(`project/uploads/PrayerGuide_PRD_v2_1.md`) — 35 screens total:
+(`project/uploads/PrayerGuide_PRD_v2_1.md`):
 
 - **Phase 1 — the habit loop.** Onboarding, auth (email/password + reset +
   create account, Google, Apple), Home, Daily Prayer Guide + guide library,
@@ -24,8 +24,13 @@ The app covers all four phases of the product spec
   create), Bible reading plans, Daily Devotional, Fasting Companion.
 - **Phase 3 — live & community.** Prayer Together (synced session), Prayer
   Groups, Audio Prayer Room.
-- **Phase 4 — intelligence.** AI Prayer Assistant (Claude-backed), Growth
-  Insights.
+- **Phase 4 — intelligence.** Growth Insights.
+
+There is no AI Prayer Assistant — it was removed (see `git log` for
+`Add custom app icon, remove unwired Prayer Assistant feature`) since it
+required a deployed Supabase Edge Function and an Anthropic API key that
+weren't part of this project's setup. Re-adding it would mean restoring
+`supabase/functions/assistant-proxy` and its route/repository.
 
 Not every screen is backed by live data yet — see
 [What's real vs. UI-only](#whats-real-vs-ui-only).
@@ -36,8 +41,8 @@ Not every screen is backed by live data yet — see
 - **flutter_riverpod** — app state (auth, profile, journal, requests).
 - **go_router** — declarative routing; `StatefulShellRoute` drives the
   persistent bottom nav (Home / Bible / Journal / Streak / Profile).
-- **Supabase** — Postgres + Auth (email/password, Google, Apple) + Edge
-  Functions. Schema and RLS policies live in `supabase/migrations/`.
+- **Supabase** — Postgres + Auth (email/password, Google, Apple). Schema and
+  RLS policies live in `supabase/migrations/`.
 - **Client-side encryption** — journal entries are encrypted on-device
   (AES-256-GCM via the `cryptography` package) before they ever reach
   Supabase, with the key held in the platform Keychain/Keystore
@@ -46,9 +51,9 @@ Not every screen is backed by live data yet — see
   `lib/core/security/encryption_service.dart`. Prayer requests are stored
   as plain text (protected by RLS, not E2E encryption) so they can be
   shared with a paired prayer companion.
-- **Claude API** — the AI Prayer Assistant is proxied through a Supabase Edge
-  Function (`supabase/functions/assistant-proxy`) so the API key never lives
-  in the client.
+- **Bundled KJV text** — the Bible reader's full text ships locally as a
+  JSON asset (`assets/bible/kjv.json`), not fetched from an API, so
+  reading/search/reading-plan scheduling all work offline.
 - **google_fonts** — Spectral (serif, for scripture/headings) and Manrope
   (sans, for UI chrome), matching the original design system.
 
@@ -58,15 +63,19 @@ Not every screen is backed by live data yet — see
 lib/
   core/          theme (colors/typography), router, Supabase client init, encryption
   data/
+    bible/       bundled KJV text + reading-plan day-schedule generation
+    devotional/  local devotional content + date-based daily rotation
     models/      plain Dart data classes
-    repositories/  Supabase CRUD per feature (auth, journal, requests, profile, assistant)
-    static/      reference content (guide categories, challenges, reading plans, ...)
+    repositories/  Supabase CRUD per feature (auth, journal, requests, profile,
+                    bible notes, challenges, companion, fasting, focus, insights,
+                    reading plans)
+    static/      reference content (guide categories, groups, ...)
   state/         Riverpod providers wiring repositories to the UI
   features/      one folder per screen/flow (home, journal, streak, focus, companion, ...)
-  widgets/       shared design-system components (PgButton, PgCard, PgPill, ...)
+  widgets/       shared design-system components (PgButton, PgCard, PgPill,
+                  PgHeader, PgTextField, PgFormError, ...)
 supabase/
   migrations/    SQL schema + RLS policies
-  functions/     assistant-proxy Edge Function (Claude proxy)
 ```
 
 ## Getting started
@@ -77,28 +86,32 @@ cp .env.example .env   # fill in your Supabase project URL + anon key
 flutter run
 ```
 
-Full setup — applying the Supabase schema, enabling Google/Apple auth,
-deploying the Assistant proxy function — is in **[SETUP.md](SETUP.md)**.
+Full setup — applying the Supabase schema and migrations, enabling
+Google/Apple auth — is in **[SETUP.md](SETUP.md)**.
 
 ## What's real vs. UI-only
 
 **Wired to Supabase, persists across restarts:** auth, Journal, Prayer
-Requests, Profile/Settings (theme, hide-streak), and the Prayer Streak (a DB
-trigger recomputes it from logged prayer sessions).
+Requests (with companion sharing), Profile/Settings (theme, hide-streak),
+Prayer Streak (a DB trigger recomputes it from logged prayer sessions),
+Bible reader bookmarks/highlights/notes, Reading Plans progress, Focus
+Mode session logging, Prayer Companion pairing/invites, Prayer Challenges,
+Fasting sessions, and Growth Insights.
 
-**UI-complete, local/mock state for now:** Guide Library, Bible
-reader/notes, Focus Mode, Companion/Invite, Challenges, Reading Plans,
-Devotional, Fasting, Prayer Together/Groups/Audio Room, Growth Insights,
-Upgrade (no real billing). Their tables already exist in the migration, so
-wiring each one up follows the same repository + Riverpod-provider pattern
-used for Journal and Requests.
+**UI-complete, local state for now:** Guide Library, Daily Devotional (real
+date-based daily rotation, but the content itself is a local static
+library — nothing to persist), Prayer Together/Groups/Audio Room, Upgrade
+(no real billing). Together/Groups/Room's tables don't exist yet; wiring
+them up follows the same repository + Riverpod-provider pattern used
+everywhere else.
 
 **Needs platform/infra work beyond this codebase** (per the PRD's own risk
-list): Focus Mode's actual app-blocking (iOS Screen Time entitlement,
-Android Accessibility Service — both are common store-rejection causes),
-Prayer Together's real-time sync (Supabase Realtime), Audio Prayer Rooms
-(WebRTC + moderation), push notifications (Firebase), and in-app purchases
-for Upgrade.
+list): Focus Mode's actual app-*blocking* (sessions are logged for real, but
+enforcing it needs the iOS Screen Time entitlement or an Android
+Accessibility Service — both are common store-rejection causes), Prayer
+Together's real-time sync (Supabase Realtime), Audio Prayer Rooms (WebRTC +
+moderation), push notifications (Firebase), and in-app purchases for
+Upgrade.
 
 See `SETUP.md` for the full breakdown and exact next steps.
 
