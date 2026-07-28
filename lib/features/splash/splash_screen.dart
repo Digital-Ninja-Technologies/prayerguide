@@ -44,7 +44,7 @@ class _SplashScreenState extends State<SplashScreen> {
                       center: const Alignment(0, -0.2),
                       radius: 0.9,
                       colors: [
-                        const Color(0xFFE8B36B).withOpacity(.12),
+                        const Color(0xFFE8B36B).withValues(alpha: .12),
                         Colors.transparent,
                       ],
                     ),
@@ -64,18 +64,23 @@ class _SplashScreenState extends State<SplashScreen> {
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
-                            const Color(0xFF5BC2B3).withOpacity(.22),
-                            const Color(0xFFE8B36B).withOpacity(.14),
+                            const Color(0xFF5BC2B3).withValues(alpha: .22),
+                            const Color(0xFFE8B36B).withValues(alpha: .14),
                           ],
                         ),
-                        border: Border.all(color: Colors.white.withOpacity(.12)),
+                        border: Border.all(
+                            color: Colors.white.withValues(alpha: .12)),
                       ),
-                      child: const Icon(Icons.self_improvement_rounded, size: 46, color: Color(0xFF5BC2B3)),
+                      child: const Icon(Icons.self_improvement_rounded,
+                          size: 46, color: Color(0xFF5BC2B3)),
                     ),
                     const SizedBox(height: 26),
                     Text(
                       'Prayer Guide',
-                      style: PgText.serif(size: 30, weight: FontWeight.w600, color: const Color(0xFFECEAE3)),
+                      style: PgText.serif(
+                          size: 30,
+                          weight: FontWeight.w600,
+                          color: const Color(0xFFECEAE3)),
                     ),
                     const SizedBox(height: 6),
                     Text(
