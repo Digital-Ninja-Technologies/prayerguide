@@ -15,6 +15,7 @@ import '../../features/devotional/devotional_screen.dart';
 import '../../features/fasting/fasting_screen.dart';
 import '../../features/focus/focus_active_screen.dart';
 import '../../features/focus/focus_setup_screen.dart';
+import '../../features/groups/group_new_screen.dart';
 import '../../features/groups/groups_screen.dart';
 import '../../features/guide/guide_library_screen.dart';
 import '../../features/guide/guide_screen.dart';
@@ -83,11 +84,20 @@ final routerProvider = Provider<GoRouter>((ref) {
           ]),
         ],
       ),
-      GoRoute(path: '/guide', builder: (c, s) => const GuideScreen()),
+      GoRoute(
+        path: '/guide',
+        builder: (c, s) => GuideScreen(category: s.uri.queryParameters['category']),
+      ),
       GoRoute(
           path: '/guide-library',
           builder: (c, s) => const GuideLibraryScreen()),
-      GoRoute(path: '/timer', builder: (c, s) => const TimerScreen()),
+      GoRoute(
+        path: '/timer',
+        builder: (c, s) => TimerScreen(
+          category: s.uri.queryParameters['category'],
+          presetMinutes: int.tryParse(s.uri.queryParameters['minutes'] ?? ''),
+        ),
+      ),
       GoRoute(path: '/scripture', builder: (c, s) => const ScriptureScreen()),
       GoRoute(
           path: '/journal/new', builder: (c, s) => const JournalNewScreen()),
@@ -128,6 +138,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/fasting', builder: (c, s) => const FastingScreen()),
       GoRoute(path: '/together', builder: (c, s) => const TogetherScreen()),
       GoRoute(path: '/groups', builder: (c, s) => const GroupsScreen()),
+      GoRoute(path: '/groups/new', builder: (c, s) => const GroupNewScreen()),
       GoRoute(path: '/room', builder: (c, s) => const RoomScreen()),
     ],
   );

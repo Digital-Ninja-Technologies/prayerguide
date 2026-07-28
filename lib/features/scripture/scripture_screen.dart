@@ -70,7 +70,7 @@ class ScriptureScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 18),
-            PgButton(label: 'Pray on this', onPressed: () => context.push('/timer')),
+            PgButton(label: 'Pray on this', onPressed: () => context.push('/timer?category=Scripture')),
           ],
         ),
       ),

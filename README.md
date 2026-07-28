@@ -91,29 +91,20 @@ Google/Apple auth — is in **[SETUP.md](SETUP.md)**.
 
 ## What's real vs. UI-only
 
-**Wired to Supabase, persists across restarts:** auth, Journal, Prayer
-Requests (with companion sharing), Profile/Settings (theme, hide-streak),
-Prayer Streak (a DB trigger recomputes it from logged prayer sessions),
-Bible reader bookmarks/highlights/notes, Reading Plans progress, Focus
-Mode session logging, Prayer Companion pairing/invites, Prayer Challenges,
-Fasting sessions, and Growth Insights.
+Nearly everything is wired to Supabase now — auth, Journal, Prayer
+Requests (with companion sharing), Profile/Settings, Prayer Streak, Bible
+reader/notes/plans/devotional, Growth Insights, Fasting, Focus Mode session
+logging, Challenges, Companion/Invite, Guide Library, Notifications,
+Groups, and Prayer Together (live, via Supabase Realtime Presence).
 
-**UI-complete, local state for now:** Guide Library, Daily Devotional (real
-date-based daily rotation, but the content itself is a local static
-library — nothing to persist), Prayer Together/Groups/Audio Room, Upgrade
-(no real billing). Together/Groups/Room's tables don't exist yet; wiring
-them up follows the same repository + Riverpod-provider pattern used
-everywhere else.
+What's left as UI-only: Audio Prayer Room (needs WebRTC/SFU) and the
+Upgrade/paywall screen (needs RevenueCat or native store billing). Focus
+Mode's actual app-*blocking* also needs platform entitlements (iOS Screen
+Time, Android Accessibility Service — both common store-rejection causes)
+beyond this codebase.
 
-**Needs platform/infra work beyond this codebase** (per the PRD's own risk
-list): Focus Mode's actual app-*blocking* (sessions are logged for real, but
-enforcing it needs the iOS Screen Time entitlement or an Android
-Accessibility Service — both are common store-rejection causes), Prayer
-Together's real-time sync (Supabase Realtime), Audio Prayer Rooms (WebRTC +
-moderation), push notifications (Firebase), and in-app purchases for
-Upgrade.
-
-See `SETUP.md` for the full breakdown and exact next steps.
+See **[SETUP.md](SETUP.md)** for the full, maintained breakdown of what's
+real vs. not, and why.
 
 ## Design origin
 

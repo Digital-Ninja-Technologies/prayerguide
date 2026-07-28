@@ -49,7 +49,7 @@ class _GuideLibraryScreenState extends State<GuideLibraryScreen> {
                 child: PgCard(
                   radius: 18,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-                  onTap: () => context.push('/guide'),
+                  onTap: () => context.push('/guide?category=${Uri.encodeComponent(g.name)}'),
                   child: Row(
                     children: [
                       PgIconBadge(

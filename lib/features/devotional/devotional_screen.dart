@@ -79,7 +79,7 @@ class DevotionalScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            PgButton(label: 'Pray & mark complete', onPressed: () => context.push('/timer')),
+            PgButton(label: 'Pray & mark complete', onPressed: () => context.push('/timer?category=Devotional')),
           ],
         ),
       ),

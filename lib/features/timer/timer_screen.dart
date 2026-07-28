@@ -13,14 +13,17 @@ import '../../widgets/pg_button.dart';
 import '../../widgets/pg_pill.dart';
 
 class TimerScreen extends ConsumerStatefulWidget {
-  const TimerScreen({super.key});
+  const TimerScreen({super.key, this.category, this.presetMinutes});
+  final String? category;
+  final int? presetMinutes;
 
   @override
   ConsumerState<TimerScreen> createState() => _TimerScreenState();
 }
 
 class _TimerScreenState extends ConsumerState<TimerScreen> {
-  int _preset = 10;
+  late final String _category = widget.category ?? 'Thanksgiving';
+  late int _preset = widget.presetMinutes ?? 10;
   late int _remaining = _preset * 60;
   bool _running = false;
   bool _done = false;
@@ -71,7 +74,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
     final duration = _preset * 60;
     await ref.read(profileProvider.notifier).completeSession(
           durationSeconds: duration,
-          category: 'Thanksgiving',
+          category: _category,
         );
     if (mounted) context.go('/home');
   }
@@ -114,7 +117,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       PgBackButton(icon: Icons.close_rounded, onTap: () => context.pop()),
-                      Text('THANKSGIVING',
+                      Text(_category.toUpperCase(),
                           style: PgText.sans(size: 13, weight: FontWeight.w700, color: c.dim, letterSpacing: .5)),
                       const SizedBox(width: 38),
                     ],

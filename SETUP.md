@@ -155,15 +155,50 @@ Companion/Invite are also real** now:
   screen shows a "Shared requests" section (category + title, attributed
   to whoever shared it) above the existing real check-in history.
 
+**Guide Library, Notifications, Groups, and Prayer Together are also real**
+now:
+
+- **Guide Library** — each of the 6 categories (Thanksgiving, Worship,
+  Repentance, Family, Healing, Spiritual Growth) has its own real verse,
+  intro, prayer points, and reflection question (`lib/data/static/pg_content.dart`);
+  tapping a category routes `/guide?category=...` to the matching content
+  instead of always showing "Thanksgiving". Tapping "Begin" now also passes
+  the real category through to the timer, so completed sessions log the
+  actual category prayed (`prayer_sessions.category`) instead of always
+  logging "Thanksgiving" — this also fixes Growth Insights' "most-visited
+  category" stat, which was silently wrong for every session before this.
+  Devotional and Scripture-of-the-day sessions log their own categories too.
+- **Notifications** — all five toggles (morning/evening prayer, scripture
+  nudge, streak protection, companion check-ins) read and write the
+  existing `notification_prefs` table in real time; reminder/quiet-hours
+  times shown are the real stored values. This only persists the
+  *preference*; actually scheduling local/push notifications from those
+  preferences is still unbuilt (needs a notifications/scheduling package).
+- **Groups** — real `groups` + `group_members` tables (already scaffolded
+  in `0001_init.sql`); migration `0008` adds a shareable invite code +
+  `redeem_group_invite` RPC (same pattern as Companion invites, needed
+  because the member-only RLS policy means you can't look up a group you're
+  not in yet). You can create a group, share its code, join another
+  group by code, and leave a group; the list shows real member counts.
+  There's no group chat/discussion feed — the original design never had
+  one either, just this membership list.
+- **Prayer Together** — a real live session with your paired Companion
+  using Supabase Realtime Presence (`lib/features/together/together_screen.dart`),
+  not a hardcoded "6:20" timer. Each device tracks presence on a channel
+  keyed by the companion pairing id; the screen shows "Waiting for
+  `<name>`…" until both of you are actually present, then starts a timer
+  synced from the later of the two join timestamps. Leaving untracks
+  presence. This needs a paired companion to work (there was never a
+  group version of this in the design — the two-avatar UI and the
+  prototype's own back-button wiring both point at Companion, not Groups).
+
 **UI-complete, local/mock state (matches the design, not yet backed by a
-table read/write):** Guide Library, Notifications toggles, Prayer Together,
-Groups, Audio Room, Upgrade/paywall (no real billing — needs RevenueCat or
-App Store/Play Billing).
+table read/write):** Audio Room, Upgrade/paywall (no real billing — needs
+RevenueCat or App Store/Play Billing).
 
 **Needs platform work beyond this codebase (per the PRD's own risk
 callouts):** Focus Mode's actual app-blocking (iOS Screen Time entitlement,
 Android Accessibility Service — both are common App/Play Store rejection
-causes; apply for the entitlement before committing to a release), Prayer
-Together's real-time sync (Supabase Realtime channels), Audio Prayer Rooms
-(WebRTC/audio SFU + moderation), and in-app purchases for the Upgrade
-screen.
+causes; apply for the entitlement before committing to a release), Audio
+Prayer Rooms (WebRTC/audio SFU + moderation), and in-app purchases for the
+Upgrade screen.

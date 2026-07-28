@@ -3,23 +3,24 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
+import '../../data/static/pg_content.dart';
 import '../../widgets/pg_button.dart';
 import '../../widgets/pg_header.dart';
 import '../../widgets/pg_pill.dart';
 
-const _prayerPoints = [
-  "Thank God for his faithfulness through the night.",
-  'Give thanks for provision and daily bread.',
-  'Praise him for his timing, even in unanswered prayers.',
-  'Offer gratitude for the people he has placed in your life.',
-];
-
 class GuideScreen extends StatelessWidget {
-  const GuideScreen({super.key});
+  const GuideScreen({super.key, this.category});
+  final String? category;
 
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
+    final meta = guideCategories.firstWhere(
+      (g) => g.name == category,
+      orElse: () => guideCategories.first,
+    );
+    final content = guideContentByCategory[meta.name] ?? guideContentByCategory['Thanksgiving']!;
+
     return Scaffold(
       body: Stack(
         children: [
@@ -31,10 +32,10 @@ class GuideScreen extends StatelessWidget {
                 PgHeader(eyebrow: 'DAILY PRAYER GUIDE', onBack: () => context.pop()),
                 Row(
                   children: [
-                    PgPill(label: '☀ Morning', active: true),
+                    const PgPill(label: '☀ Morning', active: true),
                     const SizedBox(width: 8),
                     PgPill(
-                      label: '8 min',
+                      label: meta.duration,
                       active: true,
                       activeColor: c.amberSoft,
                       activeFg: c.amber,
@@ -42,10 +43,10 @@ class GuideScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 14),
-                Text('Thanksgiving', style: PgText.serif(size: 32, weight: FontWeight.w600)),
+                Text(meta.name, style: PgText.serif(size: 32, weight: FontWeight.w600)),
                 const SizedBox(height: 8),
                 Text(
-                  "Begin the day by naming what God has done. Let gratitude quiet the noise before you ask for anything.",
+                  content.intro,
                   style: PgText.sans(size: 15, height: 1.6, color: c.dim),
                 ),
                 const SizedBox(height: 26),
@@ -56,11 +57,11 @@ class GuideScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '"Be careful for nothing; but in every thing by prayer and supplication with thanksgiving let your requests be made known unto God."',
+                        '"${content.verse}"',
                         style: PgText.serif(size: 18, style: FontStyle.italic, height: 1.55),
                       ),
                       const SizedBox(height: 10),
-                      Text('Philippians 4:6',
+                      Text(content.reference,
                           style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: c.amber)),
                     ],
                   ),
@@ -69,7 +70,7 @@ class GuideScreen extends StatelessWidget {
                 Text('PRAYER POINTS',
                     style: PgText.sans(size: 12, weight: FontWeight.w700, color: c.teal, letterSpacing: 1)),
                 const SizedBox(height: 14),
-                for (var i = 0; i < _prayerPoints.length; i++)
+                for (var i = 0; i < content.prayerPoints.length; i++)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12),
                     child: Row(
@@ -85,7 +86,7 @@ class GuideScreen extends StatelessWidget {
                         ),
                         const SizedBox(width: 14),
                         Expanded(
-                          child: Text(_prayerPoints[i], style: const TextStyle(fontSize: 15, height: 1.5)),
+                          child: Text(content.prayerPoints[i], style: const TextStyle(fontSize: 15, height: 1.5)),
                         ),
                       ],
                     ),
@@ -104,8 +105,7 @@ class GuideScreen extends StatelessWidget {
                       Text('REFLECTION',
                           style: PgText.sans(size: 12, weight: FontWeight.w700, color: c.dim, letterSpacing: 1)),
                       const SizedBox(height: 8),
-                      Text("Where have you seen God's hand at work this week?",
-                          style: PgText.serif(size: 17, height: 1.5)),
+                      Text(content.reflection, style: PgText.serif(size: 17, height: 1.5)),
                     ],
                   ),
                 ),
@@ -122,14 +122,16 @@ class GuideScreen extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
-                  colors: [c.bg, c.bg.withOpacity(0)],
+                  colors: [c.bg, c.bg.withValues(alpha: 0)],
                   stops: const [0.62, 1],
                 ),
               ),
               child: PgButton(
-                label: 'Begin — 8 min',
+                label: 'Begin — ${meta.duration}',
                 icon: Icon(Icons.play_arrow_rounded, color: c.onTeal, size: 20),
-                onPressed: () => context.push('/timer'),
+                onPressed: () => context.push(
+                  '/timer?category=${Uri.encodeComponent(meta.name)}&minutes=${meta.durationMinutes}',
+                ),
               ),
             ),
           ),
