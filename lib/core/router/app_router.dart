@@ -64,7 +64,13 @@ final routerProvider = Provider<GoRouter>((ref) {
             GoRoute(path: '/home', builder: (c, s) => const HomeScreen()),
           ]),
           StatefulShellBranch(routes: [
-            GoRoute(path: '/bible', builder: (c, s) => const BibleScreen()),
+            GoRoute(
+              path: '/bible',
+              builder: (c, s) => BibleScreen(
+                initialBook: s.uri.queryParameters['book'],
+                initialChapter: int.tryParse(s.uri.queryParameters['chapter'] ?? ''),
+              ),
+            ),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(path: '/journal', builder: (c, s) => const JournalScreen()),

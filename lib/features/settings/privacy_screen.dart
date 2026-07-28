@@ -61,7 +61,7 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      "Your journal and prayer request text are end-to-end encrypted. The encryption key lives only on your device — Supabase, and anyone with database access, only ever sees ciphertext.",
+                      "Your journal entries are end-to-end encrypted. The encryption key lives only on your device — Supabase, and anyone with database access, only ever sees ciphertext. Prayer requests are stored as plain text (protected by row-level access rules) so you can choose to share them with your prayer companion.",
                       style: TextStyle(fontSize: 13.5, height: 1.6, color: c.text),
                     ),
                   ),

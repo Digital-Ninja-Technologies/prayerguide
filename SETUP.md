@@ -17,10 +17,11 @@ Security. Nothing else in this repo needs a secret key.
 
 ```
 supabase link --project-ref glkgiigirmfrmbgsmdrp
-supabase db push        # applies supabase/migrations/0001_init.sql
+supabase db push        # applies every file in supabase/migrations/, in order
 ```
 
-(or paste `supabase/migrations/0001_init.sql` into the Supabase SQL editor).
+(or paste each migration file into the Supabase SQL editor, in numeric
+order — `0001_init.sql` first, then `0002`, `0003`, `0004`, ...).
 
 This creates `profiles`, `journal_entries`, `prayer_requests`,
 `prayer_sessions` (feeds the streak via a DB trigger), `bible_notes`,
@@ -96,13 +97,22 @@ dashboard config above), Journal, Prayer Requests, Profile/Settings
 (theme preference, hide-streak toggle), and the Prayer Streak (a DB trigger
 recomputes it from logged `prayer_sessions`).
 
-Journal entry text and prayer request title/note are genuinely end-to-end
-encrypted: `lib/core/security/encryption_service.dart` generates a random
-AES-256-GCM key on-device, stored only in the platform Keychain/Keystore via
+Journal entry text is genuinely end-to-end encrypted:
+`lib/core/security/encryption_service.dart` generates a random AES-256-GCM
+key on-device, stored only in the platform Keychain/Keystore via
 `flutter_secure_storage`. Supabase only ever stores ciphertext
-(`title_cipher`/`body_cipher`/`note_cipher` columns) — the key never leaves
-the device unencrypted, so nobody but the signed-in device (or someone who
-knows the recovery passphrase — see below) can decrypt.
+(`title_cipher`/`body_cipher` columns) — the key never leaves the device
+unencrypted, so nobody but the signed-in device (or someone who knows the
+recovery passphrase — see below) can decrypt.
+
+Prayer Requests are **not** end-to-end encrypted (migration `0007` dropped
+the `title_cipher`/`note_cipher` columns in favor of plain `title`/`note`
+columns, protected only by Postgres RLS). That trade-off was made
+deliberately so requests could be genuinely shared with a prayer companion
+— see "Companion/Invite" below for why E2E encryption made that impossible.
+Anyone with direct database access (e.g. a Supabase admin) can read request
+text; Journal entries remain unreadable to anyone but the device/passphrase
+holder.
 
 **Cross-device recovery (opt-in):** from Settings → Privacy & encryption, a
 user can set a recovery passphrase. That wraps their existing key with a
@@ -116,17 +126,53 @@ device too. If a user never sets a passphrase (or has forgotten it), that's
 still an honest dead end for old entries — the unlock screen offers
 "start fresh on this device" instead of pretending recovery is possible.
 
-**UI-complete, local/mock state (matches the design, not yet backed by a
-table read/write):** Guide Library, Bible reader/notes, Notifications
-toggles, Focus Mode, Companion/Invite, Challenges, Reading Plans,
-Devotional, Fasting, Prayer Together / Groups / Audio Room, Growth
-Insights, Upgrade/paywall (no real billing — needs RevenueCat or
-App Store/Play Billing).
+**Bible reader, Bible highlights/bookmarks/notes, Reading Plans, and the
+Devotional are also real**, not mocked: the reader runs on the full KJV
+text bundled locally (`assets/bible/kjv.json`, public domain, 66 books /
+31,102 verses — see `lib/data/bible/bible_library.dart`), so it works fully
+offline with real book/chapter navigation. Highlights/bookmarks/notes are
+stored in the `bible_notes` table. Reading Plans generate a real day-by-day
+schedule from that same text (`lib/data/bible/reading_plan_schedule.dart`)
+and track progress per user in `reading_plan_progress`. The Devotional
+rotates through 14 curated entries by day-of-year, pulling its scripture
+text live from the bundled Bible rather than retyping it.
 
-Those all have matching tables in the migration already, so wiring them up
-is a repository + provider per screen, following the same pattern as
-`lib/data/repositories/journal_repository.dart` +
-`lib/state/journal_provider.dart`.
+**Growth Insights, Fasting, Focus Mode session tracking, Challenges, and
+Companion/Invite are also real** now:
+
+- **Growth Insights** — the weekly bar chart, total time, and "gentle
+  insight" text are computed from actual `prayer_sessions` rows (this
+  week's per-day totals, most-visited category, most common time of day),
+  not hardcoded.
+- **Fasting** — start/end a real fast (`fasting_sessions`), with a live
+  elapsed/remaining ring and real prayer-session/journal-entry counts
+  during the fast window.
+- **Focus Mode** — start/end is tracked for real (`focus_sessions`, new
+  migration `0005`) with a live elapsed timer on the overlay. This is
+  session *tracking* only — actual app-blocking still needs the OS
+  entitlements below; the "apps to quiet" toggles remain visual.
+- **Challenges** — `challenge_progress` tracks real day-by-day progress for
+  both catalog challenges and custom ones created via Create Challenge.
+  Tapping Start/Continue advances the day and persists it.
+- **Companion/Invite** — real invite codes (`companion_invites` +
+  `redeem_companion_invite` RPC, migration `0006`) pair two accounts via
+  `companions`; check-ins persist to `companion_checkins` and show real
+  history; shared streak is `min(your streak, their streak)`. QR *scanning*
+  isn't wired (no camera/QR package added) — pairing works via copy/paste
+  or manually typing the code. **Shared prayer requests are now real**: a
+  request can be flagged `shared_with_companion` when created (or via the
+  toggle on the Requests list), and migration `0007` adds an RLS policy
+  granting a paired companion read access to just those flagged rows —
+  this only became possible after removing E2E encryption from Prayer
+  Requests (see above); with the key living only on the author's device,
+  a companion's device had no way to decrypt anything. The Companion
+  screen shows a "Shared requests" section (category + title, attributed
+  to whoever shared it) above the existing real check-in history.
+
+**UI-complete, local/mock state (matches the design, not yet backed by a
+table read/write):** Guide Library, Notifications toggles, Prayer Together,
+Groups, Audio Room, Upgrade/paywall (no real billing — needs RevenueCat or
+App Store/Play Billing).
 
 **Needs platform work beyond this codebase (per the PRD's own risk
 callouts):** Focus Mode's actual app-blocking (iOS Screen Time entitlement,

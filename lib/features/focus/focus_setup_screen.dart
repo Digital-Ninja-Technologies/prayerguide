@@ -1,21 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/pg_colors.dart';
 import '../../data/static/pg_content.dart';
+import '../../state/focus_provider.dart';
 import '../../widgets/pg_button.dart';
 import '../../widgets/pg_header.dart';
 import '../../widgets/pg_section_label.dart';
 
-class FocusSetupScreen extends StatefulWidget {
+class FocusSetupScreen extends ConsumerStatefulWidget {
   const FocusSetupScreen({super.key});
 
   @override
-  State<FocusSetupScreen> createState() => _FocusSetupScreenState();
+  ConsumerState<FocusSetupScreen> createState() => _FocusSetupScreenState();
 }
 
-class _FocusSetupScreenState extends State<FocusSetupScreen> {
+class _FocusSetupScreenState extends ConsumerState<FocusSetupScreen> {
   bool _gentle = true;
+  bool _starting = false;
+
+  Future<void> _begin() async {
+    setState(() => _starting = true);
+    try {
+      await ref.read(focusProvider.notifier).start(_gentle ? 'gentle' : 'full');
+      if (mounted) context.push('/focus/active');
+    } finally {
+      if (mounted) setState(() => _starting = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +109,10 @@ class _FocusSetupScreenState extends State<FocusSetupScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            PgButton(label: 'Begin focused prayer', onPressed: () => context.push('/focus/active')),
+            PgButton(
+              label: _starting ? 'Starting…' : 'Begin focused prayer',
+              onPressed: _starting ? null : _begin,
+            ),
           ],
         ),
       ),

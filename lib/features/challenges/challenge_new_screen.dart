@@ -1,22 +1,51 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/pg_colors.dart';
+import '../../state/challenge_provider.dart';
 import '../../widgets/pg_pill.dart';
 import '../../widgets/pg_text_field.dart';
 import '../../widgets/pg_toggle.dart';
 
-class ChallengeNewScreen extends StatefulWidget {
+class ChallengeNewScreen extends ConsumerStatefulWidget {
   const ChallengeNewScreen({super.key});
 
   @override
-  State<ChallengeNewScreen> createState() => _ChallengeNewScreenState();
+  ConsumerState<ChallengeNewScreen> createState() => _ChallengeNewScreenState();
 }
 
-class _ChallengeNewScreenState extends State<ChallengeNewScreen> {
+class _ChallengeNewScreenState extends ConsumerState<ChallengeNewScreen> {
+  final _name = TextEditingController();
   int _length = 30;
   String _focus = 'Growth';
   bool _reminder = true;
+  bool _saving = false;
+  String? _error;
+
+  Future<void> _create() async {
+    final name = _name.text.trim().isEmpty ? '$_focus Challenge' : _name.text.trim();
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      final key = 'custom-${DateTime.now().microsecondsSinceEpoch}';
+      await ref.read(challengeRepositoryProvider).start(challengeKey: key, name: name, totalDays: _length);
+      ref.invalidate(challengeProvider);
+      if (mounted) context.pop();
+    } catch (e) {
+      setState(() => _error = 'Could not create: $e');
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _name.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,8 +65,9 @@ class _ChallengeNewScreenState extends State<ChallengeNewScreen> {
                   ),
                   const Text('New challenge', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                   TextButton(
-                    onPressed: () => context.pop(),
-                    child: Text('Create', style: TextStyle(color: c.teal, fontWeight: FontWeight.w800, fontSize: 14)),
+                    onPressed: _saving ? null : _create,
+                    child: Text(_saving ? 'Creating…' : 'Create',
+                        style: TextStyle(color: c.teal, fontWeight: FontWeight.w800, fontSize: 14)),
                   ),
                 ],
               ),
@@ -48,7 +78,11 @@ class _ChallengeNewScreenState extends State<ChallengeNewScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const PgTextField(hint: 'Name your challenge', fontWeight: FontWeight.w600),
+                    PgTextField(controller: _name, hint: 'Name your challenge', fontWeight: FontWeight.w600),
+                    if (_error != null) ...[
+                      const SizedBox(height: 8),
+                      Text(_error!, style: TextStyle(color: c.danger, fontSize: 12.5)),
+                    ],
                     const SizedBox(height: 22),
                     Text('LENGTH', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 1, color: c.dim)),
                     const SizedBox(height: 10),

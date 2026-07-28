@@ -19,6 +19,7 @@ class _RequestNewScreenState extends ConsumerState<RequestNewScreen> {
   String _category = 'Healing';
   bool _reminder = true;
   bool _addToToday = false;
+  bool _shareWithCompanion = false;
   final _title = TextEditingController();
   final _note = TextEditingController();
   bool _saving = false;
@@ -35,6 +36,7 @@ class _RequestNewScreenState extends ConsumerState<RequestNewScreen> {
             title: _title.text.trim(),
             note: _note.text.trim().isEmpty ? null : _note.text.trim(),
             reminder: _reminder,
+            sharedWithCompanion: _shareWithCompanion,
           );
       if (mounted) context.pop();
     } catch (e) {
@@ -118,14 +120,26 @@ class _RequestNewScreenState extends ConsumerState<RequestNewScreen> {
                               ],
                             ),
                           ),
-                          Padding(
+                          Container(
                             padding: const EdgeInsets.symmetric(vertical: 13),
+                            decoration: BoxDecoration(border: Border(bottom: BorderSide(color: c.line))),
                             child: Row(
                               children: [
                                 Icon(Icons.favorite_border_rounded, size: 19, color: c.dim),
                                 const SizedBox(width: 11),
                                 const Expanded(child: Text("Add to today's prayer", style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600))),
                                 PgToggle(value: _addToToday, onChanged: (v) => setState(() => _addToToday = v)),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 13),
+                            child: Row(
+                              children: [
+                                Icon(Icons.diversity_1_outlined, size: 19, color: c.teal),
+                                const SizedBox(width: 11),
+                                const Expanded(child: Text('Share with companion', style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600))),
+                                PgToggle(value: _shareWithCompanion, onChanged: (v) => setState(() => _shareWithCompanion = v)),
                               ],
                             ),
                           ),

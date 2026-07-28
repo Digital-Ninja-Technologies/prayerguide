@@ -38,12 +38,14 @@ Not every screen is backed by live data yet — see
   persistent bottom nav (Home / Bible / Journal / Streak / Profile).
 - **Supabase** — Postgres + Auth (email/password, Google, Apple) + Edge
   Functions. Schema and RLS policies live in `supabase/migrations/`.
-- **Client-side encryption** — journal entries and prayer request text are
-  encrypted on-device (AES-256-GCM via the `cryptography` package) before
-  they ever reach Supabase, with the key held in the platform
-  Keychain/Keystore (`flutter_secure_storage`) and an opt-in
-  passphrase-based recovery/escrow flow for new devices. See
-  `lib/core/security/encryption_service.dart`.
+- **Client-side encryption** — journal entries are encrypted on-device
+  (AES-256-GCM via the `cryptography` package) before they ever reach
+  Supabase, with the key held in the platform Keychain/Keystore
+  (`flutter_secure_storage`) and an opt-in passphrase-based
+  recovery/escrow flow for new devices. See
+  `lib/core/security/encryption_service.dart`. Prayer requests are stored
+  as plain text (protected by RLS, not E2E encryption) so they can be
+  shared with a paired prayer companion.
 - **Claude API** — the AI Prayer Assistant is proxied through a Supabase Edge
   Function (`supabase/functions/assistant-proxy`) so the API key never lives
   in the client.

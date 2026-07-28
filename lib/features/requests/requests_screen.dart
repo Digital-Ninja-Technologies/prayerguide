@@ -3,15 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../core/security/encryption_service.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
 import '../../data/models/prayer_request.dart';
-import '../../state/repo_providers.dart';
 import '../../state/requests_provider.dart';
 import '../../widgets/pg_button.dart';
 import '../../widgets/pg_card.dart';
-import '../../widgets/pg_passphrase_unlock.dart';
 import '../../widgets/pg_pill.dart';
 
 class RequestsScreen extends ConsumerStatefulWidget {
@@ -30,109 +27,87 @@ class _RequestsScreenState extends ConsumerState<RequestsScreen> {
     final reqsAsync = ref.watch(requestsProvider);
 
     return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(22, 6, 22, 40),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(22, 6, 22, 40),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => context.pop(),
+                        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 17),
+                        style: IconButton.styleFrom(
+                          backgroundColor: c.surface,
+                          side: BorderSide(color: c.line),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text('Requests', style: PgText.serif(size: 23, weight: FontWeight.w600)),
+                    ],
+                  ),
+                  PgButton(
+                    label: 'Add',
+                    expand: false,
+                    dense: true,
+                    icon: Icon(Icons.add_rounded, color: c.onTeal, size: 16),
+                    onPressed: () => context.push('/requests/new'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            reqsAsync.when(
+              loading: () => const Padding(
+                padding: EdgeInsets.symmetric(vertical: 60),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (e, st) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 40),
+                child: Text('Could not load requests.\n$e', style: TextStyle(color: c.danger)),
+              ),
+              data: (reqs) {
+                if (reqs.isEmpty) return _EmptyState(onAdd: () => context.push('/requests/new'));
+                final counts = {'active': 0, 'answered': 0, 'archived': 0};
+                for (final r in reqs) {
+                  counts[r.status] = (counts[r.status] ?? 0) + 1;
+                }
+                final filtered = reqs.where((r) => r.status == _tab).toList();
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        IconButton(
-                          onPressed: () => context.pop(),
-                          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                              size: 17),
-                          style: IconButton.styleFrom(
-                            backgroundColor: c.surface,
-                            side: BorderSide(color: c.line),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12)),
+                        for (final t in const [('active', 'Active'), ('answered', 'Answered'), ('archived', 'Archived')])
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: PgPill(
+                              label: '${t.$2} · ${counts[t.$1]}',
+                              active: _tab == t.$1,
+                              onTap: () => setState(() => _tab = t.$1),
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Text('Requests',
-                            style: PgText.serif(
-                                size: 23, weight: FontWeight.w600)),
                       ],
                     ),
-                    PgButton(
-                      label: 'Add',
-                      expand: false,
-                      dense: true,
-                      icon: Icon(Icons.add_rounded, color: c.onTeal, size: 16),
-                      onPressed: () => context.push('/requests/new'),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 10),
-              reqsAsync.when(
-                loading: () => const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 60),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-                error: (e, st) => e is PassphraseRequiredException
-                    ? PgPassphraseUnlock(
-                        uid: ref.read(currentUserIdProvider)!,
-                        onUnlocked: () => ref.invalidate(requestsProvider),
-                      )
-                    : Padding(
+                    const SizedBox(height: 18),
+                    if (filtered.isEmpty)
+                      Padding(
                         padding: const EdgeInsets.symmetric(vertical: 40),
-                        child: Text('Could not load requests.\n$e',
-                            style: TextStyle(color: c.danger)),
-                      ),
-                data: (reqs) {
-                  if (reqs.isEmpty)
-                    return _EmptyState(
-                        onAdd: () => context.push('/requests/new'));
-                  final counts = {'active': 0, 'answered': 0, 'archived': 0};
-                  for (final r in reqs) {
-                    counts[r.status] = (counts[r.status] ?? 0) + 1;
-                  }
-                  final filtered = reqs.where((r) => r.status == _tab).toList();
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          for (final t in const [
-                            ('active', 'Active'),
-                            ('answered', 'Answered'),
-                            ('archived', 'Archived')
-                          ])
-                            Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: PgPill(
-                                label: '${t.$2} · ${counts[t.$1]}',
-                                active: _tab == t.$1,
-                                onTap: () => setState(() => _tab = t.$1),
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 18),
-                      if (filtered.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 40),
-                          child: Center(
-                              child: Text('Nothing here yet.',
-                                  style:
-                                      TextStyle(color: c.faint, fontSize: 14))),
-                        )
-                      else
-                        for (final r in filtered) _RequestCard(request: r),
-                    ],
-                  );
-                },
-              ),
-            ],
-          ),
+                        child: Center(child: Text('Nothing here yet.', style: TextStyle(color: c.faint, fontSize: 14))),
+                      )
+                    else
+                      for (final r in filtered) _RequestCard(request: r),
+                  ],
+                );
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -162,65 +137,45 @@ class _RequestCard extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                      color: c.tealSoft,
-                      borderRadius: BorderRadius.circular(100)),
-                  child: Text(request.category.toUpperCase(),
-                      style: TextStyle(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: .5,
-                          color: c.teal)),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(color: c.tealSoft, borderRadius: BorderRadius.circular(100)),
+                      child: Text(request.category.toUpperCase(),
+                          style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, letterSpacing: .5, color: c.teal)),
+                    ),
+                    if (request.sharedWithCompanion) ...[
+                      const SizedBox(width: 6),
+                      Icon(Icons.diversity_1_outlined, size: 15, color: c.dim),
+                    ],
+                  ],
                 ),
                 if (request.status == 'answered')
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                        color: c.amberSoft,
-                        borderRadius: BorderRadius.circular(100)),
-                    child: Text('Answered',
-                        style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                            color: c.amber)),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(color: c.amberSoft, borderRadius: BorderRadius.circular(100)),
+                    child: Text('Answered', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: c.amber)),
                   )
                 else if (request.reminder)
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                        color: c.surface2,
-                        borderRadius: BorderRadius.circular(100)),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(color: c.surface2, borderRadius: BorderRadius.circular(100)),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.notifications_none_rounded,
-                            size: 12, color: c.dim),
+                        Icon(Icons.notifications_none_rounded, size: 12, color: c.dim),
                         const SizedBox(width: 4),
-                        Text('Daily',
-                            style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: c.dim)),
+                        Text('Daily', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: c.dim)),
                       ],
                     ),
                   ),
               ],
             ),
             const SizedBox(height: 8),
-            Text(request.title,
-                style: const TextStyle(
-                    fontSize: 15.5, fontWeight: FontWeight.w700)),
+            Text(request.title, style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700)),
             const SizedBox(height: 4),
-            Text(meta,
-                style: TextStyle(
-                    fontSize: 12.5,
-                    color: c.faint,
-                    fontWeight: FontWeight.w600)),
+            Text(meta, style: TextStyle(fontSize: 12.5, color: c.faint, fontWeight: FontWeight.w600)),
             const SizedBox(height: 14),
             if (request.status == 'active')
               Row(
@@ -243,32 +198,21 @@ class _RequestCard extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  _IconOnlyBtn(
-                      icon: Icons.archive_outlined,
-                      onTap: () => notifier.archive(request.id)),
+                  _IconOnlyBtn(icon: Icons.archive_outlined, onTap: () => notifier.archive(request.id)),
                 ],
               )
             else if (request.status == 'answered')
               Row(
                 children: [
-                  Expanded(
-                      child: _ActionBtn(
-                          label: 'Reopen',
-                          onTap: () => notifier.restore(request.id))),
+                  Expanded(child: _ActionBtn(label: 'Reopen', onTap: () => notifier.restore(request.id))),
                   const SizedBox(width: 8),
-                  Expanded(
-                      child: _ActionBtn(
-                          label: 'Archive',
-                          onTap: () => notifier.archive(request.id))),
+                  Expanded(child: _ActionBtn(label: 'Archive', onTap: () => notifier.archive(request.id))),
                 ],
               )
             else
               SizedBox(
                 width: double.infinity,
-                child: _ActionBtn(
-                    label: 'Restore to active',
-                    color: c.teal,
-                    onTap: () => notifier.restore(request.id)),
+                child: _ActionBtn(label: 'Restore to active', color: c.teal, onTap: () => notifier.restore(request.id)),
               ),
           ],
         ),
@@ -278,12 +222,7 @@ class _RequestCard extends ConsumerWidget {
 }
 
 class _ActionBtn extends StatelessWidget {
-  const _ActionBtn(
-      {required this.label,
-      this.icon,
-      this.active = false,
-      this.color,
-      required this.onTap});
+  const _ActionBtn({required this.label, this.icon, this.active = false, this.color, required this.onTap});
   final String label;
   final IconData? icon;
   final bool active;
@@ -308,13 +247,8 @@ class _ActionBtn extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (icon != null) ...[
-                Icon(icon, size: 14, color: fg),
-                const SizedBox(width: 5)
-              ],
-              Text(label,
-                  style: TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.w700, color: fg)),
+              if (icon != null) ...[Icon(icon, size: 14, color: fg), const SizedBox(width: 5)],
+              Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: fg)),
             ],
           ),
         ),
@@ -332,14 +266,11 @@ class _IconOnlyBtn extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.colors;
     return Material(
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(11),
-          side: BorderSide(color: c.line)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11), side: BorderSide(color: c.line)),
       child: InkWell(
         borderRadius: BorderRadius.circular(11),
         onTap: onTap,
-        child: SizedBox(
-            width: 40, height: 38, child: Icon(icon, size: 15, color: c.dim)),
+        child: SizedBox(width: 40, height: 38, child: Icon(icon, size: 15, color: c.dim)),
       ),
     );
   }
@@ -359,14 +290,11 @@ class _EmptyState extends StatelessWidget {
           Container(
             width: 78,
             height: 78,
-            decoration: BoxDecoration(
-                color: c.amberSoft, borderRadius: BorderRadius.circular(24)),
-            child:
-                Icon(Icons.favorite_border_rounded, size: 36, color: c.amber),
+            decoration: BoxDecoration(color: c.amberSoft, borderRadius: BorderRadius.circular(24)),
+            child: Icon(Icons.favorite_border_rounded, size: 36, color: c.amber),
           ),
           const SizedBox(height: 16),
-          Text('Nothing to carry yet',
-              style: PgText.serif(size: 21, weight: FontWeight.w600)),
+          Text('Nothing to carry yet', style: PgText.serif(size: 21, weight: FontWeight.w600)),
           const SizedBox(height: 8),
           SizedBox(
             width: 250,
