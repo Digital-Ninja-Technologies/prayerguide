@@ -13,17 +13,40 @@ import '../../widgets/pg_pill.dart';
 import 'bible_picker_sheet.dart';
 
 class BibleScreen extends ConsumerStatefulWidget {
-  const BibleScreen({super.key});
+  const BibleScreen({super.key, this.initialBook, this.initialChapter});
+
+  /// Optional deep-link target (e.g. from a Reading Plan's "Read Day N").
+  /// When absent, the reader defaults to Psalms 23.
+  final String? initialBook;
+  final int? initialChapter;
 
   @override
   ConsumerState<BibleScreen> createState() => _BibleScreenState();
 }
 
 class _BibleScreenState extends ConsumerState<BibleScreen> {
-  String _book = 'Psalms';
-  int _chapter = 23;
+  late String _book = widget.initialBook ?? 'Psalms';
+  late int _chapter = widget.initialChapter ?? 23;
 
   String get _chapterRef => '$_book $_chapter';
+
+  @override
+  void didUpdateWidget(covariant BibleScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // The Bible tab stays mounted across navigations (StatefulShellRoute), so
+    // a fresh deep link (different book/chapter query params) won't remount
+    // this state — apply it explicitly instead.
+    final book = widget.initialBook;
+    final chapter = widget.initialChapter;
+    if (book != null && chapter != null && (book != _book || chapter != _chapter)) {
+      if (book != oldWidget.initialBook || chapter != oldWidget.initialChapter) {
+        setState(() {
+          _book = book;
+          _chapter = chapter;
+        });
+      }
+    }
+  }
 
   Future<void> _openPicker(BibleLibrary library) async {
     final result = await showBiblePickerSheet(context, library: library, initialBook: _book);

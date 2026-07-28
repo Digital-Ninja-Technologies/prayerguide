@@ -57,20 +57,9 @@ const challengeCatalog = {
   ),
 };
 
-class ReadingPlanInfo {
-  const ReadingPlanInfo(this.key, this.name, this.sub, this.today);
-  final String key;
-  final String name;
-  final String sub;
-  final String today;
-}
-
-const readingPlanCatalog = {
-  'oneYear': ReadingPlanInfo('oneYear', 'One Year Bible', '365 days · Gen–Rev', 'Genesis 41–42 · Matthew 12'),
-  'ninety': ReadingPlanInfo('ninety', 'Bible in 90 Days', '90 days', 'Genesis 1–16'),
-  'nt': ReadingPlanInfo('nt', 'New Testament', '60 days', 'Matthew 1–2'),
-  'psalms': ReadingPlanInfo('psalms', 'Psalms & Proverbs', '31 days', 'Psalm 1 · Proverbs 1'),
-};
+// Reading plan definitions (name/length/schedule) now live in
+// lib/data/bible/reading_plan_schedule.dart, generated against the real
+// bundled Bible text instead of hardcoded here.
 
 const milestoneDays = [7, 21, 30, 40, 100, 365];
 
