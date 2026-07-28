@@ -128,16 +128,41 @@ and track progress per user in `reading_plan_progress`. The Devotional
 rotates through 14 curated entries by day-of-year, pulling its scripture
 text live from the bundled Bible rather than retyping it.
 
-**UI-complete, local/mock state (matches the design, not yet backed by a
-table read/write):** Guide Library, Notifications toggles, Focus Mode,
-Companion/Invite, Challenges, Fasting, Prayer Together / Groups / Audio
-Room, Growth Insights, Upgrade/paywall (no real billing — needs RevenueCat
-or App Store/Play Billing).
+**Growth Insights, Fasting, Focus Mode session tracking, Challenges, and
+Companion/Invite are also real** now:
 
-Those all have matching tables in the migration already, so wiring them up
-is a repository + provider per screen, following the same pattern as
-`lib/data/repositories/journal_repository.dart` +
-`lib/state/journal_provider.dart`.
+- **Growth Insights** — the weekly bar chart, total time, and "gentle
+  insight" text are computed from actual `prayer_sessions` rows (this
+  week's per-day totals, most-visited category, most common time of day),
+  not hardcoded.
+- **Fasting** — start/end a real fast (`fasting_sessions`), with a live
+  elapsed/remaining ring and real prayer-session/journal-entry counts
+  during the fast window.
+- **Focus Mode** — start/end is tracked for real (`focus_sessions`, new
+  migration `0005`) with a live elapsed timer on the overlay. This is
+  session *tracking* only — actual app-blocking still needs the OS
+  entitlements below; the "apps to quiet" toggles remain visual.
+- **Challenges** — `challenge_progress` tracks real day-by-day progress for
+  both catalog challenges and custom ones created via Create Challenge.
+  Tapping Start/Continue advances the day and persists it.
+- **Companion/Invite** — real invite codes (`companion_invites` +
+  `redeem_companion_invite` RPC, migration `0006`) pair two accounts via
+  `companions`; check-ins persist to `companion_checkins` and show real
+  history; shared streak is `min(your streak, their streak)`. QR *scanning*
+  isn't wired (no camera/QR package added) — pairing works via copy/paste
+  or manually typing the code. **Shared prayer requests are intentionally
+  not wired**: prayer request text is end-to-end encrypted per-device (see
+  above), and that model has no way for a companion to decrypt your
+  content without a real multi-recipient encryption scheme — faking
+  "shared requests" would mean either breaking encryption or displaying
+  content that isn't actually shared, so this stays out until that's
+  designed properly. The Companion screen's second section shows real
+  check-in history instead, which the current data model actually supports.
+
+**UI-complete, local/mock state (matches the design, not yet backed by a
+table read/write):** Guide Library, Notifications toggles, Prayer Together,
+Groups, Audio Room, Upgrade/paywall (no real billing — needs RevenueCat or
+App Store/Play Billing).
 
 **Needs platform work beyond this codebase (per the PRD's own risk
 callouts):** Focus Mode's actual app-blocking (iOS Screen Time entitlement,

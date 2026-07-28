@@ -85,6 +85,3 @@ const focusApps = [
   ('Mail', Color(0xFF3B82F6)),
   ('News', Color(0xFFF97316)),
 ];
-
-/// Prayer minutes for the last 7 days (Sun–Sat), for the Growth Insights bar chart.
-const weeklyPrayerMinutes = [22, 0, 18, 30, 12, 25, 40];

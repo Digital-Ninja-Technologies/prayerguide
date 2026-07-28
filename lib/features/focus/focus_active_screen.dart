@@ -1,13 +1,53 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/pg_text.dart';
+import '../../state/focus_provider.dart';
 
-class FocusActiveScreen extends StatelessWidget {
+class FocusActiveScreen extends ConsumerStatefulWidget {
   const FocusActiveScreen({super.key});
 
   @override
+  ConsumerState<FocusActiveScreen> createState() => _FocusActiveScreenState();
+}
+
+class _FocusActiveScreenState extends ConsumerState<FocusActiveScreen> {
+  Timer? _ticker;
+
+  @override
+  void initState() {
+    super.initState();
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _endFocus() async {
+    await ref.read(focusProvider.notifier).end();
+    if (mounted) context.pop();
+  }
+
+  String _fmt(Duration d) {
+    final m = d.inMinutes;
+    final s = d.inSeconds % 60;
+    return '$m:${s.toString().padLeft(2, '0')}';
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final session = ref.watch(focusProvider).valueOrNull;
+    final elapsed = session == null ? Duration.zero : DateTime.now().difference(session.startedAt);
+    final isGentle = session?.mode != 'full';
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -21,7 +61,7 @@ class FocusActiveScreen extends StatelessWidget {
                   gradient: RadialGradient(
                     center: const Alignment(0, -0.32),
                     radius: 0.9,
-                    colors: [const Color(0xFF5BC2B3).withOpacity(.14), Colors.transparent],
+                    colors: [const Color(0xFF5BC2B3).withValues(alpha: .14), Colors.transparent],
                   ),
                 ),
               ),
@@ -38,20 +78,22 @@ class FocusActiveScreen extends StatelessWidget {
                           Container(
                             width: 120,
                             height: 120,
-                            decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.white.withOpacity(.12))),
+                            decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.white.withValues(alpha: .12))),
                             alignment: Alignment.center,
                             child: Container(
                               width: 76,
                               height: 76,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                gradient: RadialGradient(colors: [const Color(0xFF5BC2B3).withOpacity(.35), Colors.transparent]),
+                                gradient: RadialGradient(colors: [const Color(0xFF5BC2B3).withValues(alpha: .35), Colors.transparent]),
                               ),
                             ),
                           ),
                           const SizedBox(height: 26),
-                          Text('FOCUS MODE · GENTLE',
-                              style: PgText.sans(size: 11, letterSpacing: 3, weight: FontWeight.w600, color: const Color(0xFF5BC2B3))),
+                          Text(
+                            'FOCUS MODE · ${isGentle ? 'GENTLE' : 'FULL BLOCK'}',
+                            style: PgText.sans(size: 11, letterSpacing: 3, weight: FontWeight.w600, color: const Color(0xFF5BC2B3)),
+                          ),
                           const SizedBox(height: 16),
                           Text("You're in prayer.",
                               textAlign: TextAlign.center,
@@ -66,7 +108,7 @@ class FocusActiveScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 6),
-                          const Text('7:42', style: TextStyle(fontSize: 40, fontWeight: FontWeight.w300, color: Color(0xFFECEAE3))),
+                          Text(_fmt(elapsed), style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w300, color: Color(0xFFECEAE3))),
                         ],
                       ),
                     ),
@@ -75,7 +117,7 @@ class FocusActiveScreen extends StatelessWidget {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: () => context.pop(),
+                            onPressed: _endFocus,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF5BC2B3),
                               foregroundColor: const Color(0xFF052019),
@@ -87,7 +129,7 @@ class FocusActiveScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
                         TextButton(
-                          onPressed: () => context.pop(),
+                          onPressed: _endFocus,
                           child: const Text('I need to step out (emergency bypass)',
                               style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF64726E))),
                         ),
