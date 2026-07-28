@@ -12,7 +12,8 @@ import 'pg_text_field.dart';
 /// reinstall. Lets the user unlock with their passphrase, or explicitly
 /// start fresh (abandoning the old, now-unreadable entries on this device).
 class PgPassphraseUnlock extends StatefulWidget {
-  const PgPassphraseUnlock({super.key, required this.uid, required this.onUnlocked});
+  const PgPassphraseUnlock(
+      {super.key, required this.uid, required this.onUnlocked});
 
   final String uid;
   final VoidCallback onUnlocked;
@@ -33,7 +34,8 @@ class _PgPassphraseUnlockState extends State<PgPassphraseUnlock> {
       _error = null;
     });
     try {
-      await EncryptionService.instance.unlockWithPassphrase(widget.uid, _passphrase.text);
+      await EncryptionService.instance
+          .unlockWithPassphrase(widget.uid, _passphrase.text);
       widget.onUnlocked();
     } on WrongPassphraseException {
       setState(() => _error = "That passphrase doesn't match.");
@@ -67,35 +69,46 @@ class _PgPassphraseUnlockState extends State<PgPassphraseUnlock> {
           Container(
             width: 60,
             height: 60,
-            decoration: BoxDecoration(color: c.tealSoft, borderRadius: BorderRadius.circular(18)),
+            decoration: BoxDecoration(
+                color: c.tealSoft, borderRadius: BorderRadius.circular(18)),
             child: Icon(Icons.lock_outline_rounded, size: 28, color: c.teal),
           ),
           const SizedBox(height: 16),
-          Text('This device is locked', style: PgText.serif(size: 21, weight: FontWeight.w600)),
+          Text('This device is locked',
+              style: PgText.serif(size: 21, weight: FontWeight.w600)),
           const SizedBox(height: 8),
           Text(
             "Your entries are end-to-end encrypted and this looks like a new device. Enter your recovery passphrase to unlock them here.",
             style: TextStyle(fontSize: 14, height: 1.6, color: c.dim),
           ),
           const SizedBox(height: 18),
-          PgTextField(controller: _passphrase, hint: 'Recovery passphrase', obscureText: true),
-          if (_error != null) ...[
-            const SizedBox(height: 10),
-            Text(_error!, style: TextStyle(color: c.danger, fontSize: 13)),
-          ],
+          PgTextField(
+            controller: _passphrase,
+            hint: 'Recovery passphrase',
+            obscureText: true,
+            errorText: _error,
+          ),
           const SizedBox(height: 14),
-          PgButton(label: _loading ? 'Unlocking…' : 'Unlock', onPressed: _loading ? null : _unlock),
+          PgButton(
+              label: _loading ? 'Unlocking…' : 'Unlock',
+              onPressed: _loading ? null : _unlock),
           const SizedBox(height: 18),
           if (!_confirmingStartFresh)
             TextButton(
               onPressed: () => setState(() => _confirmingStartFresh = true),
               child: Text("I don't have my passphrase",
-                  style: TextStyle(color: c.faint, fontSize: 13, fontWeight: FontWeight.w600)),
+                  style: TextStyle(
+                      color: c.faint,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600)),
             )
           else
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: c.surface, border: Border.all(color: c.line), borderRadius: BorderRadius.circular(16)),
+              decoration: BoxDecoration(
+                  color: c.surface,
+                  border: Border.all(color: c.line),
+                  borderRadius: BorderRadius.circular(16)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

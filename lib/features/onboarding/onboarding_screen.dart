@@ -8,6 +8,7 @@ import '../../state/repo_providers.dart';
 import '../../widgets/google_logo.dart';
 import '../../widgets/pg_back_button.dart';
 import '../../widgets/pg_button.dart';
+import '../../widgets/pg_form_error.dart';
 import '../../widgets/pg_text_field.dart';
 
 enum _Step { slide0, slide1, slide2, auth, email, reset, create }
@@ -144,7 +145,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             alignment: Alignment.centerRight,
             child: TextButton(
               onPressed: () => setState(() => _step = _Step.auth),
-              child: Text('Skip', style: PgText.sans(size: 13.5, weight: FontWeight.w600, color: c.faint)),
+              child: Text('Skip',
+                  style: PgText.sans(
+                      size: 13.5, weight: FontWeight.w600, color: c.faint)),
             ),
           ),
           Expanded(
@@ -167,7 +170,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 Text(
                   data.title,
                   textAlign: TextAlign.center,
-                  style: PgText.serif(size: 28, weight: FontWeight.w600, height: 1.25),
+                  style: PgText.serif(
+                      size: 28, weight: FontWeight.w600, height: 1.25),
                 ),
                 const SizedBox(height: 14),
                 SizedBox(
@@ -225,10 +229,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(color: c.line),
                   ),
-                  child: Icon(Icons.self_improvement_rounded, size: 34, color: c.teal),
+                  child: Icon(Icons.self_improvement_rounded,
+                      size: 34, color: c.teal),
                 ),
                 const SizedBox(height: 18),
-                Text('Prayer Guide', style: PgText.serif(size: 29, weight: FontWeight.w600)),
+                Text('Prayer Guide',
+                    style: PgText.serif(size: 29, weight: FontWeight.w600)),
                 const SizedBox(height: 8),
                 Text(
                   'A quiet place to return to, each day.',
@@ -237,10 +243,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               ],
             ),
           ),
-          if (_error != null) ...[
-            Text(_error!, style: TextStyle(color: c.danger, fontSize: 13)),
-            const SizedBox(height: 10),
-          ],
+          PgFormError(_error, topSpacing: 0, bottomSpacing: 10),
           PgButton(
             label: _loading ? 'Continuing…' : 'Continue with Google',
             variant: PgButtonVariant.outline,
@@ -254,7 +257,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           const SizedBox(height: 10),
           PgButton(
             label: 'Continue with email',
-            icon: const Icon(Icons.mail_outline_rounded, size: 17, color: Colors.white),
+            icon: const Icon(Icons.mail_outline_rounded,
+                size: 17, color: Colors.white),
             onPressed: () => setState(() => _step = _Step.email),
           ),
           const SizedBox(height: 6),
@@ -276,13 +280,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         children: [
           PgBackButton(onTap: () => setState(() => _step = _Step.auth)),
           const SizedBox(height: 26),
-          Text('Welcome back', style: PgText.serif(size: 27, weight: FontWeight.w600)),
+          Text('Welcome back',
+              style: PgText.serif(size: 27, weight: FontWeight.w600)),
           const SizedBox(height: 8),
-          Text('Sign in to continue your prayer life.', style: PgText.sans(size: 14.5, color: c.dim)),
+          Text('Sign in to continue your prayer life.',
+              style: PgText.sans(size: 14.5, color: c.dim)),
           const SizedBox(height: 26),
           Text('EMAIL', style: PgText.eyebrow(color: c.dim)),
           const SizedBox(height: 8),
-          PgTextField(controller: _emailCtrl, hint: 'you@email.com', keyboardType: TextInputType.emailAddress),
+          PgTextField(
+              controller: _emailCtrl,
+              hint: 'you@email.com',
+              keyboardType: TextInputType.emailAddress),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -290,15 +299,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               Text('PASSWORD', style: PgText.eyebrow(color: c.dim)),
               TextButton(
                 onPressed: () => setState(() => _step = _Step.reset),
-                child: Text('Forgot?', style: TextStyle(color: c.teal, fontWeight: FontWeight.w700, fontSize: 12.5)),
+                child: Text('Forgot?',
+                    style: TextStyle(
+                        color: c.teal,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12.5)),
               ),
             ],
           ),
-          PgTextField(controller: _passwordCtrl, hint: '••••••••', obscureText: true),
-          if (_error != null) ...[
-            const SizedBox(height: 12),
-            Text(_error!, style: TextStyle(color: c.danger, fontSize: 13)),
-          ],
+          PgTextField(
+              controller: _passwordCtrl, hint: '••••••••', obscureText: true),
+          PgFormError(_error, topSpacing: 12),
           const Spacer(),
           PgButton(
             label: _loading ? 'Signing in…' : 'Sign in',
@@ -319,7 +330,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 GestureDetector(
                   onTap: () => setState(() => _step = _Step.create),
                   child: Text('Create an account',
-                      style: TextStyle(color: c.teal, fontWeight: FontWeight.w700, fontSize: 13)),
+                      style: TextStyle(
+                          color: c.teal,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13)),
                 ),
               ],
             ),
@@ -340,11 +354,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           Container(
             width: 60,
             height: 60,
-            decoration: BoxDecoration(color: c.tealSoft, borderRadius: BorderRadius.circular(18)),
+            decoration: BoxDecoration(
+                color: c.tealSoft, borderRadius: BorderRadius.circular(18)),
             child: Icon(Icons.mail_outline_rounded, size: 28, color: c.teal),
           ),
           const SizedBox(height: 20),
-          Text('Reset password', style: PgText.serif(size: 27, weight: FontWeight.w600)),
+          Text('Reset password',
+              style: PgText.serif(size: 27, weight: FontWeight.w600)),
           const SizedBox(height: 8),
           Text(
             "Enter your email and we'll send you a secure link to set a new password.",
@@ -353,18 +369,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           const SizedBox(height: 26),
           Text('EMAIL', style: PgText.eyebrow(color: c.dim)),
           const SizedBox(height: 8),
-          PgTextField(controller: _emailCtrl, hint: 'you@email.com', keyboardType: TextInputType.emailAddress),
-          if (_error != null) ...[
-            const SizedBox(height: 12),
-            Text(_error!, style: TextStyle(color: c.danger, fontSize: 13)),
-          ],
+          PgTextField(
+              controller: _emailCtrl,
+              hint: 'you@email.com',
+              keyboardType: TextInputType.emailAddress),
+          PgFormError(_error, topSpacing: 12),
           const Spacer(),
           PgButton(
             label: _loading ? 'Sending…' : 'Send reset link',
             onPressed: _loading
                 ? null
                 : () => _run(() async {
-                      await ref.read(authRepositoryProvider).sendPasswordReset(_emailCtrl.text.trim());
+                      await ref
+                          .read(authRepositoryProvider)
+                          .sendPasswordReset(_emailCtrl.text.trim());
                       if (mounted) setState(() => _step = _Step.email);
                     }),
           ),
@@ -381,9 +399,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         children: [
           PgBackButton(onTap: () => setState(() => _step = _Step.email)),
           const SizedBox(height: 22),
-          Text('Create your account', style: PgText.serif(size: 27, weight: FontWeight.w600)),
+          Text('Create your account',
+              style: PgText.serif(size: 27, weight: FontWeight.w600)),
           const SizedBox(height: 8),
-          Text('Begin a prayer life you can return to.', style: PgText.sans(size: 14.5, color: c.dim)),
+          Text('Begin a prayer life you can return to.',
+              style: PgText.sans(size: 14.5, color: c.dim)),
           const SizedBox(height: 22),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -414,15 +434,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           const SizedBox(height: 14),
           Text('EMAIL', style: PgText.eyebrow(color: c.dim)),
           const SizedBox(height: 8),
-          PgTextField(controller: _emailCtrl, hint: 'you@email.com', keyboardType: TextInputType.emailAddress),
+          PgTextField(
+              controller: _emailCtrl,
+              hint: 'you@email.com',
+              keyboardType: TextInputType.emailAddress),
           const SizedBox(height: 14),
           Text('PASSWORD', style: PgText.eyebrow(color: c.dim)),
           const SizedBox(height: 8),
-          PgTextField(controller: _passwordCtrl, hint: 'At least 8 characters', obscureText: true),
-          if (_error != null) ...[
-            const SizedBox(height: 12),
-            Text(_error!, style: TextStyle(color: c.danger, fontSize: 13)),
-          ],
+          PgTextField(
+              controller: _passwordCtrl,
+              hint: 'At least 8 characters',
+              obscureText: true),
+          PgFormError(_error, topSpacing: 12),
           if (_info != null) ...[
             const SizedBox(height: 12),
             Text(_info!, style: TextStyle(color: c.teal, fontSize: 13)),
@@ -433,14 +456,19 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             onPressed: _loading
                 ? null
                 : () => _run(() async {
-                      final response = await ref.read(authRepositoryProvider).signUpWithEmail(
+                      final response = await ref
+                          .read(authRepositoryProvider)
+                          .signUpWithEmail(
                             email: _emailCtrl.text.trim(),
                             password: _passwordCtrl.text,
-                            name: '${_firstNameCtrl.text.trim()} ${_lastNameCtrl.text.trim()}'.trim(),
+                            name:
+                                '${_firstNameCtrl.text.trim()} ${_lastNameCtrl.text.trim()}'
+                                    .trim(),
                           );
                       if (!mounted) return;
                       if (response.session == null) {
-                        setState(() => _info = "Account created. Check your email to confirm before signing in.");
+                        setState(() => _info =
+                            "Account created. Check your email to confirm before signing in.");
                         return;
                       }
                       context.go('/home');

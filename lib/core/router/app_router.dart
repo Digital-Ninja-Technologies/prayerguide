@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../features/assistant/assistant_screen.dart';
 import '../../features/bible/bible_notes_screen.dart';
 import '../../features/bible/bible_screen.dart';
 import '../../features/challenges/challenge_detail_screen.dart';
@@ -56,7 +55,6 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(path: '/splash', builder: (c, s) => const SplashScreen()),
       GoRoute(path: '/onboarding', builder: (c, s) => const OnboardingScreen()),
-
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => AppShell(shell: shell),
         branches: [
@@ -68,7 +66,8 @@ final routerProvider = Provider<GoRouter>((ref) {
               path: '/bible',
               builder: (c, s) => BibleScreen(
                 initialBook: s.uri.queryParameters['book'],
-                initialChapter: int.tryParse(s.uri.queryParameters['chapter'] ?? ''),
+                initialChapter:
+                    int.tryParse(s.uri.queryParameters['chapter'] ?? ''),
               ),
             ),
           ]),
@@ -79,28 +78,37 @@ final routerProvider = Provider<GoRouter>((ref) {
             GoRoute(path: '/streak', builder: (c, s) => const StreakScreen()),
           ]),
           StatefulShellBranch(routes: [
-            GoRoute(path: '/settings', builder: (c, s) => const SettingsScreen()),
+            GoRoute(
+                path: '/settings', builder: (c, s) => const SettingsScreen()),
           ]),
         ],
       ),
-
       GoRoute(path: '/guide', builder: (c, s) => const GuideScreen()),
-      GoRoute(path: '/guide-library', builder: (c, s) => const GuideLibraryScreen()),
+      GoRoute(
+          path: '/guide-library',
+          builder: (c, s) => const GuideLibraryScreen()),
       GoRoute(path: '/timer', builder: (c, s) => const TimerScreen()),
       GoRoute(path: '/scripture', builder: (c, s) => const ScriptureScreen()),
-      GoRoute(path: '/journal/new', builder: (c, s) => const JournalNewScreen()),
+      GoRoute(
+          path: '/journal/new', builder: (c, s) => const JournalNewScreen()),
       GoRoute(path: '/requests', builder: (c, s) => const RequestsScreen()),
-      GoRoute(path: '/requests/new', builder: (c, s) => const RequestNewScreen()),
-      GoRoute(path: '/bible-notes', builder: (c, s) => const BibleNotesScreen()),
-      GoRoute(path: '/notifications', builder: (c, s) => const NotificationsScreen()),
+      GoRoute(
+          path: '/requests/new', builder: (c, s) => const RequestNewScreen()),
+      GoRoute(
+          path: '/bible-notes', builder: (c, s) => const BibleNotesScreen()),
+      GoRoute(
+          path: '/notifications',
+          builder: (c, s) => const NotificationsScreen()),
       GoRoute(path: '/privacy', builder: (c, s) => const PrivacyScreen()),
       GoRoute(path: '/upgrade', builder: (c, s) => const UpgradeScreen()),
       GoRoute(path: '/insights', builder: (c, s) => const InsightsScreen()),
-
-      GoRoute(path: '/focus/setup', builder: (c, s) => const FocusSetupScreen()),
-      GoRoute(path: '/focus/active', builder: (c, s) => const FocusActiveScreen()),
+      GoRoute(
+          path: '/focus/setup', builder: (c, s) => const FocusSetupScreen()),
+      GoRoute(
+          path: '/focus/active', builder: (c, s) => const FocusActiveScreen()),
       GoRoute(path: '/companion', builder: (c, s) => const CompanionScreen()),
-      GoRoute(path: '/companion/invite', builder: (c, s) => const InviteScreen()),
+      GoRoute(
+          path: '/companion/invite', builder: (c, s) => const InviteScreen()),
       GoRoute(path: '/challenges', builder: (c, s) => const ChallengesScreen()),
       GoRoute(
         path: '/challenges/new',
@@ -108,7 +116,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/challenges/:key',
-        builder: (c, s) => ChallengeDetailScreen(challengeKey: s.pathParameters['key']!),
+        builder: (c, s) =>
+            ChallengeDetailScreen(challengeKey: s.pathParameters['key']!),
       ),
       GoRoute(path: '/plans', builder: (c, s) => const PlansScreen()),
       GoRoute(
@@ -117,12 +126,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: '/devotional', builder: (c, s) => const DevotionalScreen()),
       GoRoute(path: '/fasting', builder: (c, s) => const FastingScreen()),
-
       GoRoute(path: '/together', builder: (c, s) => const TogetherScreen()),
       GoRoute(path: '/groups', builder: (c, s) => const GroupsScreen()),
       GoRoute(path: '/room', builder: (c, s) => const RoomScreen()),
-
-      GoRoute(path: '/assistant', builder: (c, s) => const AssistantScreen()),
     ],
   );
 });

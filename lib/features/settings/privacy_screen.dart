@@ -5,6 +5,7 @@ import '../../core/security/encryption_service.dart';
 import '../../core/supabase/supabase_config.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../widgets/pg_button.dart';
+import '../../widgets/pg_form_error.dart';
 import '../../widgets/pg_header.dart';
 import '../../widgets/pg_text_field.dart';
 
@@ -49,11 +50,15 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            PgHeader(title: 'Privacy & encryption', onBack: () => context.pop()),
+            PgHeader(
+                title: 'Privacy & encryption', onBack: () => context.pop()),
             Container(
               padding: const EdgeInsets.all(18),
               margin: const EdgeInsets.only(bottom: 20),
-              decoration: BoxDecoration(color: c.tealSoft, border: Border.all(color: c.line), borderRadius: BorderRadius.circular(18)),
+              decoration: BoxDecoration(
+                  color: c.tealSoft,
+                  border: Border.all(color: c.line),
+                  borderRadius: BorderRadius.circular(18)),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -62,33 +67,50 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
                   Expanded(
                     child: Text(
                       "Your journal entries are end-to-end encrypted. The encryption key lives only on your device — Supabase, and anyone with database access, only ever sees ciphertext. Prayer requests are stored as plain text (protected by row-level access rules) so you can choose to share them with your prayer companion.",
-                      style: TextStyle(fontSize: 13.5, height: 1.6, color: c.text),
+                      style:
+                          TextStyle(fontSize: 13.5, height: 1.6, color: c.text),
                     ),
                   ),
                 ],
               ),
             ),
-            Text('RECOVERY', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 1, color: c.dim)),
+            Text('RECOVERY',
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1,
+                    color: c.dim)),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(color: c.surface, border: Border.all(color: c.line), borderRadius: BorderRadius.circular(18)),
+              decoration: BoxDecoration(
+                  color: c.surface,
+                  border: Border.all(color: c.line),
+                  borderRadius: BorderRadius.circular(18)),
               child: _hasRecovery == null
-                  ? const Center(child: Padding(padding: EdgeInsets.all(8), child: CircularProgressIndicator(strokeWidth: 2)))
+                  ? const Center(
+                      child: Padding(
+                          padding: EdgeInsets.all(8),
+                          child: CircularProgressIndicator(strokeWidth: 2)))
                   : Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
                             Icon(
-                              _hasRecovery! ? Icons.check_circle_outline_rounded : Icons.error_outline_rounded,
+                              _hasRecovery!
+                                  ? Icons.check_circle_outline_rounded
+                                  : Icons.error_outline_rounded,
                               size: 18,
                               color: _hasRecovery! ? c.teal : c.amber,
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              _hasRecovery! ? 'Recovery passphrase is set' : 'No recovery passphrase set',
-                              style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700),
+                              _hasRecovery!
+                                  ? 'Recovery passphrase is set'
+                                  : 'No recovery passphrase set',
+                              style: const TextStyle(
+                                  fontSize: 14.5, fontWeight: FontWeight.w700),
                             ),
                           ],
                         ),
@@ -97,11 +119,14 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
                           _hasRecovery!
                               ? "If you sign in on a new device, enter this passphrase to unlock your existing entries."
                               : "Without this, a new device or a reinstall can't decrypt entries you've already written — nobody can, not even you. Set a passphrase to allow recovery.",
-                          style: TextStyle(fontSize: 13, height: 1.55, color: c.dim),
+                          style: TextStyle(
+                              fontSize: 13, height: 1.55, color: c.dim),
                         ),
                         const SizedBox(height: 14),
                         PgButton(
-                          label: _hasRecovery! ? 'Change recovery passphrase' : 'Set up recovery passphrase',
+                          label: _hasRecovery!
+                              ? 'Change recovery passphrase'
+                              : 'Set up recovery passphrase',
                           variant: PgButtonVariant.outline,
                           onPressed: _openSetupDialog,
                         ),
@@ -176,18 +201,21 @@ class _SetPassphraseDialogState extends State<_SetPassphraseDialog> {
             style: TextStyle(fontSize: 13, color: c.dim, height: 1.5),
           ),
           const SizedBox(height: 16),
-          PgTextField(controller: _p1, hint: 'New passphrase', obscureText: true),
+          PgTextField(
+              controller: _p1, hint: 'New passphrase', obscureText: true),
           const SizedBox(height: 10),
-          PgTextField(controller: _p2, hint: 'Confirm passphrase', obscureText: true),
-          if (_error != null) ...[
-            const SizedBox(height: 10),
-            Text(_error!, style: TextStyle(color: c.danger, fontSize: 12.5)),
-          ],
+          PgTextField(
+              controller: _p2, hint: 'Confirm passphrase', obscureText: true),
+          PgFormError(_error),
         ],
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
-        TextButton(onPressed: _loading ? null : _save, child: Text(_loading ? 'Saving…' : 'Save')),
+        TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel')),
+        TextButton(
+            onPressed: _loading ? null : _save,
+            child: Text(_loading ? 'Saving…' : 'Save')),
       ],
     );
   }

@@ -13,6 +13,7 @@ class PgTextField extends StatelessWidget {
     this.maxLines = 1,
     this.serif = false,
     this.fontWeight = FontWeight.w600,
+    this.errorText,
   });
 
   final TextEditingController? controller;
@@ -23,9 +24,18 @@ class PgTextField extends StatelessWidget {
   final bool serif;
   final FontWeight fontWeight;
 
+  /// Shows this field in its error state: a danger-colored border plus an
+  /// inline message below, matching the field-level validation style used
+  /// across the app's forms (e.g. "Give this entry a title.").
+  final String? errorText;
+
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
+    OutlineInputBorder border(Color color) => OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: color),
+        );
     return TextField(
       controller: controller,
       obscureText: obscureText,
@@ -44,18 +54,15 @@ class PgTextField extends StatelessWidget {
         filled: true,
         fillColor: c.surface,
         contentPadding: const EdgeInsets.all(15),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: c.line),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: c.line),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: c.teal),
-        ),
+        border: border(c.line),
+        enabledBorder: border(c.line),
+        focusedBorder: border(c.teal),
+        errorText: errorText,
+        errorMaxLines: 2,
+        errorStyle: TextStyle(
+            color: c.danger, fontSize: 12.5, fontWeight: FontWeight.w600),
+        errorBorder: border(c.danger),
+        focusedErrorBorder: border(c.danger),
       ),
     );
   }

@@ -9,7 +9,11 @@ import '../../data/models/prayer_request.dart';
 import '../../state/requests_provider.dart';
 import '../../widgets/pg_button.dart';
 import '../../widgets/pg_card.dart';
+import '../../widgets/pg_header.dart';
+import '../../widgets/pg_icon_badge.dart';
 import '../../widgets/pg_pill.dart';
+
+final _dateFmt = DateFormat('MMM d');
 
 class RequestsScreen extends ConsumerStatefulWidget {
   const RequestsScreen({super.key});
@@ -32,34 +36,15 @@ class _RequestsScreenState extends ConsumerState<RequestsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      IconButton(
-                        onPressed: () => context.pop(),
-                        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 17),
-                        style: IconButton.styleFrom(
-                          backgroundColor: c.surface,
-                          side: BorderSide(color: c.line),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text('Requests', style: PgText.serif(size: 23, weight: FontWeight.w600)),
-                    ],
-                  ),
-                  PgButton(
-                    label: 'Add',
-                    expand: false,
-                    dense: true,
-                    icon: Icon(Icons.add_rounded, color: c.onTeal, size: 16),
-                    onPressed: () => context.push('/requests/new'),
-                  ),
-                ],
+            PgHeader(
+              title: 'Requests',
+              onBack: () => context.pop(),
+              trailing: PgButton(
+                label: 'Add',
+                expand: false,
+                dense: true,
+                icon: Icon(Icons.add_rounded, color: c.onTeal, size: 16),
+                onPressed: () => context.push('/requests/new'),
               ),
             ),
             const SizedBox(height: 10),
@@ -70,25 +55,35 @@ class _RequestsScreenState extends ConsumerState<RequestsScreen> {
               ),
               error: (e, st) => Padding(
                 padding: const EdgeInsets.symmetric(vertical: 40),
-                child: Text('Could not load requests.\n$e', style: TextStyle(color: c.danger)),
+                child: Text('Could not load requests.\n$e',
+                    style: TextStyle(color: c.danger)),
               ),
               data: (reqs) {
-                if (reqs.isEmpty) return _EmptyState(onAdd: () => context.push('/requests/new'));
-                final counts = {'active': 0, 'answered': 0, 'archived': 0};
+                if (reqs.isEmpty)
+                  return _EmptyState(
+                      onAdd: () => context.push('/requests/new'));
+
+                final byStatus = <String, List<PrayerRequest>>{};
                 for (final r in reqs) {
-                  counts[r.status] = (counts[r.status] ?? 0) + 1;
+                  (byStatus[r.status] ??= []).add(r);
                 }
-                final filtered = reqs.where((r) => r.status == _tab).toList();
+                final filtered = byStatus[_tab] ?? const [];
+                final notifier = ref.read(requestsProvider.notifier);
+
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        for (final t in const [('active', 'Active'), ('answered', 'Answered'), ('archived', 'Archived')])
+                        for (final t in const [
+                          ('active', 'Active'),
+                          ('answered', 'Answered'),
+                          ('archived', 'Archived')
+                        ])
                           Padding(
                             padding: const EdgeInsets.only(right: 8),
                             child: PgPill(
-                              label: '${t.$2} · ${counts[t.$1]}',
+                              label: '${t.$2} · ${byStatus[t.$1]?.length ?? 0}',
                               active: _tab == t.$1,
                               onTap: () => setState(() => _tab = t.$1),
                             ),
@@ -99,10 +94,17 @@ class _RequestsScreenState extends ConsumerState<RequestsScreen> {
                     if (filtered.isEmpty)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 40),
-                        child: Center(child: Text('Nothing here yet.', style: TextStyle(color: c.faint, fontSize: 14))),
+                        child: Center(
+                            child: Text('Nothing here yet.',
+                                style:
+                                    TextStyle(color: c.faint, fontSize: 14))),
                       )
                     else
-                      for (final r in filtered) _RequestCard(request: r),
+                      for (final r in filtered)
+                        _RequestCard(
+                            key: ValueKey(r.id),
+                            request: r,
+                            notifier: notifier),
                   ],
                 );
               },
@@ -114,17 +116,18 @@ class _RequestsScreenState extends ConsumerState<RequestsScreen> {
   }
 }
 
-class _RequestCard extends ConsumerWidget {
-  const _RequestCard({required this.request});
+class _RequestCard extends StatelessWidget {
+  const _RequestCard(
+      {super.key, required this.request, required this.notifier});
   final PrayerRequest request;
+  final RequestsNotifier notifier;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final c = context.colors;
-    final notifier = ref.read(requestsProvider.notifier);
     final meta = request.status == 'answered'
-        ? 'Answered ${DateFormat('MMM d').format(request.updatedAt)}'
-        : 'Added ${DateFormat('MMM d').format(request.createdAt)}';
+        ? 'Answered ${_dateFmt.format(request.updatedAt)}'
+        : 'Added ${_dateFmt.format(request.createdAt)}';
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -139,12 +142,10 @@ class _RequestCard extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(color: c.tealSoft, borderRadius: BorderRadius.circular(100)),
-                      child: Text(request.category.toUpperCase(),
-                          style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, letterSpacing: .5, color: c.teal)),
-                    ),
+                    _Badge(
+                        label: request.category.toUpperCase(),
+                        bg: c.tealSoft,
+                        fg: c.teal),
                     if (request.sharedWithCompanion) ...[
                       const SizedBox(width: 6),
                       Icon(Icons.diversity_1_outlined, size: 15, color: c.dim),
@@ -152,30 +153,25 @@ class _RequestCard extends ConsumerWidget {
                   ],
                 ),
                 if (request.status == 'answered')
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(color: c.amberSoft, borderRadius: BorderRadius.circular(100)),
-                    child: Text('Answered', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: c.amber)),
-                  )
+                  _Badge(label: 'Answered', bg: c.amberSoft, fg: c.amber)
                 else if (request.reminder)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(color: c.surface2, borderRadius: BorderRadius.circular(100)),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.notifications_none_rounded, size: 12, color: c.dim),
-                        const SizedBox(width: 4),
-                        Text('Daily', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: c.dim)),
-                      ],
-                    ),
-                  ),
+                  _Badge(
+                      label: 'Daily',
+                      bg: c.surface2,
+                      fg: c.dim,
+                      icon: Icons.notifications_none_rounded),
               ],
             ),
             const SizedBox(height: 8),
-            Text(request.title, style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700)),
+            Text(request.title,
+                style: const TextStyle(
+                    fontSize: 15.5, fontWeight: FontWeight.w700)),
             const SizedBox(height: 4),
-            Text(meta, style: TextStyle(fontSize: 12.5, color: c.faint, fontWeight: FontWeight.w600)),
+            Text(meta,
+                style: TextStyle(
+                    fontSize: 12.5,
+                    color: c.faint,
+                    fontWeight: FontWeight.w600)),
             const SizedBox(height: 14),
             if (request.status == 'active')
               Row(
@@ -198,21 +194,33 @@ class _RequestCard extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  _IconOnlyBtn(icon: Icons.archive_outlined, onTap: () => notifier.archive(request.id)),
+                  _ActionBtn(
+                      icon: Icons.archive_outlined,
+                      fixedWidth: 40,
+                      onTap: () => notifier.archive(request.id)),
                 ],
               )
             else if (request.status == 'answered')
               Row(
                 children: [
-                  Expanded(child: _ActionBtn(label: 'Reopen', onTap: () => notifier.restore(request.id))),
+                  Expanded(
+                      child: _ActionBtn(
+                          label: 'Reopen',
+                          onTap: () => notifier.restore(request.id))),
                   const SizedBox(width: 8),
-                  Expanded(child: _ActionBtn(label: 'Archive', onTap: () => notifier.archive(request.id))),
+                  Expanded(
+                      child: _ActionBtn(
+                          label: 'Archive',
+                          onTap: () => notifier.archive(request.id))),
                 ],
               )
             else
               SizedBox(
                 width: double.infinity,
-                child: _ActionBtn(label: 'Restore to active', color: c.teal, onTap: () => notifier.restore(request.id)),
+                child: _ActionBtn(
+                    label: 'Restore to active',
+                    color: c.teal,
+                    onTap: () => notifier.restore(request.id)),
               ),
           ],
         ),
@@ -221,18 +229,75 @@ class _RequestCard extends ConsumerWidget {
   }
 }
 
-class _ActionBtn extends StatelessWidget {
-  const _ActionBtn({required this.label, this.icon, this.active = false, this.color, required this.onTap});
+/// Small `border-radius:100` status/category tag — distinct from [PgPill]
+/// (tab/segment control sizing) in padding, font size and optional icon.
+class _Badge extends StatelessWidget {
+  const _Badge(
+      {required this.label, required this.bg, required this.fg, this.icon});
   final String label;
+  final Color bg;
+  final Color fg;
+  final IconData? icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration:
+          BoxDecoration(color: bg, borderRadius: BorderRadius.circular(100)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 12, color: fg),
+            const SizedBox(width: 4)
+          ],
+          Text(label,
+              style: TextStyle(
+                  fontSize: 11, fontWeight: FontWeight.w800, color: fg)),
+        ],
+      ),
+    );
+  }
+}
+
+/// Outlined tappable pill — label+icon by default, or a fixed-width
+/// icon-only button when [fixedWidth] is set and [label] is omitted.
+class _ActionBtn extends StatelessWidget {
+  const _ActionBtn(
+      {this.label,
+      this.icon,
+      this.active = false,
+      this.color,
+      this.fixedWidth,
+      required this.onTap});
+  final String? label;
   final IconData? icon;
   final bool active;
   final Color? color;
+  final double? fixedWidth;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
     final fg = active ? c.teal : (color ?? c.dim);
+    final content = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 9),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: label == null ? 15 : 14, color: fg),
+            if (label != null) const SizedBox(width: 5)
+          ],
+          if (label != null)
+            Text(label!,
+                style: TextStyle(
+                    fontSize: 12, fontWeight: FontWeight.w700, color: fg)),
+        ],
+      ),
+    );
     return Material(
       color: active ? c.tealSoft : Colors.transparent,
       shape: RoundedRectangleBorder(
@@ -242,35 +307,9 @@ class _ActionBtn extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(11),
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 9),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (icon != null) ...[Icon(icon, size: 14, color: fg), const SizedBox(width: 5)],
-              Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: fg)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _IconOnlyBtn extends StatelessWidget {
-  const _IconOnlyBtn({required this.icon, required this.onTap});
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.colors;
-    return Material(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11), side: BorderSide(color: c.line)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(11),
-        onTap: onTap,
-        child: SizedBox(width: 40, height: 38, child: Icon(icon, size: 15, color: c.dim)),
+        child: fixedWidth != null
+            ? SizedBox(width: fixedWidth, height: 38, child: content)
+            : content,
       ),
     );
   }
@@ -287,14 +326,16 @@ class _EmptyState extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 56, horizontal: 20),
       child: Column(
         children: [
-          Container(
-            width: 78,
-            height: 78,
-            decoration: BoxDecoration(color: c.amberSoft, borderRadius: BorderRadius.circular(24)),
-            child: Icon(Icons.favorite_border_rounded, size: 36, color: c.amber),
-          ),
+          PgIconBadge(
+              icon: Icons.favorite_border_rounded,
+              color: c.amber,
+              background: c.amberSoft,
+              size: 78,
+              iconSize: 36,
+              radius: 24),
           const SizedBox(height: 16),
-          Text('Nothing to carry yet', style: PgText.serif(size: 21, weight: FontWeight.w600)),
+          Text('Nothing to carry yet',
+              style: PgText.serif(size: 21, weight: FontWeight.w600)),
           const SizedBox(height: 8),
           SizedBox(
             width: 250,

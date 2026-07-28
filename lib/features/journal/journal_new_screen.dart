@@ -41,13 +41,16 @@ class _JournalNewScreenState extends ConsumerState<JournalNewScreen> {
       _saving = true;
     });
     try {
-      await ref.read(journalProvider.notifier).add(type: _type, title: title, body: body);
+      await ref
+          .read(journalProvider.notifier)
+          .add(type: _type, title: title, body: body);
       if (mounted) context.pop(true);
     } on PassphraseRequiredException {
       if (mounted) setState(() => _needsUnlock = true);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not save: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Could not save: $e')));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -75,19 +78,30 @@ class _JournalNewScreenState extends ConsumerState<JournalNewScreen> {
                 children: [
                   TextButton(
                     onPressed: () => context.pop(),
-                    child: Text('Cancel', style: TextStyle(color: c.dim, fontWeight: FontWeight.w700, fontSize: 14)),
+                    child: Text('Cancel',
+                        style: TextStyle(
+                            color: c.dim,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14)),
                   ),
-                  const Text('New entry', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                  const Text('New entry',
+                      style:
+                          TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                   TextButton(
                     onPressed: _saving ? null : _save,
-                    child: Text('Save', style: TextStyle(color: c.teal, fontWeight: FontWeight.w800, fontSize: 14)),
+                    child: Text('Save',
+                        style: TextStyle(
+                            color: c.teal,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14)),
                   ),
                 ],
               ),
             ),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                 child: _needsUnlock
                     ? PgPassphraseUnlock(
                         uid: ref.read(currentUserIdProvider)!,
@@ -99,26 +113,41 @@ class _JournalNewScreenState extends ConsumerState<JournalNewScreen> {
                     : Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('TYPE', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 1, color: c.dim)),
+                          Text('TYPE',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 1,
+                                  color: c.dim)),
                           const SizedBox(height: 10),
                           Wrap(
                             spacing: 8,
                             runSpacing: 8,
                             children: [
-                              for (final t in const ['Gratitude', 'Request', 'Testimony', 'Reflection'])
-                                PgPill(label: t, active: _type == t, onTap: () => setState(() => _type = t)),
+                              for (final t in const [
+                                'Gratitude',
+                                'Request',
+                                'Testimony',
+                                'Reflection'
+                              ])
+                                PgPill(
+                                    label: t,
+                                    active: _type == t,
+                                    onTap: () => setState(() => _type = t)),
                             ],
                           ),
                           const SizedBox(height: 22),
-                          PgTextField(controller: _title, hint: 'Title', fontWeight: FontWeight.w600),
-                          if (_titleError != null) ...[
-                            const SizedBox(height: 6),
-                            Text(_titleError!, style: TextStyle(color: c.danger, fontSize: 12.5)),
-                          ],
+                          PgTextField(
+                            controller: _title,
+                            hint: 'Title',
+                            fontWeight: FontWeight.w600,
+                            errorText: _titleError,
+                          ),
                           const SizedBox(height: 12),
                           PgTextField(
                             controller: _body,
-                            hint: 'Write freely — this stays private and encrypted.',
+                            hint:
+                                'Write freely — this stays private and encrypted.',
                             maxLines: 8,
                             serif: true,
                             fontWeight: FontWeight.w400,
@@ -126,11 +155,14 @@ class _JournalNewScreenState extends ConsumerState<JournalNewScreen> {
                           const SizedBox(height: 14),
                           Row(
                             children: [
-                              Icon(Icons.lock_outline_rounded, size: 15, color: c.faint),
+                              Icon(Icons.lock_outline_rounded,
+                                  size: 15, color: c.faint),
                               const SizedBox(width: 8),
                               Expanded(
-                                child: Text('End-to-end encrypted · only you can read this',
-                                    style: TextStyle(fontSize: 12.5, color: c.faint)),
+                                child: Text(
+                                    'End-to-end encrypted · only you can read this',
+                                    style: TextStyle(
+                                        fontSize: 12.5, color: c.faint)),
                               ),
                             ],
                           ),

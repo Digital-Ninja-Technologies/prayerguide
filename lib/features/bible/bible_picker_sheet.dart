@@ -15,8 +15,10 @@ Future<(String, int)?> showBiblePickerSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: context.colors.surface,
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-    builder: (context) => _PickerSheet(library: library, initialBook: initialBook),
+    shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+    builder: (context) =>
+        _PickerSheet(library: library, initialBook: initialBook),
   );
 }
 
@@ -32,6 +34,14 @@ class _PickerSheet extends StatefulWidget {
 
 class _PickerSheetState extends State<_PickerSheet> {
   String? _selectedBook;
+  late String? _expandedTestament = _testamentOf(widget.initialBook);
+
+  String? _testamentOf(String bookName) {
+    for (final b in widget.library.books) {
+      if (b.name == bookName) return b.testament;
+    }
+    return 'OT';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +52,11 @@ class _PickerSheetState extends State<_PickerSheet> {
         child: Column(
           children: [
             const SizedBox(height: 8),
-            Container(width: 36, height: 4, decoration: BoxDecoration(color: c.line2, borderRadius: BorderRadius.circular(2))),
+            Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                    color: c.line2, borderRadius: BorderRadius.circular(2))),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
               child: Row(
@@ -50,20 +64,26 @@ class _PickerSheetState extends State<_PickerSheet> {
                   if (_selectedBook != null)
                     IconButton(
                       onPressed: () => setState(() => _selectedBook = null),
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 17),
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                          size: 17),
                     ),
                   Expanded(
                     child: Text(
                       _selectedBook ?? 'Choose a book',
                       style: PgText.serif(size: 19, weight: FontWeight.w600),
-                      textAlign: _selectedBook != null ? TextAlign.center : TextAlign.left,
+                      textAlign: _selectedBook != null
+                          ? TextAlign.center
+                          : TextAlign.left,
                     ),
                   ),
                   if (_selectedBook != null) const SizedBox(width: 48),
                 ],
               ),
             ),
-            Expanded(child: _selectedBook == null ? _buildBookList(c) : _buildChapterGrid(c)),
+            Expanded(
+                child: _selectedBook == null
+                    ? _buildBookList(c)
+                    : _buildChapterGrid(c)),
           ],
         ),
       ),
@@ -76,21 +96,49 @@ class _PickerSheetState extends State<_PickerSheet> {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       children: [
-        _sectionLabel('Old Testament', c),
-        for (final b in ot) _bookRow(b, c),
-        const SizedBox(height: 10),
-        _sectionLabel('New Testament', c),
-        for (final b in nt) _bookRow(b, c),
+        _testamentSection('Old Testament', 'OT', ot, c),
+        const SizedBox(height: 6),
+        _testamentSection('New Testament', 'NT', nt, c),
         const SizedBox(height: 20),
       ],
     );
   }
 
-  Widget _sectionLabel(String label, PgColors c) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Text(label.toUpperCase(),
-            style: PgText.sans(size: 11.5, weight: FontWeight.w700, color: c.dim, letterSpacing: 1)),
-      );
+  Widget _testamentSection(
+      String label, String key, List<BibleBookInfo> books, PgColors c) {
+    final expanded = _expandedTestament == key;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: () =>
+              setState(() => _expandedTestament = expanded ? null : key),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(label.toUpperCase(),
+                    style: PgText.sans(
+                        size: 11.5,
+                        weight: FontWeight.w700,
+                        color: c.dim,
+                        letterSpacing: 1)),
+                Icon(
+                    expanded
+                        ? Icons.expand_less_rounded
+                        : Icons.expand_more_rounded,
+                    size: 20,
+                    color: c.dim),
+              ],
+            ),
+          ),
+        ),
+        if (expanded)
+          for (final b in books) _bookRow(b, c),
+      ],
+    );
+  }
 
   Widget _bookRow(BibleBookInfo b, PgColors c) {
     return InkWell(
@@ -99,8 +147,12 @@ class _PickerSheetState extends State<_PickerSheet> {
         padding: const EdgeInsets.symmetric(vertical: 11),
         child: Row(
           children: [
-            Expanded(child: Text(b.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600))),
-            Text('${b.chapterCount}', style: TextStyle(fontSize: 13, color: c.faint)),
+            Expanded(
+                child: Text(b.name,
+                    style: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w600))),
+            Text('${b.chapterCount}',
+                style: TextStyle(fontSize: 13, color: c.faint)),
             const SizedBox(width: 6),
             Icon(Icons.chevron_right_rounded, size: 17, color: c.faint),
           ],
@@ -128,7 +180,10 @@ class _PickerSheetState extends State<_PickerSheet> {
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
             onTap: () => Navigator.of(context).pop((_selectedBook!, chapter)),
-            child: Center(child: Text('$chapter', style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700))),
+            child: Center(
+                child: Text('$chapter',
+                    style: const TextStyle(
+                        fontSize: 14.5, fontWeight: FontWeight.w700))),
           ),
         );
       },

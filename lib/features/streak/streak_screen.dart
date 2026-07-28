@@ -129,17 +129,20 @@ class StreakScreen extends ConsumerWidget {
           const SizedBox(height: 22),
           Text('MILESTONES', style: PgText.sans(size: 12, weight: FontWeight.w700, color: c.dim, letterSpacing: 1)),
           const SizedBox(height: 14),
-          GridView.count(
-            crossAxisCount: 3,
+          GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              mainAxisExtent: 128,
+            ),
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: 1.05,
-            children: [
-              for (final days in milestoneDays)
-                _MilestoneCard(days: days, achieved: streak >= days),
-            ],
+            itemCount: milestoneDays.length,
+            itemBuilder: (context, i) {
+              final days = milestoneDays[i];
+              return _MilestoneCard(days: days, achieved: streak >= days);
+            },
           ),
           const SizedBox(height: 22),
           _HideStreakRow(hidden: profile?.hideStreakCount ?? false),

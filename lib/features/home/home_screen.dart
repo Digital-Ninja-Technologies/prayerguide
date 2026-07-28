@@ -232,13 +232,6 @@ class HomeScreen extends ConsumerWidget {
                   title: 'Companion',
                   subtitle: 'Pray with David',
                   onTap: () => context.push('/companion'),
-                ),
-                _MiniTile(
-                  icon: Icons.auto_awesome_outlined,
-                  color: c.amber,
-                  title: 'Assistant',
-                  subtitle: 'Ask · reflect',
-                  onTap: () => context.push('/assistant'),
                   last: true,
                 ),
               ],

@@ -64,114 +64,159 @@ class _InviteScreenState extends ConsumerState<InviteScreen> {
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    final link = _code == null ? null : 'prayerguide.app/j/$_code';
 
     return Scaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(22, 6, 22, 40),
+      body: Padding(
+        padding: const EdgeInsets.fromLTRB(22, 6, 22, 0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             PgHeader(title: 'Invite a companion', onBack: () => context.pop()),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 22),
-              child: Text(
-                "Pray alongside someone you trust. You'll share encouragement and a check-in streak — never your private journal.",
-                style: TextStyle(fontSize: 14.5, height: 1.6, color: c.dim),
-              ),
-            ),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 26, horizontal: 20),
-              margin: const EdgeInsets.only(bottom: 22),
-              decoration: BoxDecoration(color: c.surface, border: Border.all(color: c.line), borderRadius: BorderRadius.circular(22)),
-              child: Column(
-                children: [
-                  Container(
-                    width: 150,
-                    height: 150,
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
-                    padding: const EdgeInsets.all(12),
-                    child: const Icon(Icons.qr_code_2_rounded, size: 120, color: Color(0xFF0E1513)),
-                  ),
-                  const SizedBox(height: 14),
-                  Text(
-                    _code == null ? 'Preparing your invite…' : 'Share your code below to pair — QR scanning isn\'t wired up yet.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 13, color: c.dim),
-                  ),
-                ],
-              ),
-            ),
-            const PgSectionLabel('Or share your invite'),
-            Container(
-              padding: const EdgeInsets.fromLTRB(16, 6, 6, 6),
-              margin: const EdgeInsets.only(bottom: 24),
-              decoration: BoxDecoration(color: c.surface, border: Border.all(color: c.line), borderRadius: BorderRadius.circular(14)),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(link ?? 'Generating…',
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 13.5, color: c.dim, fontFamily: 'monospace')),
-                  ),
-                  TextButton(
-                    onPressed: link == null
-                        ? null
-                        : () {
-                            Clipboard.setData(ClipboardData(text: link));
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invite link copied')));
-                          },
-                    style: TextButton.styleFrom(
-                      backgroundColor: c.teal,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    ),
-                    child: Text('Copy', style: TextStyle(color: c.onTeal, fontSize: 13, fontWeight: FontWeight.w800)),
-                  ),
-                ],
-              ),
-            ),
-            const PgSectionLabel('Have a code from someone else?'),
-            Row(
-              children: [
-                Expanded(
-                  child: PgTextField(controller: _redeemController, hint: 'Enter their invite code'),
-                ),
-                const SizedBox(width: 10),
-                Material(
-                  color: c.teal,
-                  borderRadius: BorderRadius.circular(14),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(14),
-                    onTap: _redeeming ? null : _redeem,
-                    child: Container(
-                      width: 48,
-                      height: 48,
-                      alignment: Alignment.center,
-                      child: _redeeming
-                          ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: c.onTeal))
-                          : Icon(Icons.arrow_forward_rounded, color: c.onTeal),
-                    ),
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) => SingleChildScrollView(
+                  padding: const EdgeInsets.only(bottom: 40),
+                  child: ConstrainedBox(
+                    constraints:
+                        BoxConstraints(minHeight: constraints.maxHeight),
+                    child: Center(child: _buildContent(context, c)),
                   ),
                 ),
-              ],
-            ),
-            if (_error != null) ...[
-              const SizedBox(height: 10),
-              Text(_error!, style: TextStyle(color: c.danger, fontSize: 12.5)),
-            ],
-            Padding(
-              padding: const EdgeInsets.only(top: 22),
-              child: Text(
-                'Free plan includes one companion. You can change or remove them anytime.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 11.5, height: 1.5, color: c.faint),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, PgColors c) {
+    final link = _code == null ? null : 'prayerguide.app/j/$_code';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 22),
+          child: Text(
+            "Pray alongside someone you trust. You'll share encouragement and a check-in streak — never your private journal.",
+            style: TextStyle(fontSize: 14.5, height: 1.6, color: c.dim),
+          ),
+        ),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 26, horizontal: 20),
+          margin: const EdgeInsets.only(bottom: 22),
+          decoration: BoxDecoration(
+              color: c.surface,
+              border: Border.all(color: c.line),
+              borderRadius: BorderRadius.circular(22)),
+          child: Column(
+            children: [
+              Container(
+                width: 150,
+                height: 150,
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20)),
+                padding: const EdgeInsets.all(12),
+                child: const Icon(Icons.qr_code_2_rounded,
+                    size: 120, color: Color(0xFF0E1513)),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                _code == null
+                    ? 'Preparing your invite…'
+                    : 'Share your code below to pair — QR scanning isn\'t wired up yet.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: c.dim),
+              ),
+            ],
+          ),
+        ),
+        const PgSectionLabel('Or share your invite'),
+        Container(
+          padding: const EdgeInsets.fromLTRB(16, 6, 6, 6),
+          margin: const EdgeInsets.only(bottom: 24),
+          decoration: BoxDecoration(
+              color: c.surface,
+              border: Border.all(color: c.line),
+              borderRadius: BorderRadius.circular(14)),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(link ?? 'Generating…',
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        fontSize: 13.5, color: c.dim, fontFamily: 'monospace')),
+              ),
+              TextButton(
+                onPressed: link == null
+                    ? null
+                    : () {
+                        Clipboard.setData(ClipboardData(text: link));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Invite link copied')));
+                      },
+                style: TextButton.styleFrom(
+                  backgroundColor: c.teal,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                ),
+                child: Text('Copy',
+                    style: TextStyle(
+                        color: c.onTeal,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800)),
+              ),
+            ],
+          ),
+        ),
+        const PgSectionLabel('Have a code from someone else?'),
+        Row(
+          children: [
+            Expanded(
+              child: PgTextField(
+                controller: _redeemController,
+                hint: 'Enter their invite code',
+                errorText: _error,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Material(
+              color: c.teal,
+              borderRadius: BorderRadius.circular(14),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: _redeeming ? null : _redeem,
+                child: Container(
+                  width: 48,
+                  height: 48,
+                  alignment: Alignment.center,
+                  child: _redeeming
+                      ? SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: c.onTeal))
+                      : Icon(Icons.arrow_forward_rounded, color: c.onTeal),
+                ),
+              ),
+            ),
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 22),
+          child: Text(
+            'Free plan includes one companion. You can change or remove them anytime.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 11.5, height: 1.5, color: c.faint),
+          ),
+        ),
+      ],
     );
   }
 }

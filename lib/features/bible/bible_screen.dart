@@ -16,7 +16,7 @@ class BibleScreen extends ConsumerStatefulWidget {
   const BibleScreen({super.key, this.initialBook, this.initialChapter});
 
   /// Optional deep-link target (e.g. from a Reading Plan's "Read Day N").
-  /// When absent, the reader defaults to Psalms 23.
+  /// When absent, the reader defaults to Genesis 1.
   final String? initialBook;
   final int? initialChapter;
 
@@ -25,8 +25,8 @@ class BibleScreen extends ConsumerStatefulWidget {
 }
 
 class _BibleScreenState extends ConsumerState<BibleScreen> {
-  late String _book = widget.initialBook ?? 'Psalms';
-  late int _chapter = widget.initialChapter ?? 23;
+  late String _book = widget.initialBook ?? 'Genesis';
+  late int _chapter = widget.initialChapter ?? 1;
 
   String get _chapterRef => '$_book $_chapter';
 
@@ -38,8 +38,11 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
     // this state — apply it explicitly instead.
     final book = widget.initialBook;
     final chapter = widget.initialChapter;
-    if (book != null && chapter != null && (book != _book || chapter != _chapter)) {
-      if (book != oldWidget.initialBook || chapter != oldWidget.initialChapter) {
+    if (book != null &&
+        chapter != null &&
+        (book != _book || chapter != _chapter)) {
+      if (book != oldWidget.initialBook ||
+          chapter != oldWidget.initialChapter) {
         setState(() {
           _book = book;
           _chapter = chapter;
@@ -49,7 +52,8 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
   }
 
   Future<void> _openPicker(BibleLibrary library) async {
-    final result = await showBiblePickerSheet(context, library: library, initialBook: _book);
+    final result = await showBiblePickerSheet(context,
+        library: library, initialBook: _book);
     if (result != null) {
       setState(() {
         _book = result.$1;
@@ -93,26 +97,36 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
     final existing = notifier.bookmarkFor(_chapterRef);
     if (existing != null) {
       await notifier.remove(existing.id);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Bookmark removed')));
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Bookmark removed')));
     } else {
       await notifier.add(kind: 'bookmark', reference: _chapterRef);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$_chapterRef bookmarked')));
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$_chapterRef bookmarked')));
     }
   }
 
-  Future<void> _openVerseActions(WidgetRef ref, int verseNum, String text) async {
+  Future<void> _openVerseActions(
+      WidgetRef ref, int verseNum, String text) async {
     final c = context.colors;
     final reference = '$_chapterRef:$verseNum';
     final action = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: c.surface,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 8),
-            Container(width: 36, height: 4, decoration: BoxDecoration(color: c.line2, borderRadius: BorderRadius.circular(2))),
+            Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                    color: c.line2, borderRadius: BorderRadius.circular(2))),
             ListTile(
               leading: Icon(Icons.brush_outlined, color: c.amber),
               title: const Text('Highlight this verse'),
@@ -131,14 +145,19 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
 
     if (!mounted) return;
     if (action == 'highlight') {
-      await ref.read(bibleNotesProvider.notifier).add(kind: 'highlight', reference: reference, verseText: text);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Highlighted $reference')));
+      await ref
+          .read(bibleNotesProvider.notifier)
+          .add(kind: 'highlight', reference: reference, verseText: text);
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Highlighted $reference')));
     } else if (action == 'note') {
       await _promptForNote(ref, reference, text);
     }
   }
 
-  Future<void> _promptForNote(WidgetRef ref, String reference, String verseText) async {
+  Future<void> _promptForNote(
+      WidgetRef ref, String reference, String verseText) async {
     final c = context.colors;
     final controller = TextEditingController();
     final note = await showDialog<String>(
@@ -154,7 +173,9 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
           decoration: const InputDecoration(hintText: 'Write your note…'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel')),
           TextButton(
             onPressed: () => Navigator.of(context).pop(controller.text.trim()),
             child: const Text('Save'),
@@ -163,8 +184,11 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
       ),
     );
     if (note != null && note.isNotEmpty) {
-      await ref.read(bibleNotesProvider.notifier).add(kind: 'note', reference: reference, verseText: verseText, note: note);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Note saved on $reference')));
+      await ref.read(bibleNotesProvider.notifier).add(
+          kind: 'note', reference: reference, verseText: verseText, note: note);
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Note saved on $reference')));
     }
   }
 
@@ -174,11 +198,13 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
     final libraryAsync = ref.watch(bibleLibraryProvider);
     final notesAsync = ref.watch(bibleNotesProvider);
     final notes = notesAsync.valueOrNull ?? const <BibleNote>[];
-    final isBookmarked = notes.any((n) => n.kind == 'bookmark' && n.reference == _chapterRef);
+    final isBookmarked =
+        notes.any((n) => n.kind == 'bookmark' && n.reference == _chapterRef);
     final highlightedVerses = <int>{};
     for (final n in notes) {
       if (n.kind == 'highlight' && n.reference.startsWith('$_chapterRef:')) {
-        final verseNum = int.tryParse(n.reference.substring(_chapterRef.length + 1));
+        final verseNum =
+            int.tryParse(n.reference.substring(_chapterRef.length + 1));
         if (verseNum != null) highlightedVerses.add(verseNum);
       }
     }
@@ -188,7 +214,8 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
       error: (e, st) => Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Text('Could not load the Bible text.\n$e', textAlign: TextAlign.center, style: TextStyle(color: c.danger)),
+          child: Text('Could not load the Bible text.\n$e',
+              textAlign: TextAlign.center, style: TextStyle(color: c.danger)),
         ),
       ),
       data: (library) {
@@ -206,11 +233,17 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
                   children: [
                     const PgPill(label: 'Read', active: true),
                     const SizedBox(width: 8),
-                    PgPill(label: 'Reading plans', onTap: () => context.push('/plans')),
+                    PgPill(
+                        label: 'Reading plans',
+                        onTap: () => context.push('/plans')),
                     const SizedBox(width: 8),
-                    PgPill(label: 'Devotional', onTap: () => context.push('/devotional')),
+                    PgPill(
+                        label: 'Devotional',
+                        onTap: () => context.push('/devotional')),
                     const SizedBox(width: 8),
-                    PgPill(label: 'Notes', onTap: () => context.pushOnce('/bible-notes')),
+                    PgPill(
+                        label: 'Notes',
+                        onTap: () => context.pushOnce('/bible-notes')),
                   ],
                 ),
               ),
@@ -222,35 +255,48 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
                   children: [
                     Row(
                       children: [
-                        _RoundIcon(icon: Icons.chevron_left_rounded, onTap: () => _shiftChapter(-1, library)),
+                        _RoundIcon(
+                            icon: Icons.chevron_left_rounded,
+                            onTap: () => _shiftChapter(-1, library)),
                         const SizedBox(width: 6),
                         Material(
                           color: c.surface,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: c.line)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(color: c.line)),
                           child: InkWell(
                             borderRadius: BorderRadius.circular(12),
                             onTap: () => _openPicker(library),
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 9),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text(_chapterRef, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                                  Text(_chapterRef,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 14)),
                                   const SizedBox(width: 6),
-                                  Icon(Icons.expand_more_rounded, size: 15, color: c.text),
+                                  Icon(Icons.expand_more_rounded,
+                                      size: 15, color: c.text),
                                 ],
                               ),
                             ),
                           ),
                         ),
                         const SizedBox(width: 6),
-                        _RoundIcon(icon: Icons.chevron_right_rounded, onTap: () => _shiftChapter(1, library)),
+                        _RoundIcon(
+                            icon: Icons.chevron_right_rounded,
+                            onTap: () => _shiftChapter(1, library)),
                       ],
                     ),
                     Row(
                       children: [
                         _RoundIcon(
-                          icon: isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                          icon: isBookmarked
+                              ? Icons.bookmark_rounded
+                              : Icons.bookmark_border_rounded,
                           color: isBookmarked ? c.teal : null,
                           onTap: () => _toggleBookmark(ref),
                         ),
@@ -270,24 +316,34 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(_chapterRef, style: PgText.serif(size: 26, weight: FontWeight.w600)),
+                    Text(_chapterRef,
+                        style: PgText.serif(size: 26, weight: FontWeight.w600)),
                     const SizedBox(height: 4),
-                    Text('King James Version', style: TextStyle(fontSize: 13, color: c.dim, fontWeight: FontWeight.w600)),
+                    Text('King James Version',
+                        style: TextStyle(
+                            fontSize: 13,
+                            color: c.dim,
+                            fontWeight: FontWeight.w600)),
                     const SizedBox(height: 22),
                     if (verses.isEmpty)
-                      Text('This chapter is unavailable.', style: TextStyle(fontSize: 14, color: c.dim))
+                      Text('This chapter is unavailable.',
+                          style: TextStyle(fontSize: 14, color: c.dim))
                     else
                       for (var i = 0; i < verses.length; i++)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 14),
                           child: GestureDetector(
-                            onTap: () => _openVerseActions(ref, i + 1, verses[i]),
+                            onTap: () =>
+                                _openVerseActions(ref, i + 1, verses[i]),
                             child: Container(
                               padding: highlightedVerses.contains(i + 1)
-                                  ? const EdgeInsets.symmetric(horizontal: 4, vertical: 2)
+                                  ? const EdgeInsets.symmetric(
+                                      horizontal: 4, vertical: 2)
                                   : EdgeInsets.zero,
                               decoration: highlightedVerses.contains(i + 1)
-                                  ? BoxDecoration(color: c.amberSoft, borderRadius: BorderRadius.circular(6))
+                                  ? BoxDecoration(
+                                      color: c.amberSoft,
+                                      borderRadius: BorderRadius.circular(6))
                                   : null,
                               child: RichText(
                                 text: TextSpan(
@@ -295,7 +351,9 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
                                     TextSpan(
                                       text: '${i + 1} ',
                                       style: TextStyle(
-                                        color: highlightedVerses.contains(i + 1) ? c.amber : c.teal,
+                                        color: highlightedVerses.contains(i + 1)
+                                            ? c.amber
+                                            : c.teal,
                                         fontFamily: 'Manrope',
                                         fontSize: 11,
                                         fontWeight: FontWeight.w800,
@@ -303,7 +361,10 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
                                     ),
                                     TextSpan(
                                       text: verses[i],
-                                      style: PgText.serif(size: 18.5, height: 1.85, color: c.text),
+                                      style: PgText.serif(
+                                          size: 18.5,
+                                          height: 1.85,
+                                          color: c.text),
                                     ),
                                   ],
                                 ),
@@ -333,11 +394,16 @@ class _RoundIcon extends StatelessWidget {
     final c = context.colors;
     return Material(
       color: c.surface,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11), side: BorderSide(color: c.line)),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(11),
+          side: BorderSide(color: c.line)),
       child: InkWell(
         borderRadius: BorderRadius.circular(11),
         onTap: onTap,
-        child: SizedBox(width: 38, height: 38, child: Icon(icon, size: 18, color: color ?? c.dim)),
+        child: SizedBox(
+            width: 38,
+            height: 38,
+            child: Icon(icon, size: 18, color: color ?? c.dim)),
       ),
     );
   }
