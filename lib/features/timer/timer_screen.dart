@@ -11,6 +11,7 @@ import '../../state/profile_provider.dart';
 import '../../widgets/pg_back_button.dart';
 import '../../widgets/pg_button.dart';
 import '../../widgets/pg_pill.dart';
+import 'ambience_player.dart';
 
 class TimerScreen extends ConsumerStatefulWidget {
   const TimerScreen({super.key, this.category, this.presetMinutes});
@@ -29,8 +30,27 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
   bool _done = false;
   String? _ambience;
   Timer? _timer;
+  final _ambiencePlayer = AmbiencePlayer();
 
   static const _presets = [5, 10, 15, 30, 60];
+
+  Future<void> _toggleAmbience(String key) async {
+    if (_ambience == key) {
+      setState(() => _ambience = null);
+      await _ambiencePlayer.stop();
+      return;
+    }
+    setState(() => _ambience = key);
+    try {
+      await _ambiencePlayer.play(key);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _ambience = null);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Couldn't play that track: $e")),
+      );
+    }
+  }
 
   String get _label {
     final m = _remaining ~/ 60;
@@ -82,6 +102,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    _ambiencePlayer.dispose();
     super.dispose();
   }
 
@@ -212,7 +233,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
                                 active: _ambience == a.$1,
                                 activeColor: c.tealSoft,
                                 activeFg: c.teal,
-                                onTap: () => setState(() => _ambience = _ambience == a.$1 ? null : a.$1),
+                                onTap: () => _toggleAmbience(a.$1),
                               ),
                             ),
                         ],

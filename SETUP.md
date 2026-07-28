@@ -197,6 +197,15 @@ now:
   group version of this in the design — the two-avatar UI and the
   prototype's own back-button wiring both point at Companion, not Groups).
 
+**Prayer Timer ambience is wired but needs audio files from you**: the
+Rain/Ocean/Instrumental pills on the timer actually loop real audio now
+(`audioplayers`, `lib/features/timer/ambience_player.dart`) instead of
+just toggling a pill with no sound — but no tracks are bundled (licensing),
+so you need to drop `rain.mp3`, `ocean.mp3`, and `instrumental.mp3` into
+`assets/audio/` yourself (see that folder's README). Until you do, tapping
+a pill shows a "couldn't play that track" error instead of silently
+pretending to play.
+
 **UI-complete, local/mock state (matches the design, not yet backed by a
 table read/write):** Audio Room, Upgrade/paywall (no real billing — needs
 RevenueCat or App Store/Play Billing).
