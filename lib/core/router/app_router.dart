@@ -11,6 +11,7 @@ import '../../features/challenges/challenge_new_screen.dart';
 import '../../features/challenges/challenges_screen.dart';
 import '../../features/companion/companion_screen.dart';
 import '../../features/companion/invite_screen.dart';
+import '../../features/companion/qr_scan_screen.dart';
 import '../../features/devotional/devotional_screen.dart';
 import '../../features/fasting/fasting_screen.dart';
 import '../../features/focus/focus_active_screen.dart';
@@ -119,6 +120,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/companion', builder: (c, s) => const CompanionScreen()),
       GoRoute(
           path: '/companion/invite', builder: (c, s) => const InviteScreen()),
+      GoRoute(path: '/companion/invite/scan', builder: (c, s) => const QrScanScreen()),
       GoRoute(path: '/challenges', builder: (c, s) => const ChallengesScreen()),
       GoRoute(
         path: '/challenges/new',

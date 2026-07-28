@@ -56,6 +56,8 @@ Not every screen is backed by live data yet — see
   reading/search/reading-plan scheduling all work offline.
 - **google_fonts** — Spectral (serif, for scripture/headings) and Manrope
   (sans, for UI chrome), matching the original design system.
+- **qr_flutter / mobile_scanner** — generates and scans the Companion
+  invite QR code (real camera scanning, not a placeholder icon).
 
 ## Project structure
 

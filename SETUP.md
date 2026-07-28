@@ -143,9 +143,14 @@ Companion/Invite are also real** now:
 - **Companion/Invite** — real invite codes (`companion_invites` +
   `redeem_companion_invite` RPC, migration `0006`) pair two accounts via
   `companions`; check-ins persist to `companion_checkins` and show real
-  history; shared streak is `min(your streak, their streak)`. QR *scanning*
-  isn't wired (no camera/QR package added) — pairing works via copy/paste
-  or manually typing the code. **Shared prayer requests are now real**: a
+  history; shared streak is `min(your streak, their streak)`. The invite
+  screen now shows a real, scannable QR code (`qr_flutter`) of the invite
+  link, and "Scan a code instead" opens a live camera scanner
+  (`mobile_scanner`) that reads a companion's QR and redeems it
+  automatically — pairing also still works via copy/paste or manually
+  typing the code. Scanning needs camera permission (`NSCameraUsageDescription`
+  on iOS; `mobile_scanner`'s own manifest declares the Android permission).
+  **Shared prayer requests are now real**: a
   request can be flagged `shared_with_companion` when created (or via the
   toggle on the Requests list), and migration `0007` adds an RLS policy
   granting a paired companion read access to just those flagged rows —
