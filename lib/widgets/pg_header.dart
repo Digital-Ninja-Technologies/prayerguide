@@ -22,34 +22,37 @@ class PgHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: padding,
-      child: Row(
-        children: [
-          PgBackButton(onTap: onBack),
-          const SizedBox(width: 12),
-          if (title != null)
-            Expanded(
-              child: Text(
-                title!,
-                style: PgText.serif(size: 23, weight: FontWeight.w600),
-                overflow: TextOverflow.ellipsis,
-              ),
-            )
-          else if (eyebrow != null)
-            Expanded(
-              child: Text(
-                eyebrow!,
-                style: PgText.sans(
-                  size: 13,
-                  weight: FontWeight.w700,
-                  letterSpacing: .4,
-                  color: Theme.of(context).textTheme.bodySmall?.color,
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: padding,
+        child: Row(
+          children: [
+            PgBackButton(onTap: onBack),
+            const SizedBox(width: 12),
+            if (title != null)
+              Expanded(
+                child: Text(
+                  title!,
+                  style: PgText.serif(size: 23, weight: FontWeight.w600),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              )
+            else if (eyebrow != null)
+              Expanded(
+                child: Text(
+                  eyebrow!,
+                  style: PgText.sans(
+                    size: 13,
+                    weight: FontWeight.w700,
+                    letterSpacing: .4,
+                    color: Theme.of(context).textTheme.bodySmall?.color,
+                  ),
                 ),
               ),
-            ),
-          if (trailing != null) trailing!,
-        ],
+            if (trailing != null) trailing!,
+          ],
+        ),
       ),
     );
   }

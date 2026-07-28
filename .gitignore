@@ -3,6 +3,9 @@
 .env.*
 !.env.example
 
+# Claude Code local (machine-specific) settings
+.claude/settings.local.json
+
 # Miscellaneous
 *.class
 *.log
@@ -10,9 +13,11 @@
 *.swp
 .DS_Store
 .atom/
+.build/
 .buildlog/
 .history
 .svn/
+.swiftpm/
 migrate_working_dir/
 
 # IntelliJ related

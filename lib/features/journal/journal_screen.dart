@@ -55,8 +55,8 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
     final c = context.colors;
     final entriesAsync = ref.watch(journalProvider);
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(22, 6, 22, 40),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(22, 6, 22, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -77,45 +77,51 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          entriesAsync.when(
-            loading: () => const Padding(
-              padding: EdgeInsets.symmetric(vertical: 60),
-              child: Center(child: CircularProgressIndicator()),
-            ),
-            error: (e, st) => e is PassphraseRequiredException
-                ? PgPassphraseUnlock(
-                    uid: ref.read(currentUserIdProvider)!,
-                    onUnlocked: () => ref.invalidate(journalProvider),
-                  )
-                : Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 40),
-                    child: Text('Could not load your journal.\n$e', style: TextStyle(color: c.danger)),
-                  ),
-            data: (entries) {
-              if (entries.isEmpty) return _EmptyState(onNew: () => context.push('/journal/new'));
-              final filtered =
-                  _filter == 'All' ? entries : entries.where((e) => e.type == _filter).toList();
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    height: 40,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      children: [
-                        for (final t in _types)
-                          Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: PgPill(label: t, active: _filter == t, onTap: () => setState(() => _filter = t)),
-                          ),
-                      ],
+          Expanded(
+            child: entriesAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, st) => e is PassphraseRequiredException
+                  ? Center(
+                      child: PgPassphraseUnlock(
+                        uid: ref.read(currentUserIdProvider)!,
+                        onUnlocked: () => ref.invalidate(journalProvider),
+                      ),
+                    )
+                  : Center(
+                      child: Text('Could not load your journal.\n$e',
+                          textAlign: TextAlign.center, style: TextStyle(color: c.danger)),
                     ),
+              data: (entries) {
+                if (entries.isEmpty) {
+                  return Center(child: _EmptyState(onNew: () => context.push('/journal/new')));
+                }
+                final filtered =
+                    _filter == 'All' ? entries : entries.where((e) => e.type == _filter).toList();
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.only(bottom: 40),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        height: 40,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          children: [
+                            for (final t in _types)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: PgPill(label: t, active: _filter == t, onTap: () => setState(() => _filter = t)),
+                              ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      for (final e in filtered) _EntryCard(entry: e, tagColor: _tagColor(e.type, c), tagBg: _tagBg(e.type, c)),
+                    ],
                   ),
-                  const SizedBox(height: 18),
-                  for (final e in filtered) _EntryCard(entry: e, tagColor: _tagColor(e.type, c), tagBg: _tagBg(e.type, c)),
-                ],
-              );
-            },
+                );
+              },
+            ),
           ),
         ],
       ),

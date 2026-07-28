@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
 import '../../state/repo_providers.dart';
+import '../../widgets/google_logo.dart';
 import '../../widgets/pg_back_button.dart';
 import '../../widgets/pg_button.dart';
 import '../../widgets/pg_text_field.dart';
@@ -47,10 +48,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   _Step _step = _Step.slide0;
   bool _loading = false;
   String? _error;
+  String? _info;
 
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
-  final _nameCtrl = TextEditingController();
+  final _firstNameCtrl = TextEditingController();
+  final _lastNameCtrl = TextEditingController();
 
   int get _slideIndex => _step.index;
 
@@ -68,6 +71,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     setState(() {
       _loading = true;
       _error = null;
+      _info = null;
     });
     try {
       await action();
@@ -82,7 +86,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   void dispose() {
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
-    _nameCtrl.dispose();
+    _firstNameCtrl.dispose();
+    _lastNameCtrl.dispose();
     super.dispose();
   }
 
@@ -237,30 +242,19 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             const SizedBox(height: 10),
           ],
           PgButton(
-            label: 'Continue with Apple',
-            icon: const Icon(Icons.apple, size: 19, color: Colors.white),
-            onPressed: _loading
-                ? null
-                : () => _run(() async {
-                      await ref.read(authRepositoryProvider).signInWithApple();
-                    }),
-          ),
-          const SizedBox(height: 11),
-          PgButton(
-            label: 'Continue with Google',
+            label: _loading ? 'Continuing…' : 'Continue with Google',
             variant: PgButtonVariant.outline,
-            icon: const Icon(Icons.g_mobiledata_rounded, size: 22),
+            icon: const GoogleLogo(),
             onPressed: _loading
                 ? null
                 : () => _run(() async {
                       await ref.read(authRepositoryProvider).signInWithGoogle();
                     }),
           ),
-          const SizedBox(height: 11),
+          const SizedBox(height: 10),
           PgButton(
             label: 'Continue with email',
-            variant: PgButtonVariant.ghost,
-            icon: Icon(Icons.mail_outline_rounded, size: 17, color: c.text),
+            icon: const Icon(Icons.mail_outline_rounded, size: 17, color: Colors.white),
             onPressed: () => setState(() => _step = _Step.email),
           ),
           const SizedBox(height: 6),
@@ -391,9 +385,32 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           const SizedBox(height: 8),
           Text('Begin a prayer life you can return to.', style: PgText.sans(size: 14.5, color: c.dim)),
           const SizedBox(height: 22),
-          Text('NAME', style: PgText.eyebrow(color: c.dim)),
-          const SizedBox(height: 8),
-          PgTextField(controller: _nameCtrl, hint: 'Your name'),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('FIRST NAME', style: PgText.eyebrow(color: c.dim)),
+                    const SizedBox(height: 8),
+                    PgTextField(controller: _firstNameCtrl, hint: 'First'),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('LAST NAME', style: PgText.eyebrow(color: c.dim)),
+                    const SizedBox(height: 8),
+                    PgTextField(controller: _lastNameCtrl, hint: 'Last'),
+                  ],
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 14),
           Text('EMAIL', style: PgText.eyebrow(color: c.dim)),
           const SizedBox(height: 8),
@@ -406,18 +423,27 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             const SizedBox(height: 12),
             Text(_error!, style: TextStyle(color: c.danger, fontSize: 13)),
           ],
+          if (_info != null) ...[
+            const SizedBox(height: 12),
+            Text(_info!, style: TextStyle(color: c.teal, fontSize: 13)),
+          ],
           const Spacer(),
           PgButton(
             label: _loading ? 'Creating…' : 'Create account',
             onPressed: _loading
                 ? null
                 : () => _run(() async {
-                      await ref.read(authRepositoryProvider).signUpWithEmail(
+                      final response = await ref.read(authRepositoryProvider).signUpWithEmail(
                             email: _emailCtrl.text.trim(),
                             password: _passwordCtrl.text,
-                            name: _nameCtrl.text.trim(),
+                            name: '${_firstNameCtrl.text.trim()} ${_lastNameCtrl.text.trim()}'.trim(),
                           );
-                      if (mounted) context.go('/home');
+                      if (!mounted) return;
+                      if (response.session == null) {
+                        setState(() => _info = "Account created. Check your email to confirm before signing in.");
+                        return;
+                      }
+                      context.go('/home');
                     }),
           ),
           const SizedBox(height: 12),

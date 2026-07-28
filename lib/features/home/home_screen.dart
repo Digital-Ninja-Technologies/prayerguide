@@ -18,9 +18,12 @@ class HomeScreen extends ConsumerWidget {
     final profileAsync = ref.watch(profileProvider);
     final streak = profileAsync.valueOrNull?.streakCount ?? 0;
     final name = profileAsync.valueOrNull?.name;
-    final greetingName = (name == null || name.isEmpty) ? 'friend' : name.split(' ').first;
+    final greetingName =
+        (name == null || name.isEmpty) ? 'friend' : name.split(' ').first;
     final hour = DateTime.now().hour;
-    final greeting = hour < 12 ? 'Good morning' : (hour < 18 ? 'Good afternoon' : 'Good evening');
+    final greeting = hour < 12
+        ? 'Good morning'
+        : (hour < 18 ? 'Good afternoon' : 'Good evening');
     final dateStr = DateFormat('EEEE · MMMM d').format(DateTime.now());
 
     return SingleChildScrollView(
@@ -37,17 +40,23 @@ class HomeScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(dateStr.toUpperCase(),
-                        style: PgText.sans(size: 12.5, weight: FontWeight.w600, color: c.dim, letterSpacing: .6)),
+                        style: PgText.sans(
+                            size: 12.5,
+                            weight: FontWeight.w600,
+                            color: c.dim,
+                            letterSpacing: .6)),
                     const SizedBox(height: 5),
-                    Text('$greeting,\n$greetingName',
-                        style: PgText.serif(size: 27, weight: FontWeight.w600, height: 1.15)),
+                    Text('$greetingName,\n$greeting',
+                        style: PgText.serif(
+                            size: 27, weight: FontWeight.w600, height: 1.15)),
                   ],
                 ),
               ),
               GestureDetector(
-                onTap: () => context.push('/streak'),
+                onTap: () => context.go('/streak'),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
                   decoration: BoxDecoration(
                     color: c.amberSoft,
                     border: Border.all(color: c.line),
@@ -55,9 +64,14 @@ class HomeScreen extends ConsumerWidget {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.local_fire_department_rounded, size: 17, color: c.amber),
+                      Icon(Icons.local_fire_department_rounded,
+                          size: 17, color: c.amber),
                       const SizedBox(width: 6),
-                      Text('$streak', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: c.amber)),
+                      Text('$streak',
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: c.amber)),
                     ],
                   ),
                 ),
@@ -81,15 +95,24 @@ class HomeScreen extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text('SCRIPTURE OF THE DAY',
-                        style: PgText.sans(size: 11, weight: FontWeight.w700, color: c.teal, letterSpacing: 1)),
+                        style: PgText.sans(
+                            size: 11,
+                            weight: FontWeight.w700,
+                            color: c.teal,
+                            letterSpacing: 1)),
                     Icon(Icons.chevron_right_rounded, color: c.dim),
                   ],
                 ),
                 const SizedBox(height: 14),
                 Text('"Be still, and know that I am God."',
-                    style: PgText.serif(size: 22, weight: FontWeight.w500, height: 1.4)),
+                    style: PgText.serif(
+                        size: 22, weight: FontWeight.w500, height: 1.4)),
                 const SizedBox(height: 12),
-                Text('Psalm 46:10', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: c.amber)),
+                Text('Psalm 46:10',
+                    style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        color: c.amber)),
               ],
             ),
           ),
@@ -106,10 +129,11 @@ class HomeScreen extends ConsumerWidget {
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                    color: c.onTeal.withOpacity(.14),
+                    color: c.onTeal.withValues(alpha: .14),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: Icon(Icons.play_arrow_rounded, size: 27, color: c.onTeal),
+                  child:
+                      Icon(Icons.play_arrow_rounded, size: 27, color: c.onTeal),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -117,11 +141,16 @@ class HomeScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text("Start today's prayer",
-                          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: c.onTeal)),
+                          style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w800,
+                              color: c.onTeal)),
                       const SizedBox(height: 3),
                       Text('Morning · Thanksgiving · 8 min',
                           style: TextStyle(
-                              fontSize: 13, fontWeight: FontWeight.w600, color: c.onTeal.withOpacity(.72))),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: c.onTeal.withValues(alpha: .72))),
                     ],
                   ),
                 ),
@@ -135,15 +164,18 @@ class HomeScreen extends ConsumerWidget {
                 child: PgCard(
                   radius: 20,
                   padding: const EdgeInsets.all(17),
-                  onTap: () => context.push('/journal'),
+                  onTap: () => context.go('/journal'),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(Icons.edit_note_rounded, color: c.teal, size: 24),
                       const SizedBox(height: 12),
-                      const Text('Journal', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                      const Text('Journal',
+                          style: TextStyle(
+                              fontSize: 15, fontWeight: FontWeight.w700)),
                       const SizedBox(height: 2),
-                      Text('Private entries', style: TextStyle(fontSize: 12.5, color: c.dim)),
+                      Text('Private entries',
+                          style: TextStyle(fontSize: 12.5, color: c.dim)),
                     ],
                   ),
                 ),
@@ -157,11 +189,15 @@ class HomeScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.favorite_border_rounded, color: c.amber, size: 24),
+                      Icon(Icons.favorite_border_rounded,
+                          color: c.amber, size: 24),
                       const SizedBox(height: 12),
-                      const Text('Requests', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                      const Text('Requests',
+                          style: TextStyle(
+                              fontSize: 15, fontWeight: FontWeight.w700)),
                       const SizedBox(height: 2),
-                      Text('Track & pray', style: TextStyle(fontSize: 12.5, color: c.dim)),
+                      Text('Track & pray',
+                          style: TextStyle(fontSize: 12.5, color: c.dim)),
                     ],
                   ),
                 ),
@@ -169,7 +205,8 @@ class HomeScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 20),
-          const PgSectionLabel('More ways to pray', padding: EdgeInsets.only(bottom: 12)),
+          const PgSectionLabel('More ways to pray',
+              padding: EdgeInsets.only(bottom: 12)),
           SizedBox(
             height: 108,
             child: ListView(
@@ -246,9 +283,13 @@ class _MiniTile extends StatelessWidget {
             children: [
               Icon(icon, size: 22, color: color),
               const SizedBox(height: 10),
-              Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+              Text(title,
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.w700)),
               const SizedBox(height: 2),
-              Text(subtitle, style: TextStyle(fontSize: 11.5, color: c.dim), overflow: TextOverflow.ellipsis),
+              Text(subtitle,
+                  style: TextStyle(fontSize: 11.5, color: c.dim),
+                  overflow: TextOverflow.ellipsis),
             ],
           ),
         ),

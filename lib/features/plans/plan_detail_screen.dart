@@ -67,7 +67,7 @@ class PlanDetailScreen extends StatelessWidget {
                 ],
               ),
             ),
-            PgButton(label: 'Read now', onPressed: () => context.push('/bible')),
+            PgButton(label: 'Read now', onPressed: () => context.go('/bible')),
           ],
         ),
       ),

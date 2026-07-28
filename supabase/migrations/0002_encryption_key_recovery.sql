@@ -15,5 +15,6 @@ create table if not exists public.encryption_keys (
 );
 
 alter table public.encryption_keys enable row level security;
+drop policy if exists "Encryption key escrow is owner-only" on public.encryption_keys;
 create policy "Encryption key escrow is owner-only" on public.encryption_keys
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);

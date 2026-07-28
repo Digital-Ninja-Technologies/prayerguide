@@ -121,6 +121,19 @@ final routerProvider = Provider<GoRouter>((ref) {
   );
 });
 
+/// Pushes [location] unless it's already the current route. go_router
+/// derives each page's key from its location, so pushing the same location
+/// twice before the first push settles (e.g. a double-tap) puts two pages
+/// with an identical key on the Navigator stack and crashes with
+/// `!keyReservation.contains(key)`.
+extension SafePush on BuildContext {
+  void pushOnce(String location) {
+    if (GoRouterState.of(this).uri.toString() != location) {
+      push(location);
+    }
+  }
+}
+
 /// Bridges a Stream (Supabase auth changes) into a Listenable so go_router
 /// can re-run its redirect logic on sign-in/out.
 class GoRouterRefreshStream extends ChangeNotifier {

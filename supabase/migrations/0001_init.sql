@@ -24,10 +24,13 @@ create table if not exists public.profiles (
 
 alter table public.profiles enable row level security;
 
+drop policy if exists "Profiles are viewable by owner" on public.profiles;
 create policy "Profiles are viewable by owner" on public.profiles
   for select using (auth.uid() = id);
+drop policy if exists "Profiles are editable by owner" on public.profiles;
 create policy "Profiles are editable by owner" on public.profiles
   for update using (auth.uid() = id);
+drop policy if exists "Profiles are insertable by owner" on public.profiles;
 create policy "Profiles are insertable by owner" on public.profiles
   for insert with check (auth.uid() = id);
 
@@ -66,6 +69,7 @@ create table if not exists public.journal_entries (
 );
 
 alter table public.journal_entries enable row level security;
+drop policy if exists "Journal entries are owner-only" on public.journal_entries;
 create policy "Journal entries are owner-only" on public.journal_entries
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
@@ -89,6 +93,7 @@ create table if not exists public.prayer_requests (
 );
 
 alter table public.prayer_requests enable row level security;
+drop policy if exists "Prayer requests are owner-only" on public.prayer_requests;
 create policy "Prayer requests are owner-only" on public.prayer_requests
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
@@ -104,6 +109,7 @@ create table if not exists public.prayer_sessions (
 );
 
 alter table public.prayer_sessions enable row level security;
+drop policy if exists "Prayer sessions are owner-only" on public.prayer_sessions;
 create policy "Prayer sessions are owner-only" on public.prayer_sessions
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
@@ -172,6 +178,7 @@ create table if not exists public.bible_notes (
 );
 
 alter table public.bible_notes enable row level security;
+drop policy if exists "Bible notes are owner-only" on public.bible_notes;
 create policy "Bible notes are owner-only" on public.bible_notes
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
@@ -192,6 +199,7 @@ create table if not exists public.notification_prefs (
 );
 
 alter table public.notification_prefs enable row level security;
+drop policy if exists "Notification prefs are owner-only" on public.notification_prefs;
 create policy "Notification prefs are owner-only" on public.notification_prefs
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
@@ -209,8 +217,10 @@ create table if not exists public.companion_invites (
 );
 
 alter table public.companion_invites enable row level security;
+drop policy if exists "Invite owner can manage" on public.companion_invites;
 create policy "Invite owner can manage" on public.companion_invites
   for all using (auth.uid() = inviter_id) with check (auth.uid() = inviter_id);
+drop policy if exists "Anyone authenticated can look up an invite by code" on public.companion_invites;
 create policy "Anyone authenticated can look up an invite by code" on public.companion_invites
   for select using (auth.role() = 'authenticated');
 
@@ -223,10 +233,13 @@ create table if not exists public.companions (
 );
 
 alter table public.companions enable row level security;
+drop policy if exists "Companions are visible to both members" on public.companions;
 create policy "Companions are visible to both members" on public.companions
   for select using (auth.uid() in (user_a, user_b));
+drop policy if exists "Companions insertable by either member" on public.companions;
 create policy "Companions insertable by either member" on public.companions
   for insert with check (auth.uid() in (user_a, user_b));
+drop policy if exists "Companions deletable by either member" on public.companions;
 create policy "Companions deletable by either member" on public.companions
   for delete using (auth.uid() in (user_a, user_b));
 
@@ -239,6 +252,7 @@ create table if not exists public.companion_checkins (
 );
 
 alter table public.companion_checkins enable row level security;
+drop policy if exists "Checkins visible to companion pair" on public.companion_checkins;
 create policy "Checkins visible to companion pair" on public.companion_checkins
   for select using (
     exists (
@@ -246,6 +260,7 @@ create policy "Checkins visible to companion pair" on public.companion_checkins
       where c.id = companion_id and auth.uid() in (c.user_a, c.user_b)
     )
   );
+drop policy if exists "Checkins insertable by self" on public.companion_checkins;
 create policy "Checkins insertable by self" on public.companion_checkins
   for insert with check (auth.uid() = user_id);
 
@@ -265,6 +280,7 @@ create table if not exists public.challenge_progress (
 );
 
 alter table public.challenge_progress enable row level security;
+drop policy if exists "Challenge progress is owner-only" on public.challenge_progress;
 create policy "Challenge progress is owner-only" on public.challenge_progress
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
@@ -281,6 +297,7 @@ create table if not exists public.reading_plan_progress (
 );
 
 alter table public.reading_plan_progress enable row level security;
+drop policy if exists "Reading plan progress is owner-only" on public.reading_plan_progress;
 create policy "Reading plan progress is owner-only" on public.reading_plan_progress
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
@@ -296,6 +313,7 @@ create table if not exists public.fasting_sessions (
 );
 
 alter table public.fasting_sessions enable row level security;
+drop policy if exists "Fasting sessions are owner-only" on public.fasting_sessions;
 create policy "Fasting sessions are owner-only" on public.fasting_sessions
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
@@ -310,14 +328,6 @@ create table if not exists public.groups (
   created_at timestamptz not null default now()
 );
 
-alter table public.groups enable row level security;
-create policy "Groups are visible to members" on public.groups
-  for select using (
-    exists (select 1 from public.group_members m where m.group_id = id and m.user_id = auth.uid())
-  );
-create policy "Groups are creatable by any authenticated user" on public.groups
-  for insert with check (auth.uid() = created_by);
-
 create table if not exists public.group_members (
   group_id uuid not null references public.groups (id) on delete cascade,
   user_id uuid not null references auth.users (id) on delete cascade,
@@ -325,11 +335,23 @@ create table if not exists public.group_members (
   primary key (group_id, user_id)
 );
 
+alter table public.groups enable row level security;
+drop policy if exists "Groups are visible to members" on public.groups;
+create policy "Groups are visible to members" on public.groups
+  for select using (
+    exists (select 1 from public.group_members m where m.group_id = id and m.user_id = auth.uid())
+  );
+drop policy if exists "Groups are creatable by any authenticated user" on public.groups;
+create policy "Groups are creatable by any authenticated user" on public.groups
+  for insert with check (auth.uid() = created_by);
+
 alter table public.group_members enable row level security;
+drop policy if exists "Group members visible to group members" on public.group_members;
 create policy "Group members visible to group members" on public.group_members
   for select using (
     exists (select 1 from public.group_members m2 where m2.group_id = group_id and m2.user_id = auth.uid())
   );
+drop policy if exists "Users can join/leave for themselves" on public.group_members;
 create policy "Users can join/leave for themselves" on public.group_members
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
@@ -345,5 +367,6 @@ create table if not exists public.subscriptions (
 );
 
 alter table public.subscriptions enable row level security;
+drop policy if exists "Subscriptions are owner-only" on public.subscriptions;
 create policy "Subscriptions are owner-only" on public.subscriptions
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);

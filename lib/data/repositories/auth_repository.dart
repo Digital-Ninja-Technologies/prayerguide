@@ -45,7 +45,6 @@ class AuthRepository {
     return _auth.signInWithOAuth(
       OAuthProvider.google,
       redirectTo: kOAuthRedirect,
-      authScreenLaunchMode: LaunchMode.externalApplication,
     );
   }
 
@@ -56,7 +55,6 @@ class AuthRepository {
     return _auth.signInWithOAuth(
       OAuthProvider.apple,
       redirectTo: kOAuthRedirect,
-      authScreenLaunchMode: LaunchMode.externalApplication,
     );
   }
 
