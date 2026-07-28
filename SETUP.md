@@ -17,10 +17,11 @@ Security. Nothing else in this repo needs a secret key.
 
 ```
 supabase link --project-ref glkgiigirmfrmbgsmdrp
-supabase db push        # applies supabase/migrations/0001_init.sql
+supabase db push        # applies every file in supabase/migrations/, in order
 ```
 
-(or paste `supabase/migrations/0001_init.sql` into the Supabase SQL editor).
+(or paste each migration file into the Supabase SQL editor, in numeric
+order — `0001_init.sql` first, then `0002`, `0003`, `0004`, ...).
 
 This creates `profiles`, `journal_entries`, `prayer_requests`,
 `prayer_sessions` (feeds the streak via a DB trigger), `bible_notes`,
@@ -116,12 +117,22 @@ device too. If a user never sets a passphrase (or has forgotten it), that's
 still an honest dead end for old entries — the unlock screen offers
 "start fresh on this device" instead of pretending recovery is possible.
 
+**Bible reader, Bible highlights/bookmarks/notes, Reading Plans, and the
+Devotional are also real**, not mocked: the reader runs on the full KJV
+text bundled locally (`assets/bible/kjv.json`, public domain, 66 books /
+31,102 verses — see `lib/data/bible/bible_library.dart`), so it works fully
+offline with real book/chapter navigation. Highlights/bookmarks/notes are
+stored in the `bible_notes` table. Reading Plans generate a real day-by-day
+schedule from that same text (`lib/data/bible/reading_plan_schedule.dart`)
+and track progress per user in `reading_plan_progress`. The Devotional
+rotates through 14 curated entries by day-of-year, pulling its scripture
+text live from the bundled Bible rather than retyping it.
+
 **UI-complete, local/mock state (matches the design, not yet backed by a
-table read/write):** Guide Library, Bible reader/notes, Notifications
-toggles, Focus Mode, Companion/Invite, Challenges, Reading Plans,
-Devotional, Fasting, Prayer Together / Groups / Audio Room, Growth
-Insights, Upgrade/paywall (no real billing — needs RevenueCat or
-App Store/Play Billing).
+table read/write):** Guide Library, Notifications toggles, Focus Mode,
+Companion/Invite, Challenges, Fasting, Prayer Together / Groups / Audio
+Room, Growth Insights, Upgrade/paywall (no real billing — needs RevenueCat
+or App Store/Play Billing).
 
 Those all have matching tables in the migration already, so wiring them up
 is a repository + provider per screen, following the same pattern as
