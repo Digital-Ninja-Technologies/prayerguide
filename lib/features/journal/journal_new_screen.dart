@@ -42,7 +42,7 @@ class _JournalNewScreenState extends ConsumerState<JournalNewScreen> {
     });
     try {
       await ref.read(journalProvider.notifier).add(type: _type, title: title, body: body);
-      if (mounted) context.pop();
+      if (mounted) context.pop(true);
     } on PassphraseRequiredException {
       if (mounted) setState(() => _needsUnlock = true);
     } catch (e) {

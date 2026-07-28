@@ -25,6 +25,19 @@ class JournalScreen extends ConsumerStatefulWidget {
 
 class _JournalScreenState extends ConsumerState<JournalScreen> {
   String _filter = 'All';
+  bool _navigating = false;
+
+  /// Pushes the New Entry screen and, if an entry was actually created,
+  /// resets the filter to All — otherwise a newly created entry can land
+  /// outside whatever tab the user was previously viewing and look like it
+  /// silently failed to save.
+  Future<void> _createEntry() async {
+    if (_navigating) return;
+    _navigating = true;
+    final created = await context.push<bool>('/journal/new');
+    _navigating = false;
+    if (created == true && mounted) setState(() => _filter = 'All');
+  }
 
   Color _tagColor(String type, PgColors c) {
     switch (type) {
@@ -71,7 +84,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                   expand: false,
                   dense: true,
                   icon: Icon(Icons.add_rounded, color: c.onTeal, size: 16),
-                  onPressed: () => context.push('/journal/new'),
+                  onPressed: _createEntry,
                 ),
               ],
             ),
@@ -93,7 +106,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                     ),
               data: (entries) {
                 if (entries.isEmpty) {
-                  return Center(child: _EmptyState(onNew: () => context.push('/journal/new')));
+                  return Center(child: _EmptyState(onNew: _createEntry));
                 }
                 final filtered =
                     _filter == 'All' ? entries : entries.where((e) => e.type == _filter).toList();
