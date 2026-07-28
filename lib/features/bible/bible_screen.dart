@@ -5,50 +5,79 @@ import 'package:go_router/go_router.dart';
 import '../../core/router/app_router.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
+import '../../data/bible/bible_library.dart';
 import '../../data/models/bible_note.dart';
+import '../../state/bible_library_provider.dart';
 import '../../state/bible_notes_provider.dart';
 import '../../widgets/pg_pill.dart';
+import 'bible_picker_sheet.dart';
 
-const _chapterRef = 'Psalm 23';
-
-const _verses = [
-  (1, 'The LORD is my shepherd; I shall not want.'),
-  (2, 'He maketh me to lie down in green pastures: he leadeth me beside the still waters.'),
-  (3, "He restoreth my soul: he leadeth me in the paths of righteousness for his name's sake."),
-  (
-    4,
-    'Yea, though I walk through the valley of the shadow of death, I will fear no evil: for thou art with me; thy rod and thy staff they comfort me.'
-  ),
-  (
-    5,
-    'Thou preparest a table before me in the presence of mine enemies: thou anointest my head with oil; my cup runneth over.'
-  ),
-  (
-    6,
-    'Surely goodness and mercy shall follow me all the days of my life: and I will dwell in the house of the LORD for ever.'
-  ),
-];
-
-class BibleScreen extends ConsumerWidget {
+class BibleScreen extends ConsumerStatefulWidget {
   const BibleScreen({super.key});
 
-  Future<void> _toggleBookmark(BuildContext context, WidgetRef ref) async {
+  @override
+  ConsumerState<BibleScreen> createState() => _BibleScreenState();
+}
+
+class _BibleScreenState extends ConsumerState<BibleScreen> {
+  String _book = 'Psalms';
+  int _chapter = 23;
+
+  String get _chapterRef => '$_book $_chapter';
+
+  Future<void> _openPicker(BibleLibrary library) async {
+    final result = await showBiblePickerSheet(context, library: library, initialBook: _book);
+    if (result != null) {
+      setState(() {
+        _book = result.$1;
+        _chapter = result.$2;
+      });
+    }
+  }
+
+  void _shiftChapter(int delta, BibleLibrary library) {
+    var bookIndex = library.books.indexWhere((b) => b.name == _book);
+    if (bookIndex == -1) return;
+    var chapter = _chapter + delta;
+
+    if (chapter < 1) {
+      bookIndex -= 1;
+      if (bookIndex < 0) return;
+      final prevBook = library.books[bookIndex];
+      setState(() {
+        _book = prevBook.name;
+        _chapter = prevBook.chapterCount;
+      });
+      return;
+    }
+
+    final chapterCount = library.chapterCountFor(_book);
+    if (chapter > chapterCount) {
+      bookIndex += 1;
+      if (bookIndex >= library.books.length) return;
+      setState(() {
+        _book = library.books[bookIndex].name;
+        _chapter = 1;
+      });
+      return;
+    }
+
+    setState(() => _chapter = chapter);
+  }
+
+  Future<void> _toggleBookmark(WidgetRef ref) async {
     final notifier = ref.read(bibleNotesProvider.notifier);
     final existing = notifier.bookmarkFor(_chapterRef);
     if (existing != null) {
       await notifier.remove(existing.id);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Bookmark removed')));
-      }
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Bookmark removed')));
     } else {
       await notifier.add(kind: 'bookmark', reference: _chapterRef);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$_chapterRef bookmarked')));
-      }
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$_chapterRef bookmarked')));
     }
   }
 
-  Future<void> _openVerseActions(BuildContext context, WidgetRef ref, int verseNum, String text) async {
+  Future<void> _openVerseActions(WidgetRef ref, int verseNum, String text) async {
     final c = context.colors;
     final reference = '$_chapterRef:$verseNum';
     final action = await showModalBottomSheet<String>(
@@ -77,17 +106,16 @@ class BibleScreen extends ConsumerWidget {
       ),
     );
 
+    if (!mounted) return;
     if (action == 'highlight') {
       await ref.read(bibleNotesProvider.notifier).add(kind: 'highlight', reference: reference, verseText: text);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Highlighted $reference')));
-      }
-    } else if (action == 'note' && context.mounted) {
-      await _promptForNote(context, ref, reference, text);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Highlighted $reference')));
+    } else if (action == 'note') {
+      await _promptForNote(ref, reference, text);
     }
   }
 
-  Future<void> _promptForNote(BuildContext context, WidgetRef ref, String reference, String verseText) async {
+  Future<void> _promptForNote(WidgetRef ref, String reference, String verseText) async {
     final c = context.colors;
     final controller = TextEditingController();
     final note = await showDialog<String>(
@@ -113,133 +141,160 @@ class BibleScreen extends ConsumerWidget {
     );
     if (note != null && note.isNotEmpty) {
       await ref.read(bibleNotesProvider.notifier).add(kind: 'note', reference: reference, verseText: verseText, note: note);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Note saved on $reference')));
-      }
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Note saved on $reference')));
     }
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final c = context.colors;
+    final libraryAsync = ref.watch(bibleLibraryProvider);
     final notesAsync = ref.watch(bibleNotesProvider);
     final notes = notesAsync.valueOrNull ?? const <BibleNote>[];
     final isBookmarked = notes.any((n) => n.kind == 'bookmark' && n.reference == _chapterRef);
-    final highlightedVerses = {
-      for (final n in notes)
-        if (n.kind == 'highlight' && n.reference.startsWith('$_chapterRef:'))
-          int.tryParse(n.reference.split(':').last),
-    }..removeWhere((v) => v == null);
+    final highlightedVerses = <int>{};
+    for (final n in notes) {
+      if (n.kind == 'highlight' && n.reference.startsWith('$_chapterRef:')) {
+        final verseNum = int.tryParse(n.reference.substring(_chapterRef.length + 1));
+        if (verseNum != null) highlightedVerses.add(verseNum);
+      }
+    }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.only(top: 6, bottom: 40),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            height: 44,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 22),
-              children: [
-                const PgPill(label: 'Read', active: true),
-                const SizedBox(width: 8),
-                PgPill(label: 'Reading plans', onTap: () => context.push('/plans')),
-                const SizedBox(width: 8),
-                PgPill(label: 'Devotional', onTap: () => context.push('/devotional')),
-                const SizedBox(width: 8),
-                PgPill(label: 'Notes', onTap: () => context.pushOnce('/bible-notes')),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 22),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-                  decoration: BoxDecoration(
-                    color: c.surface,
-                    border: Border.all(color: c.line),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text('Psalm 23', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-                      const SizedBox(width: 6),
-                      Icon(Icons.expand_more_rounded, size: 15, color: c.text),
-                    ],
-                  ),
-                ),
-                Row(
+    return libraryAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, st) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text('Could not load the Bible text.\n$e', textAlign: TextAlign.center, style: TextStyle(color: c.danger)),
+        ),
+      ),
+      data: (library) {
+        final verses = library.versesFor(_book, _chapter);
+        return SingleChildScrollView(
+          padding: const EdgeInsets.only(top: 6, bottom: 40),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                height: 44,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 22),
                   children: [
-                    _RoundIcon(
-                      icon: isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-                      color: isBookmarked ? c.teal : null,
-                      onTap: () => _toggleBookmark(context, ref),
+                    const PgPill(label: 'Read', active: true),
+                    const SizedBox(width: 8),
+                    PgPill(label: 'Reading plans', onTap: () => context.push('/plans')),
+                    const SizedBox(width: 8),
+                    PgPill(label: 'Devotional', onTap: () => context.push('/devotional')),
+                    const SizedBox(width: 8),
+                    PgPill(label: 'Notes', onTap: () => context.pushOnce('/bible-notes')),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 22),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        _RoundIcon(icon: Icons.chevron_left_rounded, onTap: () => _shiftChapter(-1, library)),
+                        const SizedBox(width: 6),
+                        Material(
+                          color: c.surface,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: c.line)),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(12),
+                            onTap: () => _openPicker(library),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(_chapterRef, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                                  const SizedBox(width: 6),
+                                  Icon(Icons.expand_more_rounded, size: 15, color: c.text),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        _RoundIcon(icon: Icons.chevron_right_rounded, onTap: () => _shiftChapter(1, library)),
+                      ],
                     ),
-                    const SizedBox(width: 6),
-                    _RoundIcon(
-                      icon: Icons.format_list_bulleted_rounded,
-                      onTap: () => context.pushOnce('/bible-notes'),
+                    Row(
+                      children: [
+                        _RoundIcon(
+                          icon: isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                          color: isBookmarked ? c.teal : null,
+                          onTap: () => _toggleBookmark(ref),
+                        ),
+                        const SizedBox(width: 6),
+                        _RoundIcon(
+                          icon: Icons.format_list_bulleted_rounded,
+                          onTap: () => context.pushOnce('/bible-notes'),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 28),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Psalm 23', style: PgText.serif(size: 26, weight: FontWeight.w600)),
-                const SizedBox(height: 4),
-                Text('A Psalm of David · KJV', style: TextStyle(fontSize: 13, color: c.dim, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 22),
-                for (final v in _verses)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 14),
-                    child: GestureDetector(
-                      onTap: () => _openVerseActions(context, ref, v.$1, v.$2),
-                      child: Container(
-                        padding: highlightedVerses.contains(v.$1)
-                            ? const EdgeInsets.symmetric(horizontal: 4, vertical: 2)
-                            : EdgeInsets.zero,
-                        decoration: highlightedVerses.contains(v.$1)
-                            ? BoxDecoration(color: c.amberSoft, borderRadius: BorderRadius.circular(6))
-                            : null,
-                        child: RichText(
-                          text: TextSpan(
-                            children: [
-                              TextSpan(
-                                text: '${v.$1} ',
-                                style: TextStyle(
-                                  color: highlightedVerses.contains(v.$1) ? c.amber : c.teal,
-                                  fontFamily: 'Manrope',
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w800,
+              ),
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 28),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(_chapterRef, style: PgText.serif(size: 26, weight: FontWeight.w600)),
+                    const SizedBox(height: 4),
+                    Text('King James Version', style: TextStyle(fontSize: 13, color: c.dim, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 22),
+                    if (verses.isEmpty)
+                      Text('This chapter is unavailable.', style: TextStyle(fontSize: 14, color: c.dim))
+                    else
+                      for (var i = 0; i < verses.length; i++)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 14),
+                          child: GestureDetector(
+                            onTap: () => _openVerseActions(ref, i + 1, verses[i]),
+                            child: Container(
+                              padding: highlightedVerses.contains(i + 1)
+                                  ? const EdgeInsets.symmetric(horizontal: 4, vertical: 2)
+                                  : EdgeInsets.zero,
+                              decoration: highlightedVerses.contains(i + 1)
+                                  ? BoxDecoration(color: c.amberSoft, borderRadius: BorderRadius.circular(6))
+                                  : null,
+                              child: RichText(
+                                text: TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: '${i + 1} ',
+                                      style: TextStyle(
+                                        color: highlightedVerses.contains(i + 1) ? c.amber : c.teal,
+                                        fontFamily: 'Manrope',
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text: verses[i],
+                                      style: PgText.serif(size: 18.5, height: 1.85, color: c.text),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              TextSpan(
-                                text: v.$2,
-                                style: PgText.serif(size: 18.5, height: 1.85, color: c.text),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
