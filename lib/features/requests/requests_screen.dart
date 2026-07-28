@@ -3,15 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../core/security/encryption_service.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
 import '../../data/models/prayer_request.dart';
-import '../../state/repo_providers.dart';
 import '../../state/requests_provider.dart';
 import '../../widgets/pg_button.dart';
 import '../../widgets/pg_card.dart';
-import '../../widgets/pg_passphrase_unlock.dart';
 import '../../widgets/pg_pill.dart';
 
 class RequestsScreen extends ConsumerStatefulWidget {
@@ -71,15 +68,10 @@ class _RequestsScreenState extends ConsumerState<RequestsScreen> {
                 padding: EdgeInsets.symmetric(vertical: 60),
                 child: Center(child: CircularProgressIndicator()),
               ),
-              error: (e, st) => e is PassphraseRequiredException
-                  ? PgPassphraseUnlock(
-                      uid: ref.read(currentUserIdProvider)!,
-                      onUnlocked: () => ref.invalidate(requestsProvider),
-                    )
-                  : Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 40),
-                      child: Text('Could not load requests.\n$e', style: TextStyle(color: c.danger)),
-                    ),
+              error: (e, st) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 40),
+                child: Text('Could not load requests.\n$e', style: TextStyle(color: c.danger)),
+              ),
               data: (reqs) {
                 if (reqs.isEmpty) return _EmptyState(onAdd: () => context.push('/requests/new'));
                 final counts = {'active': 0, 'answered': 0, 'archived': 0};
@@ -145,11 +137,19 @@ class _RequestCard extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: c.tealSoft, borderRadius: BorderRadius.circular(100)),
-                  child: Text(request.category.toUpperCase(),
-                      style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, letterSpacing: .5, color: c.teal)),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(color: c.tealSoft, borderRadius: BorderRadius.circular(100)),
+                      child: Text(request.category.toUpperCase(),
+                          style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, letterSpacing: .5, color: c.teal)),
+                    ),
+                    if (request.sharedWithCompanion) ...[
+                      const SizedBox(width: 6),
+                      Icon(Icons.diversity_1_outlined, size: 15, color: c.dim),
+                    ],
+                  ],
                 ),
                 if (request.status == 'answered')
                   Container(

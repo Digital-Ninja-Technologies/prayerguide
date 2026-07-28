@@ -60,6 +60,24 @@ class CompanionRepository {
     return (rows as List).map((r) => CompanionCheckinEntry.fromMap(r as Map<String, dynamic>)).toList();
   }
 
+  /// Requests either of you has explicitly marked shared — visible via the
+  /// owner-only policy for your own rows and the companion-visibility
+  /// policy for theirs (see migration 0007).
+  Future<List<SharedRequest>> fetchSharedRequests({
+    required String myUserId,
+    required String otherUserId,
+    int limit = 20,
+  }) async {
+    final rows = await supa
+        .from('prayer_requests')
+        .select('user_id, category, title, created_at')
+        .eq('shared_with_companion', true)
+        .inFilter('user_id', [myUserId, otherUserId])
+        .order('created_at', ascending: false)
+        .limit(limit);
+    return (rows as List).map((r) => SharedRequest.fromMap(r as Map<String, dynamic>)).toList();
+  }
+
   String _generateCode() {
     const chars = 'abcdefghjkmnpqrstuvwxyz23456789'; // no ambiguous chars (0/o, 1/l/i)
     final rand = math.Random.secure();

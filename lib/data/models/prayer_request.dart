@@ -6,6 +6,7 @@ class PrayerRequest {
     this.note,
     required this.status,
     required this.reminder,
+    required this.sharedWithCompanion,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -16,6 +17,7 @@ class PrayerRequest {
   final String? note;
   final String status; // active | answered | archived
   final bool reminder;
+  final bool sharedWithCompanion;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -26,17 +28,19 @@ class PrayerRequest {
         note: m['note'] as String?,
         status: m['status'] as String,
         reminder: (m['reminder'] as bool?) ?? false,
+        sharedWithCompanion: (m['shared_with_companion'] as bool?) ?? false,
         createdAt: DateTime.parse(m['created_at'] as String),
         updatedAt: DateTime.parse(m['updated_at'] as String),
       );
 
-  PrayerRequest copyWith({String? status, bool? reminder}) => PrayerRequest(
+  PrayerRequest copyWith({String? status, bool? reminder, bool? sharedWithCompanion}) => PrayerRequest(
         id: id,
         category: category,
         title: title,
         note: note,
         status: status ?? this.status,
         reminder: reminder ?? this.reminder,
+        sharedWithCompanion: sharedWithCompanion ?? this.sharedWithCompanion,
         createdAt: createdAt,
         updatedAt: DateTime.now(),
       );

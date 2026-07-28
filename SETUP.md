@@ -97,13 +97,22 @@ dashboard config above), Journal, Prayer Requests, Profile/Settings
 (theme preference, hide-streak toggle), and the Prayer Streak (a DB trigger
 recomputes it from logged `prayer_sessions`).
 
-Journal entry text and prayer request title/note are genuinely end-to-end
-encrypted: `lib/core/security/encryption_service.dart` generates a random
-AES-256-GCM key on-device, stored only in the platform Keychain/Keystore via
+Journal entry text is genuinely end-to-end encrypted:
+`lib/core/security/encryption_service.dart` generates a random AES-256-GCM
+key on-device, stored only in the platform Keychain/Keystore via
 `flutter_secure_storage`. Supabase only ever stores ciphertext
-(`title_cipher`/`body_cipher`/`note_cipher` columns) — the key never leaves
-the device unencrypted, so nobody but the signed-in device (or someone who
-knows the recovery passphrase — see below) can decrypt.
+(`title_cipher`/`body_cipher` columns) — the key never leaves the device
+unencrypted, so nobody but the signed-in device (or someone who knows the
+recovery passphrase — see below) can decrypt.
+
+Prayer Requests are **not** end-to-end encrypted (migration `0007` dropped
+the `title_cipher`/`note_cipher` columns in favor of plain `title`/`note`
+columns, protected only by Postgres RLS). That trade-off was made
+deliberately so requests could be genuinely shared with a prayer companion
+— see "Companion/Invite" below for why E2E encryption made that impossible.
+Anyone with direct database access (e.g. a Supabase admin) can read request
+text; Journal entries remain unreadable to anyone but the device/passphrase
+holder.
 
 **Cross-device recovery (opt-in):** from Settings → Privacy & encryption, a
 user can set a recovery passphrase. That wraps their existing key with a
@@ -150,14 +159,15 @@ Companion/Invite are also real** now:
   `companions`; check-ins persist to `companion_checkins` and show real
   history; shared streak is `min(your streak, their streak)`. QR *scanning*
   isn't wired (no camera/QR package added) — pairing works via copy/paste
-  or manually typing the code. **Shared prayer requests are intentionally
-  not wired**: prayer request text is end-to-end encrypted per-device (see
-  above), and that model has no way for a companion to decrypt your
-  content without a real multi-recipient encryption scheme — faking
-  "shared requests" would mean either breaking encryption or displaying
-  content that isn't actually shared, so this stays out until that's
-  designed properly. The Companion screen's second section shows real
-  check-in history instead, which the current data model actually supports.
+  or manually typing the code. **Shared prayer requests are now real**: a
+  request can be flagged `shared_with_companion` when created (or via the
+  toggle on the Requests list), and migration `0007` adds an RLS policy
+  granting a paired companion read access to just those flagged rows —
+  this only became possible after removing E2E encryption from Prayer
+  Requests (see above); with the key living only on the author's device,
+  a companion's device had no way to decrypt anything. The Companion
+  screen shows a "Shared requests" section (category + title, attributed
+  to whoever shared it) above the existing real check-in history.
 
 **UI-complete, local/mock state (matches the design, not yet backed by a
 table read/write):** Guide Library, Notifications toggles, Prayer Together,

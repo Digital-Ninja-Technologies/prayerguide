@@ -146,6 +146,28 @@ class _CompanionContent extends ConsumerWidget {
             ],
           ),
         ),
+        const PgSectionLabel('Shared requests'),
+        if (state.sharedRequests.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Text(
+              'Nothing shared yet. Turn on "Share with companion" when adding a request to carry it here.',
+              style: TextStyle(fontSize: 13.5, color: c.faint),
+            ),
+          )
+        else
+          for (final r in state.sharedRequests.take(10))
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _SharedRequestCard(
+                isMe: r.userId == uid,
+                otherName: companion.otherName,
+                category: r.category,
+                title: r.title,
+                createdAt: r.createdAt,
+              ),
+            ),
+        const SizedBox(height: 6),
         const PgSectionLabel('Recent check-ins'),
         if (state.recentCheckins.isEmpty)
           Padding(
@@ -165,6 +187,65 @@ class _CompanionContent extends ConsumerWidget {
             ),
       ],
     );
+  }
+}
+
+class _SharedRequestCard extends StatelessWidget {
+  const _SharedRequestCard({
+    required this.isMe,
+    required this.otherName,
+    required this.category,
+    required this.title,
+    required this.createdAt,
+  });
+  final bool isMe;
+  final String otherName;
+  final String category;
+  final String title;
+  final DateTime createdAt;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    final color = isMe ? c.amber : c.teal;
+    final label = isMe ? 'YOU SHARED' : '${otherName.toUpperCase()} SHARED';
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+      decoration: BoxDecoration(color: c.surface, border: Border.all(color: c.line), borderRadius: BorderRadius.circular(16)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: color)),
+              Text(_relativeTime(createdAt), style: TextStyle(fontSize: 11.5, color: c.faint)),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                decoration: BoxDecoration(color: c.tealSoft, borderRadius: BorderRadius.circular(100)),
+                child: Text(category.toUpperCase(),
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: .4, color: c.teal)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(title, style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+
+  String _relativeTime(DateTime dt) {
+    final diff = DateTime.now().difference(dt);
+    if (diff.inMinutes < 1) return 'Just now';
+    if (diff.inHours < 1) return '${diff.inMinutes}m';
+    if (diff.inHours < 24) return '${diff.inHours}h';
+    return '${diff.inDays}d';
   }
 }
 

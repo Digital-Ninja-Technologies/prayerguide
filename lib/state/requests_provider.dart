@@ -15,9 +15,16 @@ class RequestsNotifier extends AsyncNotifier<List<PrayerRequest>> {
     required String title,
     String? note,
     bool reminder = false,
+    bool sharedWithCompanion = false,
   }) async {
     final repo = ref.read(requestsRepositoryProvider);
-    final req = await repo.create(category: category, title: title, note: note, reminder: reminder);
+    final req = await repo.create(
+      category: category,
+      title: title,
+      note: note,
+      reminder: reminder,
+      sharedWithCompanion: sharedWithCompanion,
+    );
     state = AsyncData([req, ...state.value ?? []]);
   }
 
@@ -33,6 +40,15 @@ class RequestsNotifier extends AsyncNotifier<List<PrayerRequest>> {
   Future<void> toggleReminder(String id) async {
     final r = (state.value ?? []).firstWhere((r) => r.id == id);
     await _patch(id, {'reminder': !r.reminder}, (x) => x.copyWith(reminder: !x.reminder));
+  }
+
+  Future<void> toggleShared(String id) async {
+    final r = (state.value ?? []).firstWhere((r) => r.id == id);
+    await _patch(
+      id,
+      {'shared_with_companion': !r.sharedWithCompanion},
+      (x) => x.copyWith(sharedWithCompanion: !x.sharedWithCompanion),
+    );
   }
 
   Future<void> markAnswered(String id) async {

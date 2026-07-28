@@ -8,11 +8,17 @@ import 'repo_providers.dart';
 final companionRepositoryProvider = Provider((ref) => CompanionRepository());
 
 class CompanionState {
-  const CompanionState({this.companion, this.recentCheckins = const [], this.myTodayCheckin});
+  const CompanionState({
+    this.companion,
+    this.recentCheckins = const [],
+    this.myTodayCheckin,
+    this.sharedRequests = const [],
+  });
 
   final Companion? companion;
   final List<CompanionCheckinEntry> recentCheckins;
   final String? myTodayCheckin;
+  final List<SharedRequest> sharedRequests;
 }
 
 class CompanionNotifier extends AsyncNotifier<CompanionState> {
@@ -23,8 +29,10 @@ class CompanionNotifier extends AsyncNotifier<CompanionState> {
     final companion = await repo.fetchCompanion();
     if (companion == null) return const CompanionState();
 
-    final checkins = await repo.fetchRecentCheckins(companion.companionRowId);
     final uid = supa.auth.currentUser!.id;
+    final checkins = await repo.fetchRecentCheckins(companion.companionRowId);
+    final sharedRequests = await repo.fetchSharedRequests(myUserId: uid, otherUserId: companion.otherUserId);
+
     final now = DateTime.now();
     String? myToday;
     for (final entry in checkins) {
@@ -33,7 +41,12 @@ class CompanionNotifier extends AsyncNotifier<CompanionState> {
         break;
       }
     }
-    return CompanionState(companion: companion, recentCheckins: checkins, myTodayCheckin: myToday);
+    return CompanionState(
+      companion: companion,
+      recentCheckins: checkins,
+      myTodayCheckin: myToday,
+      sharedRequests: sharedRequests,
+    );
   }
 
   bool _isSameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;

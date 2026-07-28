@@ -25,3 +25,24 @@ class CompanionCheckinEntry {
         createdAt: DateTime.parse(m['created_at'] as String),
       );
 }
+
+class SharedRequest {
+  SharedRequest({
+    required this.userId,
+    required this.category,
+    required this.title,
+    required this.createdAt,
+  });
+
+  final String userId;
+  final String category;
+  final String title;
+  final DateTime createdAt;
+
+  factory SharedRequest.fromMap(Map<String, dynamic> m) => SharedRequest(
+        userId: m['user_id'] as String,
+        category: m['category'] as String,
+        title: m['title'] as String,
+        createdAt: DateTime.parse(m['created_at'] as String),
+      );
+}
