@@ -221,17 +221,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    color: c.tealSoft,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: c.line),
-                  ),
-                  child: Icon(Icons.self_improvement_rounded,
-                      size: 34, color: c.teal),
-                ),
+                Image.asset('assets/icon/flame_logo.png',
+                    width: 72, height: 72),
                 const SizedBox(height: 18),
                 Text('Prayer Guide',
                     style: PgText.serif(size: 29, weight: FontWeight.w600)),

@@ -1,28 +1,71 @@
+import 'dart:async';
+
+import 'package:purchases_flutter/purchases_flutter.dart';
+
+import '../../core/purchases/revenue_cat_service.dart';
 import '../../core/supabase/supabase_config.dart';
 import '../models/subscription_status.dart';
 
 class SubscriptionRepository {
+  final _rc = RevenueCatService.instance;
+
+  bool get isConfigured => _rc.isConfigured;
+
+  /// RevenueCat is the source of truth whenever it's configured — this also
+  /// syncs the result to the `subscriptions` table so other server-side
+  /// checks (and the pre-RevenueCat fallback below) have a cached view.
+  /// Falls back to that cached row when RevenueCat isn't configured.
   Future<SubscriptionStatus> fetch() async {
     final uid = supa.auth.currentUser!.id;
-    final row = await supa.from('subscriptions').select().eq('user_id', uid).maybeSingle();
+    if (_rc.isConfigured) {
+      await _rc.configure(uid);
+      final info = await _rc.getCustomerInfo();
+      final status = SubscriptionStatus.fromCustomerInfo(info);
+      await _syncToSupabase(status);
+      return status;
+    }
+    final row = await supa
+        .from('subscriptions')
+        .select()
+        .eq('user_id', uid)
+        .maybeSingle();
     if (row == null) return SubscriptionStatus.free;
     return SubscriptionStatus.fromMap(row);
   }
 
-  /// Starts a 7-day free trial — no payment involved, since real billing
-  /// (RevenueCat / App Store / Play Billing) isn't wired up yet. Premium
-  /// access lapses on its own once `renews_at` passes; there's nothing to
-  /// cancel.
-  Future<SubscriptionStatus> startTrial() async {
+  Future<Offerings> getOfferings() => _rc.getOfferings();
+
+  Future<SubscriptionStatus> purchase(Package package) async {
+    final info = await _rc.purchasePackage(package);
+    final status = SubscriptionStatus.fromCustomerInfo(info);
+    await _syncToSupabase(status);
+    return status;
+  }
+
+  Future<SubscriptionStatus> restore() async {
+    final info = await _rc.restorePurchases();
+    final status = SubscriptionStatus.fromCustomerInfo(info);
+    await _syncToSupabase(status);
+    return status;
+  }
+
+  /// Converts a [CustomerInfo] pushed live from RevenueCat's update
+  /// listener (see [RevenueCatService.customerInfoStream]) and syncs it to
+  /// Supabase in the background, without making the caller wait on it.
+  SubscriptionStatus applyCustomerInfo(CustomerInfo info) {
+    final status = SubscriptionStatus.fromCustomerInfo(info);
+    unawaited(_syncToSupabase(status));
+    return status;
+  }
+
+  Future<void> _syncToSupabase(SubscriptionStatus status) async {
     final uid = supa.auth.currentUser!.id;
-    final renewsAt = DateTime.now().add(const Duration(days: 7));
     await supa.from('subscriptions').upsert({
       'user_id': uid,
-      'tier': 'premium',
-      'provider': 'trial',
-      'renews_at': renewsAt.toIso8601String(),
+      'tier': status.tier,
+      'provider': status.provider,
+      'renews_at': status.renewsAt?.toIso8601String(),
       'updated_at': DateTime.now().toIso8601String(),
     });
-    return SubscriptionStatus(tier: 'premium', provider: 'trial', renewsAt: renewsAt);
   }
 }

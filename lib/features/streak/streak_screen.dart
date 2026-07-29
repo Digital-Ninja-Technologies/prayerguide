@@ -11,7 +11,9 @@ import '../../widgets/pg_toggle.dart';
 
 final _monthDaysProvider = FutureProvider<Set<int>>((ref) {
   ref.watch(currentUserIdProvider);
-  return ref.read(profileRepositoryProvider).fetchQualifyingDaysInMonth(DateTime.now());
+  return ref
+      .read(profileRepositoryProvider)
+      .fetchQualifyingDaysInMonth(DateTime.now());
 });
 
 class StreakScreen extends ConsumerWidget {
@@ -23,6 +25,7 @@ class StreakScreen extends ConsumerWidget {
     final profileAsync = ref.watch(profileProvider);
     final profile = profileAsync.valueOrNull;
     final streak = profile?.streakCount ?? 0;
+    final appOpenStreak = profile?.appOpenStreakCount ?? 0;
     final daysAsync = ref.watch(_monthDaysProvider);
     final now = DateTime.now();
     final monthName = DateFormat('MMMM').format(now);
@@ -36,47 +39,52 @@ class StreakScreen extends ConsumerWidget {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Text('Your rhythm', style: PgText.serif(size: 26, weight: FontWeight.w600)),
+            child: Text('Your rhythm',
+                style: PgText.serif(size: 26, weight: FontWeight.w600)),
           ),
           const SizedBox(height: 16),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [c.surface2, c.surface]),
-              border: Border.all(color: c.line),
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: Column(
-              children: [
-                Icon(Icons.local_fire_department_rounded, size: 30, color: c.amber),
-                const SizedBox(height: 6),
-                Text('$streak', style: const TextStyle(fontSize: 52, fontWeight: FontWeight.w800, height: 1)),
-                Text('day streak', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: c.dim)),
-                const SizedBox(height: 14),
-                SizedBox(
-                  width: 250,
-                  child: Text(
-                    streak > 0
-                        ? "You've shown up $streak day${streak == 1 ? '' : 's'} in a row. Rest when you need to — a single freeze keeps your rhythm safe."
-                        : 'Every rhythm begins with one day. There is no wrong pace.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 13.5, height: 1.5, color: c.dim),
-                  ),
+          Row(
+            children: [
+              Expanded(
+                child: _StreakHero(
+                  icon: Icons.local_fire_department_rounded,
+                  color: c.amber,
+                  value: streak,
+                  label: 'prayer streak',
+                  message: streak > 0
+                      ? "$streak day${streak == 1 ? '' : 's'} of prayer. A freeze keeps it safe if you need to rest."
+                      : 'Every rhythm begins with one day.',
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _StreakHero(
+                  icon: Icons.calendar_month_rounded,
+                  color: c.teal,
+                  value: appOpenStreak,
+                  label: 'day streak',
+                  message: appOpenStreak > 0
+                      ? "$appOpenStreak day${appOpenStreak == 1 ? '' : 's'} showing up, whether or not you prayed."
+                      : 'Opening the app today starts this one.',
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 18),
           Container(
             padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(color: c.surface, border: Border.all(color: c.line), borderRadius: BorderRadius.circular(22)),
+            decoration: BoxDecoration(
+                color: c.surface,
+                border: Border.all(color: c.line),
+                borderRadius: BorderRadius.circular(22)),
             child: Column(
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(monthName, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                    Text(monthName,
+                        style: const TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w700)),
                     Row(
                       children: [
                         _Legend(color: c.teal, label: 'Prayed', filled: true),
@@ -96,7 +104,12 @@ class StreakScreen extends ConsumerWidget {
                   childAspectRatio: 1,
                   children: [
                     for (final d in const ['S', 'M', 'T', 'W', 'T', 'F', 'S'])
-                      Center(child: Text(d, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: c.faint))),
+                      Center(
+                          child: Text(d,
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: c.faint))),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -127,7 +140,12 @@ class StreakScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 22),
-          Text('MILESTONES', style: PgText.sans(size: 12, weight: FontWeight.w700, color: c.dim, letterSpacing: 1)),
+          Text('MILESTONES',
+              style: PgText.sans(
+                  size: 12,
+                  weight: FontWeight.w700,
+                  color: c.dim,
+                  letterSpacing: 1)),
           const SizedBox(height: 14),
           GridView.builder(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -152,8 +170,58 @@ class StreakScreen extends ConsumerWidget {
   }
 }
 
+class _StreakHero extends StatelessWidget {
+  const _StreakHero({
+    required this.icon,
+    required this.color,
+    required this.value,
+    required this.label,
+    required this.message,
+  });
+  final IconData icon;
+  final Color color;
+  final int value;
+  final String label;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [c.surface2, c.surface]),
+        border: Border.all(color: c.line),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: 26, color: color),
+          const SizedBox(height: 6),
+          Text('$value',
+              style: const TextStyle(
+                  fontSize: 40, fontWeight: FontWeight.w800, height: 1)),
+          Text(label,
+              style: TextStyle(
+                  fontSize: 13, fontWeight: FontWeight.w700, color: c.dim)),
+          const SizedBox(height: 10),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12, height: 1.5, color: c.dim),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _Legend extends StatelessWidget {
-  const _Legend({required this.color, required this.label, required this.filled});
+  const _Legend(
+      {required this.color, required this.label, required this.filled});
   final Color color;
   final String label;
   final bool filled;
@@ -174,14 +242,17 @@ class _Legend extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 5),
-        Text(label, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: c.dim)),
+        Text(label,
+            style: TextStyle(
+                fontSize: 11.5, fontWeight: FontWeight.w600, color: c.dim)),
       ],
     );
   }
 }
 
 class _DayCell extends StatelessWidget {
-  const _DayCell({required this.day, required this.active, required this.future});
+  const _DayCell(
+      {required this.day, required this.active, required this.future});
   final int day;
   final bool active;
   final bool future;
@@ -198,9 +269,12 @@ class _DayCell extends StatelessWidget {
       fg = c.line2;
     }
     return Container(
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(11)),
+      decoration:
+          BoxDecoration(color: bg, borderRadius: BorderRadius.circular(11)),
       alignment: Alignment.center,
-      child: Text('$day', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: fg)),
+      child: Text('$day',
+          style: TextStyle(
+              fontSize: 12.5, fontWeight: FontWeight.w700, color: fg)),
     );
   }
 }
@@ -231,11 +305,16 @@ class _MilestoneCard extends StatelessWidget {
                 shape: BoxShape.circle,
                 color: achieved ? c.amberSoft : c.surface2,
               ),
-              child: Icon(Icons.emoji_events_outlined, size: 20, color: achieved ? c.amber : c.faint),
+              child: Icon(Icons.emoji_events_outlined,
+                  size: 20, color: achieved ? c.amber : c.faint),
             ),
             const SizedBox(height: 8),
-            Text('$days', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-            Text('days', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: c.dim)),
+            Text('$days',
+                style:
+                    const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+            Text('days',
+                style: TextStyle(
+                    fontSize: 11, fontWeight: FontWeight.w600, color: c.dim)),
           ],
         ),
       ),
@@ -252,7 +331,10 @@ class _HideStreakRow extends ConsumerWidget {
     final c = context.colors;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 15),
-      decoration: BoxDecoration(color: c.surface, border: Border.all(color: c.line), borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+          color: c.surface,
+          border: Border.all(color: c.line),
+          borderRadius: BorderRadius.circular(16)),
       child: Row(
         children: [
           Icon(Icons.visibility_off_outlined, size: 20, color: c.dim),
@@ -261,12 +343,18 @@ class _HideStreakRow extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Hide streak count', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                Text('If numbers ever add pressure, tuck them away.', style: TextStyle(fontSize: 12, color: c.faint)),
+                const Text('Hide streak count',
+                    style:
+                        TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                Text('If numbers ever add pressure, tuck them away.',
+                    style: TextStyle(fontSize: 12, color: c.faint)),
               ],
             ),
           ),
-          PgToggle(value: hidden, onChanged: (v) => ref.read(profileProvider.notifier).setHideStreak(v)),
+          PgToggle(
+              value: hidden,
+              onChanged: (v) =>
+                  ref.read(profileProvider.notifier).setHideStreak(v)),
         ],
       ),
     );

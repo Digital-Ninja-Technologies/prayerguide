@@ -33,8 +33,10 @@ import '../../features/scripture/scripture_screen.dart';
 import '../../features/settings/insights_screen.dart';
 import '../../features/settings/notifications_screen.dart';
 import '../../features/settings/about_help_screen.dart';
+import '../../features/settings/privacy_policy_screen.dart';
 import '../../features/settings/privacy_screen.dart';
 import '../../features/settings/settings_screen.dart';
+import '../../features/settings/terms_of_use_screen.dart';
 import '../../features/settings/upgrade_screen.dart';
 import '../../features/shell/app_shell.dart';
 import '../../features/splash/splash_screen.dart';
@@ -88,7 +90,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/guide',
-        builder: (c, s) => GuideScreen(category: s.uri.queryParameters['category']),
+        builder: (c, s) =>
+            GuideScreen(category: s.uri.queryParameters['category']),
       ),
       GoRoute(
           path: '/guide-library',
@@ -112,6 +115,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           path: '/notifications',
           builder: (c, s) => const NotificationsScreen()),
       GoRoute(path: '/privacy', builder: (c, s) => const PrivacyScreen()),
+      GoRoute(
+          path: '/privacy-policy',
+          builder: (c, s) => const PrivacyPolicyScreen()),
+      GoRoute(
+          path: '/terms-of-use', builder: (c, s) => const TermsOfUseScreen()),
       GoRoute(path: '/about', builder: (c, s) => const AboutHelpScreen()),
       GoRoute(path: '/upgrade', builder: (c, s) => const UpgradeScreen()),
       GoRoute(path: '/insights', builder: (c, s) => const InsightsScreen()),
@@ -122,7 +130,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/companion', builder: (c, s) => const CompanionScreen()),
       GoRoute(
           path: '/companion/invite', builder: (c, s) => const InviteScreen()),
-      GoRoute(path: '/companion/invite/scan', builder: (c, s) => const QrScanScreen()),
+      GoRoute(
+          path: '/companion/invite/scan',
+          builder: (c, s) => const QrScanScreen()),
       GoRoute(path: '/challenges', builder: (c, s) => const ChallengesScreen()),
       GoRoute(
         path: '/challenges/new',
@@ -145,7 +155,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/groups/new', builder: (c, s) => const GroupNewScreen()),
       GoRoute(
         path: '/room',
-        builder: (c, s) => RoomScreen(groupId: s.uri.queryParameters['groupId'] ?? ''),
+        builder: (c, s) =>
+            RoomScreen(groupId: s.uri.queryParameters['groupId'] ?? ''),
       ),
     ],
   );

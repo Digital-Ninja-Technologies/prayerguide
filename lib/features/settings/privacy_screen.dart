@@ -23,7 +23,8 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
   String? _status;
 
   bool get _isIOS => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
-  bool get _isAndroid => !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+  bool get _isAndroid =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
   @override
   void initState() {
@@ -53,7 +54,8 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
     try {
       if (_isIOS) {
         await EncryptionService.instance.backupToICloud(uid);
-        setState(() => _status = 'Backed up. iCloud Keychain will sync this to your other devices.');
+        setState(() => _status =
+            'Backed up. iCloud Keychain will sync this to your other devices.');
       } else if (_isAndroid) {
         final email = await CloudBackupService.instance.backup(uid);
         setState(() => _status = 'Backed up to Google Drive ($email).');
@@ -75,11 +77,15 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            PgHeader(title: 'Privacy & encryption', onBack: () => context.pop()),
+            PgHeader(
+                title: 'Privacy & encryption', onBack: () => context.pop()),
             Container(
               padding: const EdgeInsets.all(18),
               margin: const EdgeInsets.only(bottom: 20),
-              decoration: BoxDecoration(color: c.tealSoft, border: Border.all(color: c.line), borderRadius: BorderRadius.circular(18)),
+              decoration: BoxDecoration(
+                  color: c.tealSoft,
+                  border: Border.all(color: c.line),
+                  borderRadius: BorderRadius.circular(18)),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -88,17 +94,26 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
                   Expanded(
                     child: Text(
                       "Your journal entries are end-to-end encrypted. The encryption key lives only on your device — Supabase, and anyone with database access, only ever sees ciphertext. Prayer requests are stored as plain text (protected by row-level access rules) so you can choose to share them with your prayer companion.",
-                      style: TextStyle(fontSize: 13.5, height: 1.6, color: c.text),
+                      style:
+                          TextStyle(fontSize: 13.5, height: 1.6, color: c.text),
                     ),
                   ),
                 ],
               ),
             ),
-            Text('CLOUD BACKUP', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 1, color: c.dim)),
+            Text('CLOUD BACKUP',
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1,
+                    color: c.dim)),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(color: c.surface, border: Border.all(color: c.line), borderRadius: BorderRadius.circular(18)),
+              decoration: BoxDecoration(
+                  color: c.surface,
+                  border: Border.all(color: c.line),
+                  borderRadius: BorderRadius.circular(18)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -111,8 +126,13 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        _isIOS ? 'Back up to iCloud' : (_isAndroid ? 'Back up to Google Drive' : 'Cloud backup'),
-                        style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700),
+                        _isIOS
+                            ? 'Back up to iCloud'
+                            : (_isAndroid
+                                ? 'Back up to Google Drive'
+                                : 'Cloud backup'),
+                        style: const TextStyle(
+                            fontSize: 14.5, fontWeight: FontWeight.w700),
                       ),
                     ],
                   ),
@@ -129,19 +149,28 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
                     const SizedBox(height: 10),
                     Row(
                       children: [
-                        Icon(Icons.check_circle_outline_rounded, size: 16, color: c.teal),
+                        Icon(Icons.check_circle_outline_rounded,
+                            size: 16, color: c.teal),
                         const SizedBox(width: 6),
-                        Text('Backed up to iCloud', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: c.teal)),
+                        Text('Backed up to iCloud',
+                            style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: c.teal)),
                       ],
                     ),
                   ],
                   if (_status != null) ...[
                     const SizedBox(height: 10),
-                    Text(_status!, style: TextStyle(fontSize: 13, color: c.teal, height: 1.5)),
+                    Text(_status!,
+                        style: TextStyle(
+                            fontSize: 13, color: c.teal, height: 1.5)),
                   ],
                   if (_error != null) ...[
                     const SizedBox(height: 10),
-                    Text(_error!, style: TextStyle(fontSize: 13, color: c.danger, height: 1.5)),
+                    Text(_error!,
+                        style: TextStyle(
+                            fontSize: 13, color: c.danger, height: 1.5)),
                   ],
                   if (_isIOS || _isAndroid) ...[
                     const SizedBox(height: 14),
@@ -150,17 +179,87 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
                       variant: PgButtonVariant.outline,
                       onPressed: _working ? null : _backup,
                     ),
-                    if (_isAndroid && !CloudBackupService.instance.isConfigured) ...[
+                    if (_isAndroid &&
+                        !CloudBackupService.instance.isConfigured) ...[
                       const SizedBox(height: 10),
                       Text(
                         "Google Drive backup isn't configured for this build yet (needs GOOGLE_OAUTH_CLIENT_ID) — see SETUP.md.",
-                        style: TextStyle(fontSize: 12, color: c.faint, height: 1.5),
+                        style: TextStyle(
+                            fontSize: 12, color: c.faint, height: 1.5),
                       ),
                     ],
                   ],
                 ],
               ),
             ),
+            const SizedBox(height: 24),
+            Text('LEGAL',
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1,
+                    color: c.dim)),
+            const SizedBox(height: 12),
+            Container(
+              decoration: BoxDecoration(
+                  color: c.surface,
+                  border: Border.all(color: c.line),
+                  borderRadius: BorderRadius.circular(18)),
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              child: Column(
+                children: [
+                  _LegalLinkRow(
+                    icon: Icons.privacy_tip_outlined,
+                    label: 'Privacy Policy',
+                    onTap: () => context.push('/privacy-policy'),
+                    showBorder: true,
+                  ),
+                  _LegalLinkRow(
+                    icon: Icons.description_outlined,
+                    label: 'Terms of Use',
+                    onTap: () => context.push('/terms-of-use'),
+                    showBorder: false,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LegalLinkRow extends StatelessWidget {
+  const _LegalLinkRow(
+      {required this.icon,
+      required this.label,
+      required this.onTap,
+      required this.showBorder});
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final bool showBorder;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 15),
+        decoration: BoxDecoration(
+            border:
+                showBorder ? Border(bottom: BorderSide(color: c.line)) : null),
+        child: Row(
+          children: [
+            Icon(icon, size: 19, color: c.teal),
+            const SizedBox(width: 12),
+            Expanded(
+                child: Text(label,
+                    style: const TextStyle(
+                        fontSize: 14.5, fontWeight: FontWeight.w600))),
+            Icon(Icons.chevron_right_rounded, size: 17, color: c.faint),
           ],
         ),
       ),

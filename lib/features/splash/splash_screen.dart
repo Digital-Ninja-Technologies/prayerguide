@@ -55,24 +55,10 @@ class _SplashScreenState extends State<SplashScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      width: 96,
-                      height: 96,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(30),
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            const Color(0xFF5BC2B3).withValues(alpha: .22),
-                            const Color(0xFFE8B36B).withValues(alpha: .14),
-                          ],
-                        ),
-                        border: Border.all(
-                            color: Colors.white.withValues(alpha: .12)),
-                      ),
-                      child: const Icon(Icons.self_improvement_rounded,
-                          size: 46, color: Color(0xFF5BC2B3)),
+                    Image.asset(
+                      'assets/icon/flame_logo.png',
+                      width: 100,
+                      height: 100,
                     ),
                     const SizedBox(height: 26),
                     Text(

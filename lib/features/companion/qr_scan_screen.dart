@@ -5,8 +5,9 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../widgets/pg_back_button.dart';
 
-/// Scans a QR code and pops with the invite code extracted from it (or the
-/// raw scanned text, if it doesn't look like one of our invite links).
+/// Scans a QR code and pops with the raw scanned text — the caller (see
+/// [CompanionRepository.redeemInvite]) handles extracting the invite code
+/// whether it's a bare code or a full shared link.
 class QrScanScreen extends StatefulWidget {
   const QrScanScreen({super.key});
 
@@ -23,13 +24,7 @@ class _QrScanScreenState extends State<QrScanScreen> {
     final raw = capture.barcodes.first.rawValue;
     if (raw == null || raw.isEmpty) return;
     _handled = true;
-    context.pop(_extractCode(raw));
-  }
-
-  String _extractCode(String raw) {
-    final marker = raw.lastIndexOf('/j/');
-    if (marker != -1) return raw.substring(marker + 3).trim();
-    return raw.trim();
+    context.pop(raw);
   }
 
   @override
@@ -52,7 +47,8 @@ class _QrScanScreenState extends State<QrScanScreen> {
               padding: const EdgeInsets.fromLTRB(22, 6, 22, 0),
               child: Align(
                 alignment: Alignment.topLeft,
-                child: PgBackButton(icon: Icons.close_rounded, onTap: () => context.pop()),
+                child: PgBackButton(
+                    icon: Icons.close_rounded, onTap: () => context.pop()),
               ),
             ),
           ),
@@ -74,7 +70,10 @@ class _QrScanScreenState extends State<QrScanScreen> {
             child: Text(
               'Point your camera at their invite QR code',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white, fontSize: 14.5, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w600),
             ),
           ),
         ],

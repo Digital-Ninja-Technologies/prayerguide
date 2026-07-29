@@ -4,8 +4,10 @@ import '../models/pg_profile.dart';
 class ProfileRepository {
   Future<PgProfile> fetch() async {
     final uid = supa.auth.currentUser!.id;
-    final row = await supa.from('profiles').select().eq('id', uid).maybeSingle();
-    if (row == null) return PgProfile.empty(uid, email: supa.auth.currentUser?.email);
+    final row =
+        await supa.from('profiles').select().eq('id', uid).maybeSingle();
+    if (row == null)
+      return PgProfile.empty(uid, email: supa.auth.currentUser?.email);
     return PgProfile.fromMap(row);
   }
 
@@ -15,13 +17,21 @@ class ProfileRepository {
   }
 
   /// Records a completed prayer session. A DB trigger recomputes the streak.
-  Future<void> logSession({required int durationSeconds, String? category}) async {
+  Future<void> logSession(
+      {required int durationSeconds, String? category}) async {
     final uid = supa.auth.currentUser!.id;
     await supa.from('prayer_sessions').insert({
       'user_id': uid,
       'duration_seconds': durationSeconds,
       'category': category,
     });
+  }
+
+  /// Records that the app was opened today. A DB trigger recomputes the
+  /// app-open streak — a separate metric from the prayer streak above.
+  Future<void> logAppOpen() async {
+    final uid = supa.auth.currentUser!.id;
+    await supa.from('app_opens').insert({'user_id': uid});
   }
 
   /// Days-of-month (1-31) that have at least one qualifying prayer session,

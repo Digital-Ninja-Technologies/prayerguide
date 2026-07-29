@@ -54,15 +54,48 @@ class AboutHelpScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(18),
               margin: const EdgeInsets.only(bottom: 24),
-              decoration: BoxDecoration(color: c.surface, border: Border.all(color: c.line), borderRadius: BorderRadius.circular(18)),
+              decoration: BoxDecoration(
+                  color: c.surface,
+                  border: Border.all(color: c.line),
+                  borderRadius: BorderRadius.circular(18)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Prayer Guide', style: PgText.serif(size: 19, weight: FontWeight.w600)),
+                  Text('Prayer Guide',
+                      style: PgText.serif(size: 19, weight: FontWeight.w600)),
                   const SizedBox(height: 8),
-                  Text(
-                    "Prayer Guide is built by Digital Ninja Technologies to help you build a consistent, unhurried prayer life — guided prayer, Scripture, journaling, and people to walk alongside you, without the guilt-driven streaks and noise so many habit apps lean on.",
-                    style: TextStyle(fontSize: 14, height: 1.6, color: c.dim),
+                  Text.rich(
+                    TextSpan(
+                      style: TextStyle(fontSize: 14, height: 1.6, color: c.dim),
+                      children: [
+                        const TextSpan(text: 'Prayer Guide is built by '),
+                        WidgetSpan(
+                          alignment: PlaceholderAlignment.baseline,
+                          baseline: TextBaseline.alphabetic,
+                          child: GestureDetector(
+                            onTap: () => launchUrl(
+                              Uri.parse('https://www.thedigitalninjatech.com/'),
+                              mode: LaunchMode.externalApplication,
+                            ),
+                            child: Text(
+                              'Digital Ninja Technologies',
+                              style: TextStyle(
+                                fontSize: 14,
+                                height: 1.6,
+                                color: c.teal,
+                                fontWeight: FontWeight.w600,
+                                decoration: TextDecoration.underline,
+                                decorationColor: c.teal,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const TextSpan(
+                          text:
+                              ' to help you build a consistent, unhurried prayer life — guided prayer, Scripture, journaling, and people to walk alongside you, without the guilt-driven streaks and noise so many habit apps lean on.',
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 10),
                   Text(
@@ -76,13 +109,19 @@ class AboutHelpScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 24),
               child: Column(
-                children: [for (final faq in _faqs) _FaqTile(question: faq.$1, answer: faq.$2)],
+                children: [
+                  for (final faq in _faqs)
+                    _FaqTile(question: faq.$1, answer: faq.$2)
+                ],
               ),
             ),
             const PgSectionLabel('Contact & feedback'),
             Container(
               padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(color: c.surface, border: Border.all(color: c.line), borderRadius: BorderRadius.circular(18)),
+              decoration: BoxDecoration(
+                  color: c.surface,
+                  border: Border.all(color: c.line),
+                  borderRadius: BorderRadius.circular(18)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -90,7 +129,9 @@ class AboutHelpScreen extends StatelessWidget {
                     children: [
                       Icon(Icons.mail_outline_rounded, size: 18, color: c.teal),
                       const SizedBox(width: 8),
-                      const Text('Get in touch', style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700)),
+                      const Text('Get in touch',
+                          style: TextStyle(
+                              fontSize: 14.5, fontWeight: FontWeight.w700)),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -103,14 +144,19 @@ class AboutHelpScreen extends StatelessWidget {
                     label: kSupportEmail,
                     icon: Icon(Icons.send_rounded, size: 16, color: c.onTeal),
                     onPressed: () => launchUrl(
-                      Uri(scheme: 'mailto', path: kSupportEmail, query: 'subject=Prayer Guide feedback'),
+                      Uri(
+                          scheme: 'mailto',
+                          path: kSupportEmail,
+                          query: 'subject=Prayer Guide feedback'),
                     ),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
-            Center(child: Text('Prayer Guide · v1.0.0', style: TextStyle(fontSize: 11.5, color: c.faint))),
+            Center(
+                child: Text('Prayer Guide · v1.0.0',
+                    style: TextStyle(fontSize: 11.5, color: c.faint))),
           ],
         ),
       ),
@@ -143,21 +189,28 @@ class _FaqTileState extends State<_FaqTile> {
           onTap: () => setState(() => _open = !_open),
           child: Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), border: Border.all(color: c.line)),
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: c.line)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
                     Expanded(
-                      child: Text(widget.question, style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700)),
+                      child: Text(widget.question,
+                          style: const TextStyle(
+                              fontSize: 14.5, fontWeight: FontWeight.w700)),
                     ),
-                    Icon(_open ? Icons.remove_rounded : Icons.add_rounded, size: 19, color: c.teal),
+                    Icon(_open ? Icons.remove_rounded : Icons.add_rounded,
+                        size: 19, color: c.teal),
                   ],
                 ),
                 if (_open) ...[
                   const SizedBox(height: 10),
-                  Text(widget.answer, style: TextStyle(fontSize: 13.5, height: 1.6, color: c.dim)),
+                  Text(widget.answer,
+                      style:
+                          TextStyle(fontSize: 13.5, height: 1.6, color: c.dim)),
                 ],
               ],
             ),

@@ -5,12 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/purchases/premium_gate.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
 import '../../state/profile_provider.dart';
 import '../../widgets/pg_back_button.dart';
 import '../../widgets/pg_button.dart';
 import '../../widgets/pg_pill.dart';
+import '../../widgets/pg_text_field.dart';
 import 'ambience_player.dart';
 
 class TimerScreen extends ConsumerStatefulWidget {
@@ -32,7 +34,13 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
   Timer? _timer;
   final _ambiencePlayer = AmbiencePlayer();
 
-  static const _presets = [5, 10, 15, 30, 60];
+  static String _formatMinutes(int min) {
+    final h = min ~/ 60;
+    final m = min % 60;
+    if (h == 0) return '$m min';
+    if (m == 0) return '${h}h';
+    return '${h}h ${m}m';
+  }
 
   Future<void> _toggleAmbience(String key) async {
     if (_ambience == key) {
@@ -53,8 +61,12 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
   }
 
   String get _label {
-    final m = _remaining ~/ 60;
+    final h = _remaining ~/ 3600;
+    final m = (_remaining % 3600) ~/ 60;
     final s = _remaining % 60;
+    if (h > 0) {
+      return '$h:${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+    }
     return '$m:${s.toString().padLeft(2, '0')}';
   }
 
@@ -66,6 +78,77 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
       _running = false;
       _done = false;
     });
+  }
+
+  Future<void> _promptCustomDuration() async {
+    final c = context.colors;
+    final hoursCtrl = TextEditingController(text: '${_preset ~/ 60}');
+    final minutesCtrl = TextEditingController(text: '${_preset % 60}');
+    final total = await showDialog<int>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: c.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: const Text('Custom duration'),
+        content: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('HOURS',
+                      style: PgText.sans(
+                          size: 11,
+                          weight: FontWeight.w700,
+                          color: c.dim,
+                          letterSpacing: 1)),
+                  const SizedBox(height: 6),
+                  PgTextField(
+                      controller: hoursCtrl,
+                      keyboardType: TextInputType.number),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('MINUTES',
+                      style: PgText.sans(
+                          size: 11,
+                          weight: FontWeight.w700,
+                          color: c.dim,
+                          letterSpacing: 1)),
+                  const SizedBox(height: 6),
+                  PgTextField(
+                      controller: minutesCtrl,
+                      keyboardType: TextInputType.number),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel')),
+          TextButton(
+            onPressed: () {
+              final h = int.tryParse(hoursCtrl.text) ?? 0;
+              final m = int.tryParse(minutesCtrl.text) ?? 0;
+              Navigator.of(context).pop((h * 60 + m).clamp(1, 599));
+            },
+            child: const Text('Set'),
+          ),
+        ],
+      ),
+    );
+    if (total != null) _setPreset(total);
   }
 
   void _toggleRun() {
@@ -112,8 +195,11 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
     final total = _preset * 60;
     final circumference = 2 * math.pi * 120;
     final offset = circumference * (1 - _remaining / total);
-    final state = _done ? 'Complete' : (_running ? 'In prayer' : (_remaining < total ? 'Paused' : 'Ready'));
-    final nextStreak = (ref.watch(profileProvider).valueOrNull?.streakCount ?? 0) + 1;
+    final state = _done
+        ? 'Complete'
+        : (_running ? 'In prayer' : (_remaining < total ? 'Paused' : 'Ready'));
+    final nextStreak =
+        (ref.watch(profileProvider).valueOrNull?.streakCount ?? 0) + 1;
 
     return Scaffold(
       body: Stack(
@@ -137,9 +223,15 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      PgBackButton(icon: Icons.close_rounded, onTap: () => context.pop()),
+                      PgBackButton(
+                          icon: Icons.close_rounded,
+                          onTap: () => context.pop()),
                       Text(_category.toUpperCase(),
-                          style: PgText.sans(size: 13, weight: FontWeight.w700, color: c.dim, letterSpacing: .5)),
+                          style: PgText.sans(
+                              size: 13,
+                              weight: FontWeight.w700,
+                              color: c.dim,
+                              letterSpacing: .5)),
                       const SizedBox(width: 38),
                     ],
                   ),
@@ -160,7 +252,9 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
                                 height: 280,
                                 child: CustomPaint(
                                   painter: _RingPainter(
-                                    progress: total == 0 ? 0 : 1 - (offset / circumference),
+                                    progress: total == 0
+                                        ? 0
+                                        : 1 - (offset / circumference),
                                     track: c.line2,
                                     color: c.teal,
                                   ),
@@ -171,11 +265,16 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
                                 children: [
                                   Text(_label,
                                       style: const TextStyle(
-                                          fontSize: 58, fontWeight: FontWeight.w300, letterSpacing: 1)),
+                                          fontSize: 58,
+                                          fontWeight: FontWeight.w300,
+                                          letterSpacing: 1)),
                                   const SizedBox(height: 6),
                                   Text(state.toUpperCase(),
                                       style: PgText.sans(
-                                          size: 12.5, weight: FontWeight.w700, color: c.dim, letterSpacing: 2)),
+                                          size: 12.5,
+                                          weight: FontWeight.w700,
+                                          color: c.dim,
+                                          letterSpacing: 2)),
                                 ],
                               ),
                             ],
@@ -192,7 +291,9 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
                               width: 74,
                               height: 74,
                               child: Icon(
-                                _running ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                                _running
+                                    ? Icons.pause_rounded
+                                    : Icons.play_arrow_rounded,
                                 color: c.onTeal,
                                 size: 28,
                               ),
@@ -207,26 +308,71 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
                   padding: const EdgeInsets.fromLTRB(22, 0, 22, 30),
                   child: Column(
                     children: [
-                      Wrap(
-                        alignment: WrapAlignment.center,
-                        spacing: 8,
-                        runSpacing: 8,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          for (final p in _presets)
-                            PgPill(label: '$p', active: _preset == p, onTap: () => _setPreset(p)),
-                          PgPill(
-                            label: 'Custom',
-                            active: !_presets.contains(_preset),
-                            onTap: () => _setPreset(45),
+                          Text('DURATION',
+                              style: PgText.sans(
+                                  size: 11,
+                                  weight: FontWeight.w700,
+                                  color: c.dim,
+                                  letterSpacing: 1)),
+                          GestureDetector(
+                            onTap: _promptCustomDuration,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(_formatMinutes(_preset),
+                                    style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w800,
+                                        color: c.teal)),
+                                const SizedBox(width: 4),
+                                Icon(Icons.edit_rounded,
+                                    size: 13, color: c.teal),
+                              ],
+                            ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
+                      SliderTheme(
+                        data: SliderTheme.of(context).copyWith(
+                          activeTrackColor: c.teal,
+                          inactiveTrackColor: c.line2,
+                          thumbColor: c.teal,
+                          overlayColor: c.teal.withValues(alpha: .15),
+                          trackHeight: 4,
+                        ),
+                        child: Slider(
+                          value: _preset.clamp(5, 120).toDouble(),
+                          min: 5,
+                          max: 120,
+                          divisions: 23,
+                          onChanged: (v) => _setPreset(v.round()),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('5 min',
+                                style: TextStyle(fontSize: 11, color: c.faint)),
+                            Text('2h',
+                                style: TextStyle(fontSize: 11, color: c.faint)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text('AMBIENCE',
-                              style: PgText.sans(size: 11, weight: FontWeight.w700, color: c.dim, letterSpacing: 1)),
+                              style: PgText.sans(
+                                  size: 11,
+                                  weight: FontWeight.w700,
+                                  color: c.dim,
+                                  letterSpacing: 1)),
                           if (_ambience != null) ...[
                             const SizedBox(width: 7),
                             _PulsingDot(color: c.teal),
@@ -243,7 +389,8 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
                             ('tenderclouds', 'Tender Clouds'),
                           ])
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 4.5),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 4.5),
                               child: PgPill(
                                 label: a.$2,
                                 active: _ambience == a.$1,
@@ -258,8 +405,13 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
                       PgButton(
                         label: 'Focus Mode · silence distractions',
                         variant: PgButtonVariant.outline,
-                        icon: Icon(Icons.timer_outlined, size: 17, color: c.teal),
-                        onPressed: () => context.push('/focus/setup'),
+                        icon:
+                            Icon(Icons.timer_outlined, size: 17, color: c.teal),
+                        onPressed: () async {
+                          if (await requirePremium(context)) {
+                            if (context.mounted) context.push('/focus/setup');
+                          }
+                        },
                       ),
                     ],
                   ),
@@ -278,11 +430,15 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
                     Container(
                       width: 96,
                       height: 96,
-                      decoration: BoxDecoration(color: c.tealSoft, shape: BoxShape.circle, border: Border.all(color: c.line)),
+                      decoration: BoxDecoration(
+                          color: c.tealSoft,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: c.line)),
                       child: Icon(Icons.check_rounded, size: 46, color: c.teal),
                     ),
                     const SizedBox(height: 22),
-                    Text('Well prayed.', style: PgText.serif(size: 27, weight: FontWeight.w600)),
+                    Text('Well prayed.',
+                        style: PgText.serif(size: 27, weight: FontWeight.w600)),
                     const SizedBox(height: 10),
                     SizedBox(
                       width: 250,
@@ -294,15 +450,22 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
                     ),
                     const SizedBox(height: 22),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                      decoration: BoxDecoration(color: c.amberSoft, borderRadius: BorderRadius.circular(100)),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 18, vertical: 10),
+                      decoration: BoxDecoration(
+                          color: c.amberSoft,
+                          borderRadius: BorderRadius.circular(100)),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.local_fire_department_rounded, size: 18, color: c.amber),
+                          Icon(Icons.local_fire_department_rounded,
+                              size: 18, color: c.amber),
                           const SizedBox(width: 9),
                           Text('$nextStreak day streak',
-                              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: c.amber)),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 15,
+                                  color: c.amber)),
                         ],
                       ),
                     ),
@@ -326,8 +489,10 @@ class _PulsingDot extends StatefulWidget {
   State<_PulsingDot> createState() => _PulsingDotState();
 }
 
-class _PulsingDotState extends State<_PulsingDot> with SingleTickerProviderStateMixin {
-  late final _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 700))
+class _PulsingDotState extends State<_PulsingDot>
+    with SingleTickerProviderStateMixin {
+  late final _controller = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 700))
     ..repeat(reverse: true);
 
   @override
@@ -339,14 +504,20 @@ class _PulsingDotState extends State<_PulsingDot> with SingleTickerProviderState
   @override
   Widget build(BuildContext context) {
     return FadeTransition(
-      opacity: Tween(begin: 0.25, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut)),
-      child: Container(width: 7, height: 7, decoration: BoxDecoration(color: widget.color, shape: BoxShape.circle)),
+      opacity: Tween(begin: 0.25, end: 1.0).animate(
+          CurvedAnimation(parent: _controller, curve: Curves.easeInOut)),
+      child: Container(
+          width: 7,
+          height: 7,
+          decoration:
+              BoxDecoration(color: widget.color, shape: BoxShape.circle)),
     );
   }
 }
 
 class _RingPainter extends CustomPainter {
-  _RingPainter({required this.progress, required this.track, required this.color});
+  _RingPainter(
+      {required this.progress, required this.track, required this.color});
 
   final double progress;
   final Color track;
@@ -376,5 +547,6 @@ class _RingPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _RingPainter oldDelegate) => oldDelegate.progress != progress;
+  bool shouldRepaint(covariant _RingPainter oldDelegate) =>
+      oldDelegate.progress != progress;
 }

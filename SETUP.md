@@ -114,6 +114,81 @@ silently. iOS's iCloud backup needs none of this — it uses
 `flutter_secure_storage`'s `synchronizable` Keychain option, which just
 needs the user's device to have iCloud Keychain turned on.
 
+## 3b. RevenueCat (Premium subscriptions, real billing)
+
+The Upgrade screen (`lib/features/settings/upgrade_screen.dart`) uses
+[RevenueCat](https://www.revenuecat.com) (`purchases_flutter` +
+`purchases_ui_flutter`) to sell real Monthly/Annual subscriptions through
+the App Store and Play Store, gated behind an entitlement named
+`PrayerGuide`. Without API keys configured, the screen shows a "not
+configured" notice and preview pricing instead of failing — same pattern
+as Google Drive backup above.
+
+**Right now this app is wired to a RevenueCat Test Store** (`.env`'s
+`REVENUECAT_API_KEY`, a `test_...` key) — it exercises the full
+purchase/restore/entitlement flow without needing a real Apple/Google
+developer account, but purchases aren't real money and won't survive a
+switch to production keys. To go live:
+
+1. **Apple Developer Program** ($99/yr) and **Google Play Console** ($25
+   one-time) accounts — required before either store will let you create
+   in-app purchase products. Both have identity/business verification that
+   can take a few days, so start these first if you don't have them yet.
+2. **Create the subscription products** in each store:
+   - App Store Connect → your app → Subscriptions → create a subscription
+     group with **Monthly** and **Annual** auto-renewable subscriptions.
+   - Google Play Console → your app → Monetize → Subscriptions → same two
+     products.
+   - Product IDs just need to be consistent between the store and
+     RevenueCat's dashboard — e.g. `pg_premium_monthly` / `pg_premium_annual`.
+   - Price the **Annual** product **15% below Monthly × 12** (e.g. Monthly
+     $4.99 → Annual $50.90) — the Upgrade screen's "SAVE X%" badge computes
+     its percentage live from whatever the two products actually cost, so
+     pricing them any other way will just show a different (but still
+     correct) percentage rather than break anything.
+3. **Create a [RevenueCat](https://app.revenuecat.com) project** (or reuse
+   the existing Test Store one), add both the iOS and Android apps, and
+   connect each to its store (App Store Connect requires an
+   App-Specific Shared Secret; Play Console requires a service-account
+   JSON with access to your app — RevenueCat's dashboard walks through
+   generating both).
+4. **Create an Entitlement** named exactly `PrayerGuide` (must match
+   `kPremiumEntitlementId` in `lib/core/purchases/revenue_cat_service.dart`)
+   and attach both products to it.
+5. **Create an Offering** (e.g. `default`) with two Packages — one
+   `$rc_monthly`, one `$rc_annual` — pointing at the two products.
+   `upgrade_screen.dart` looks up packages by `PackageType.monthly` /
+   `PackageType.annual`, so the packages must use RevenueCat's standard
+   monthly/annual package types.
+6. **Design the Paywall** (RevenueCat dashboard → Paywalls) for the
+   `PrayerGuide` entitlement — used by `requirePremium()`
+   (`lib/core/purchases/premium_gate.dart`) to gate premium-only features
+   at the point of use (currently wired to the Focus Mode entry point in
+   `timer_screen.dart`; call `requirePremium(context)` before unlocking any
+   other premium feature the same way).
+7. **Copy the real per-platform public SDK keys** (RevenueCat dashboard →
+   Project Settings → API Keys — the public SDK keys, not the secret key)
+   into `.env` as `REVENUECAT_IOS_API_KEY` / `REVENUECAT_ANDROID_API_KEY`,
+   and clear `REVENUECAT_API_KEY` — the app prefers that Test Store key
+   over the platform-specific ones whenever it's set.
+
+Once configured, `SubscriptionRepository.fetch()` reads live entitlement
+status from RevenueCat (falling back to a cached `subscriptions` row in
+Supabase if RevenueCat isn't configured) and stays in sync afterwards via
+`RevenueCatService.customerInfoStream` — RevenueCat's live update
+listener, which fires on purchases, restores, renewals, and even
+purchases made on another device, without needing to re-fetch manually.
+Every purchase/restore/update is synced back to the `subscriptions` table.
+Test purchases against the Test Store need nothing extra; against real
+stores, use a sandbox tester (App Store Connect → Users and Access →
+Sandbox) or a Play Console license-test account — real cards are never
+charged in sandbox/test mode.
+
+**Customer Center** (RevenueCat dashboard → Customer Center) lets
+subscribers self-serve cancel/manage their plan from inside the app —
+configure it in the dashboard and it's already wired up as a "Manage
+subscription" button on the Upgrade screen once a subscription is active.
+
 ## 4. What's real vs. prototype-visual
 
 **Wired to Supabase (real CRUD, survives app restart):**
