@@ -225,7 +225,23 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          for (final a in const [('rain', 'Rain'), ('ocean', 'Ocean'), ('instrumental', 'Instrumental')])
+                          Text('AMBIENCE',
+                              style: PgText.sans(size: 11, weight: FontWeight.w700, color: c.dim, letterSpacing: 1)),
+                          if (_ambience != null) ...[
+                            const SizedBox(width: 7),
+                            _PulsingDot(color: c.teal),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          for (final a in const [
+                            ('meditation', 'Meditation'),
+                            ('silence', 'Silence'),
+                            ('tenderclouds', 'Tender Clouds'),
+                          ])
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 4.5),
                               child: PgPill(
@@ -298,6 +314,33 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
             ),
         ],
       ),
+    );
+  }
+}
+
+class _PulsingDot extends StatefulWidget {
+  const _PulsingDot({required this.color});
+  final Color color;
+
+  @override
+  State<_PulsingDot> createState() => _PulsingDotState();
+}
+
+class _PulsingDotState extends State<_PulsingDot> with SingleTickerProviderStateMixin {
+  late final _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 700))
+    ..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: Tween(begin: 0.25, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut)),
+      child: Container(width: 7, height: 7, decoration: BoxDecoration(color: widget.color, shape: BoxShape.circle)),
     );
   }
 }

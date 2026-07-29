@@ -1,17 +1,16 @@
 import 'package:audioplayers/audioplayers.dart';
 
-/// Loops a background ambience track (rain / ocean / instrumental) during
-/// a prayer session. Track files live in `assets/audio/` and are provided
-/// by whoever builds the app (not bundled here — see that folder's README).
+/// Loops a background ambience track (meditation / silence / tender clouds)
+/// during a prayer session. Track files live in `assets/audio/`.
 class AmbiencePlayer {
   AmbiencePlayer() {
     _player.setReleaseMode(ReleaseMode.loop);
   }
 
   static const _fileFor = {
-    'rain': 'audio/rain.mp3',
-    'ocean': 'audio/ocean.mp3',
-    'instrumental': 'audio/instrumental.mp3',
+    'meditation': 'audio/meditation.mp3',
+    'silence': 'audio/silence.mp3',
+    'tenderclouds': 'audio/tenderclouds.mp3',
   };
 
   final AudioPlayer _player = AudioPlayer();
