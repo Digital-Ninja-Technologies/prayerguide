@@ -27,8 +27,10 @@ This creates `profiles`, `journal_entries`, `prayer_requests`,
 `prayer_sessions` (feeds the streak via a DB trigger), `bible_notes`,
 `notification_prefs`, `companions`/`companion_invites`/`companion_checkins`,
 `challenge_progress`, `reading_plan_progress`, `fasting_sessions`,
-`focus_sessions`, `encryption_keys`, `groups`, and `subscriptions` — all
-with RLS policies scoping rows to their owner.
+`focus_sessions`, `groups`, and `subscriptions` — all with RLS policies
+scoping rows to their owner. (An early migration also created
+`encryption_keys` for passphrase-based key escrow; migration `0009` drops
+it now that cloud backup replaced that scheme — see below.)
 
 **Social auth (Google / Apple) via Supabase** — the app code side is done:
 `AuthRepository.signInWithGoogle/signInWithApple` call `signInWithOAuth` with
@@ -68,12 +70,49 @@ provider-console configuration, which can't be done from this repo:
 
 Full reference: [supabase_flutter OAuth docs](https://supabase.com/docs/guides/auth/social-login).
 
-## 3. Push notifications (Smart Notifications, PRD §5.8)
+## 3. Notifications (Smart Notifications, PRD §5.8)
 
-Not wired up yet. The `notifications` screen's toggles are local-only UI.
-To make them real: add Firebase to the project (`flutterfire configure`),
-add `firebase_messaging` + `flutter_local_notifications`, and persist
-preferences to the `notification_prefs` table (schema already exists).
+Morning prayer, evening prayer, scripture-of-the-day, and streak-protection
+reminders are real local (on-device) notifications, not just UI —
+`lib/core/notifications/notification_scheduler.dart` (via
+`flutter_local_notifications` + `timezone`/`flutter_timezone`) schedules or
+cancels them whenever a toggle changes, on app start, and (for streak
+protection specifically) right after you complete a prayer session, so it
+doesn't nag you for a day you already prayed. No extra setup needed — this
+works out of the box on iOS and Android.
+
+**Companion check-ins are the one exception**: notifying *you* when your
+companion checks in requires a server-triggered push (Supabase Edge
+Function + FCM/APNs), since it depends on someone else's action, not a
+schedule your device already knows about. That toggle still saves your
+preference but doesn't fire a notification yet — wiring it up means adding
+Firebase (`flutterfire configure` + `firebase_messaging`) and a Postgres
+trigger/Edge Function on `companion_checkins` inserts that calls FCM/APNs.
+
+## 3a. Google Drive backup (optional, Android cloud backup)
+
+The Android "back up to Google Drive" flow (Settings → Privacy & encryption)
+needs a **Web application** OAuth 2.0 client id from
+[Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+(Web, not Android type — `google_sign_in` on Android uses it as
+`serverClientId` even though the app itself is Android). Steps:
+
+1. Create (or reuse) a Google Cloud project, enable the **Google Drive API**.
+2. Credentials → Create Credentials → OAuth client ID → **Web application**.
+   Add your Supabase project's domain (or `localhost` for dev) under
+   Authorized redirect URIs if prompted — Drive's `appDataFolder` scope
+   doesn't need a redirect flow on Android, but Google's console may still
+   require one to be listed.
+3. Also register the Android app itself (package name
+   `com.prayerguide.prayer_guide` + your release/debug SHA-1 fingerprints)
+   under **OAuth consent screen → Android** so Google trusts the app calling
+   in — see the [google_sign_in_android setup docs](https://pub.dev/packages/google_sign_in_android#integration).
+4. Put the **Web application** client id in `.env` as `GOOGLE_OAUTH_CLIENT_ID`.
+
+Without this, the button explains it isn't configured rather than failing
+silently. iOS's iCloud backup needs none of this — it uses
+`flutter_secure_storage`'s `synchronizable` Keychain option, which just
+needs the user's device to have iCloud Keychain turned on.
 
 ## 4. What's real vs. prototype-visual
 
@@ -88,8 +127,8 @@ Journal entry text is genuinely end-to-end encrypted:
 key on-device, stored only in the platform Keychain/Keystore via
 `flutter_secure_storage`. Supabase only ever stores ciphertext
 (`title_cipher`/`body_cipher` columns) — the key never leaves the device
-unencrypted, so nobody but the signed-in device (or someone who knows the
-recovery passphrase — see below) can decrypt.
+unencrypted, so nobody but a device with the key (or a successful cloud
+restore — see below) can decrypt.
 
 Prayer Requests are **not** end-to-end encrypted (migration `0007` dropped
 the `title_cipher`/`note_cipher` columns in favor of plain `title`/`note`
@@ -97,20 +136,31 @@ columns, protected only by Postgres RLS). That trade-off was made
 deliberately so requests could be genuinely shared with a prayer companion
 — see "Companion/Invite" below for why E2E encryption made that impossible.
 Anyone with direct database access (e.g. a Supabase admin) can read request
-text; Journal entries remain unreadable to anyone but the device/passphrase
-holder.
+text; Journal entries remain unreadable to anyone without the key.
 
-**Cross-device recovery (opt-in):** from Settings → Privacy & encryption, a
-user can set a recovery passphrase. That wraps their existing key with a
-PBKDF2-derived key (200k iterations, random salt) and stores the wrapped
-copy in the `encryption_keys` table (`supabase/migrations/0002_encryption_key_recovery.sql`).
-Supabase still never sees the raw key or the passphrase — only someone who
-knows the passphrase can unwrap it. On a new device, opening Journal or
-Requests without a local key shows an unlock prompt (`PgPassphraseUnlock`)
-asking for that passphrase; entering it decrypts and caches the key on that
-device too. If a user never sets a passphrase (or has forgotten it), that's
-still an honest dead end for old entries — the unlock screen offers
-"start fresh on this device" instead of pretending recovery is possible.
+**Cross-device backup (opt-in, replaces the old passphrase/escrow scheme —
+migration `0009` drops the now-unused `encryption_keys` table):** from
+Settings → Privacy & encryption, a user can back their key up to their own
+cloud account instead of memorizing a passphrase:
+
+- **iOS**: `EncryptionService.backupToICloud` re-saves the key into a
+  Keychain item marked `synchronizable` — iOS's own iCloud Keychain sync
+  then carries it to the user's other devices automatically (their device
+  needs iCloud Keychain turned on in Settings). Apple handles the
+  transport; this app never sees or transmits the key itself.
+- **Android**: Keystore-protected secrets are intentionally non-exportable,
+  so there's no OS-level equivalent. `lib/core/backup/cloud_backup_service.dart`
+  uploads the key to the signed-in Google account's app-private Drive
+  folder (`appDataFolder` — invisible in the user's regular Drive, only
+  this app can read it) instead. Needs `GOOGLE_OAUTH_CLIENT_ID` — see
+  section 3a above.
+
+On a new device, opening Journal without a local key and with existing
+encrypted entries on the account shows a restore prompt
+(`PgCloudRestoreUnlock`) offering the platform-appropriate cloud restore.
+If a user never backed up (or the backup isn't reachable), that's still an
+honest dead end for old entries — the prompt offers "start fresh on this
+device" instead of pretending recovery is possible.
 
 **Bible reader, Bible highlights/bookmarks/notes, Reading Plans, and the
 Devotional are also real**, not mocked: the reader runs on the full KJV

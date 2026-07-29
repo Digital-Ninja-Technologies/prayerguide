@@ -46,11 +46,16 @@ Not every screen is backed by live data yet — see
 - **Client-side encryption** — journal entries are encrypted on-device
   (AES-256-GCM via the `cryptography` package) before they ever reach
   Supabase, with the key held in the platform Keychain/Keystore
-  (`flutter_secure_storage`) and an opt-in passphrase-based
-  recovery/escrow flow for new devices. See
-  `lib/core/security/encryption_service.dart`. Prayer requests are stored
-  as plain text (protected by RLS, not E2E encryption) so they can be
-  shared with a paired prayer companion.
+  (`flutter_secure_storage`). See `lib/core/security/encryption_service.dart`.
+  Prayer requests are stored as plain text (protected by RLS, not E2E
+  encryption) so they can be shared with a paired prayer companion.
+- **Cloud key backup** — opt-in, platform-native: iCloud Keychain sync on
+  iOS (zero config), Google Drive `appDataFolder` on Android (via
+  `google_sign_in`, needs a client id — see SETUP.md). Replaces an earlier
+  passphrase-based recovery scheme.
+- **flutter_local_notifications** — real, scheduled prayer/scripture
+  reminders (see SETUP.md's Notifications section for what's and isn't
+  wired).
 - **Bundled KJV text** — the Bible reader's full text ships locally as a
   JSON asset (`assets/bible/kjv.json`), not fetched from an API, so
   reading/search/reading-plan scheduling all work offline.
@@ -71,7 +76,7 @@ lib/
     repositories/  Supabase CRUD per feature (auth, journal, requests, profile,
                     bible notes, challenges, companion, fasting, focus, insights,
                     reading plans)
-    static/      reference content (guide categories, groups, ...)
+    static/      reference content (guide categories, challenge catalog, ...)
   state/         Riverpod providers wiring repositories to the UI
   features/      one folder per screen/flow (home, journal, streak, focus, companion, ...)
   widgets/       shared design-system components (PgButton, PgCard, PgPill,

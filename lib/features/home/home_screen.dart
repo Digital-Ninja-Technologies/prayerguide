@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
+import '../../state/notifications_provider.dart';
 import '../../state/profile_provider.dart';
 import '../../widgets/pg_card.dart';
 import '../../widgets/pg_section_label.dart';
@@ -15,15 +16,15 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.colors;
+    // Watching this here (rather than only on the Notifications screen)
+    // ensures reminders get (re)scheduled once per app session even if the
+    // user never opens Settings.
+    ref.watch(notificationsProvider);
     final profileAsync = ref.watch(profileProvider);
     final streak = profileAsync.valueOrNull?.streakCount ?? 0;
     final name = profileAsync.valueOrNull?.name;
     final greetingName =
         (name == null || name.isEmpty) ? 'friend' : name.split(' ').first;
-    final hour = DateTime.now().hour;
-    final greeting = hour < 12
-        ? 'Good morning'
-        : (hour < 18 ? 'Good afternoon' : 'Good evening');
     final dateStr = DateFormat('EEEE · MMMM d').format(DateTime.now());
 
     return SingleChildScrollView(
@@ -46,7 +47,7 @@ class HomeScreen extends ConsumerWidget {
                             color: c.dim,
                             letterSpacing: .6)),
                     const SizedBox(height: 5),
-                    Text('$greetingName,\n$greeting',
+                    Text('Greetings,\n$greetingName',
                         style: PgText.serif(
                             size: 27, weight: FontWeight.w600, height: 1.15)),
                   ],

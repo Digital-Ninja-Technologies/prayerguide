@@ -220,163 +220,169 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
       ),
       data: (library) {
         final verses = library.versesFor(_book, _chapter);
-        return SingleChildScrollView(
-          padding: const EdgeInsets.only(top: 6, bottom: 40),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                height: 44,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 22),
-                  children: [
-                    const PgPill(label: 'Read', active: true),
-                    const SizedBox(width: 8),
-                    PgPill(
-                        label: 'Reading plans',
-                        onTap: () => context.push('/plans')),
-                    const SizedBox(width: 8),
-                    PgPill(
-                        label: 'Devotional',
-                        onTap: () => context.push('/devotional')),
-                    const SizedBox(width: 8),
-                    PgPill(
-                        label: 'Notes',
-                        onTap: () => context.pushOnce('/bible-notes')),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 14),
-              Padding(
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 6),
+            SizedBox(
+              height: 44,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 22),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        _RoundIcon(
-                            icon: Icons.chevron_left_rounded,
-                            onTap: () => _shiftChapter(-1, library)),
-                        const SizedBox(width: 6),
-                        Material(
-                          color: c.surface,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              side: BorderSide(color: c.line)),
-                          child: InkWell(
+                children: [
+                  const PgPill(label: 'Read', active: true),
+                  const SizedBox(width: 8),
+                  PgPill(
+                      label: 'Reading plans',
+                      onTap: () => context.push('/plans')),
+                  const SizedBox(width: 8),
+                  PgPill(
+                      label: 'Devotional',
+                      onTap: () => context.push('/devotional')),
+                  const SizedBox(width: 8),
+                  PgPill(
+                      label: 'Notes',
+                      onTap: () => context.pushOnce('/bible-notes')),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 22),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      _RoundIcon(
+                          icon: Icons.chevron_left_rounded,
+                          onTap: () => _shiftChapter(-1, library)),
+                      const SizedBox(width: 6),
+                      Material(
+                        color: c.surface,
+                        shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
-                            onTap: () => _openPicker(library),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 14, vertical: 9),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(_chapterRef,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 14)),
-                                  const SizedBox(width: 6),
-                                  Icon(Icons.expand_more_rounded,
-                                      size: 15, color: c.text),
-                                ],
-                              ),
+                            side: BorderSide(color: c.line)),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () => _openPicker(library),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 9),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(_chapterRef,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 14)),
+                                const SizedBox(width: 6),
+                                Icon(Icons.expand_more_rounded,
+                                    size: 15, color: c.text),
+                              ],
                             ),
                           ),
                         ),
-                        const SizedBox(width: 6),
-                        _RoundIcon(
-                            icon: Icons.chevron_right_rounded,
-                            onTap: () => _shiftChapter(1, library)),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        _RoundIcon(
-                          icon: isBookmarked
-                              ? Icons.bookmark_rounded
-                              : Icons.bookmark_border_rounded,
-                          color: isBookmarked ? c.teal : null,
-                          onTap: () => _toggleBookmark(ref),
-                        ),
-                        const SizedBox(width: 6),
-                        _RoundIcon(
-                          icon: Icons.format_list_bulleted_rounded,
-                          onTap: () => context.pushOnce('/bible-notes'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                      const SizedBox(width: 6),
+                      _RoundIcon(
+                          icon: Icons.chevron_right_rounded,
+                          onTap: () => _shiftChapter(1, library)),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      _RoundIcon(
+                        icon: isBookmarked
+                            ? Icons.bookmark_rounded
+                            : Icons.bookmark_border_rounded,
+                        color: isBookmarked ? c.teal : null,
+                        onTap: () => _toggleBookmark(ref),
+                      ),
+                      const SizedBox(width: 6),
+                      _RoundIcon(
+                        icon: Icons.format_list_bulleted_rounded,
+                        onTap: () => context.pushOnce('/bible-notes'),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 28),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(_chapterRef,
-                        style: PgText.serif(size: 26, weight: FontWeight.w600)),
-                    const SizedBox(height: 4),
-                    Text('King James Version',
-                        style: TextStyle(
-                            fontSize: 13,
-                            color: c.dim,
-                            fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 22),
-                    if (verses.isEmpty)
-                      Text('This chapter is unavailable.',
-                          style: TextStyle(fontSize: 14, color: c.dim))
-                    else
-                      for (var i = 0; i < verses.length; i++)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 14),
-                          child: GestureDetector(
-                            onTap: () =>
-                                _openVerseActions(ref, i + 1, verses[i]),
-                            child: Container(
-                              padding: highlightedVerses.contains(i + 1)
-                                  ? const EdgeInsets.symmetric(
-                                      horizontal: 4, vertical: 2)
-                                  : EdgeInsets.zero,
-                              decoration: highlightedVerses.contains(i + 1)
-                                  ? BoxDecoration(
-                                      color: c.amberSoft,
-                                      borderRadius: BorderRadius.circular(6))
-                                  : null,
-                              child: RichText(
-                                text: TextSpan(
-                                  children: [
-                                    TextSpan(
-                                      text: '${i + 1} ',
-                                      style: TextStyle(
-                                        color: highlightedVerses.contains(i + 1)
-                                            ? c.amber
-                                            : c.teal,
-                                        fontFamily: 'Manrope',
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w800,
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(bottom: 40),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 28),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(_chapterRef,
+                          style: PgText.serif(
+                              size: 26, weight: FontWeight.w600)),
+                      const SizedBox(height: 4),
+                      Text('King James Version',
+                          style: TextStyle(
+                              fontSize: 13,
+                              color: c.dim,
+                              fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 22),
+                      if (verses.isEmpty)
+                        Text('This chapter is unavailable.',
+                            style: TextStyle(fontSize: 14, color: c.dim))
+                      else
+                        for (var i = 0; i < verses.length; i++)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 14),
+                            child: GestureDetector(
+                              onTap: () =>
+                                  _openVerseActions(ref, i + 1, verses[i]),
+                              child: Container(
+                                padding: highlightedVerses.contains(i + 1)
+                                    ? const EdgeInsets.symmetric(
+                                        horizontal: 4, vertical: 2)
+                                    : EdgeInsets.zero,
+                                decoration: highlightedVerses.contains(i + 1)
+                                    ? BoxDecoration(
+                                        color: c.amberSoft,
+                                        borderRadius:
+                                            BorderRadius.circular(6))
+                                    : null,
+                                child: RichText(
+                                  text: TextSpan(
+                                    children: [
+                                      TextSpan(
+                                        text: '${i + 1} ',
+                                        style: TextStyle(
+                                          color:
+                                              highlightedVerses.contains(i + 1)
+                                                  ? c.amber
+                                                  : c.teal,
+                                          fontFamily: 'Manrope',
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w800,
+                                        ),
                                       ),
-                                    ),
-                                    TextSpan(
-                                      text: verses[i],
-                                      style: PgText.serif(
-                                          size: 18.5,
-                                          height: 1.85,
-                                          color: c.text),
-                                    ),
-                                  ],
+                                      TextSpan(
+                                        text: verses[i],
+                                        style: PgText.serif(
+                                            size: 18.5,
+                                            height: 1.85,
+                                            color: c.text),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         );
       },
     );

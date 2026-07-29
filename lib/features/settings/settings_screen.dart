@@ -73,20 +73,6 @@ class SettingsScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                TextButton(
-                  onPressed: () {},
-                  style: TextButton.styleFrom(
-                    backgroundColor: c.surface2,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(color: c.line)),
-                  ),
-                  child: Text('Edit',
-                      style: TextStyle(
-                          color: c.dim,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700)),
-                ),
               ],
             ),
           ),
@@ -166,7 +152,7 @@ class SettingsScreen extends ConsumerWidget {
                 _LinkRow(
                     icon: Icons.help_outline_rounded,
                     label: 'About & help',
-                    onTap: () {},
+                    onTap: () => context.push('/about'),
                     showBorder: false),
               ],
             ),

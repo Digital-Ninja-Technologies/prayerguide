@@ -32,6 +32,7 @@ import '../../features/room/room_screen.dart';
 import '../../features/scripture/scripture_screen.dart';
 import '../../features/settings/insights_screen.dart';
 import '../../features/settings/notifications_screen.dart';
+import '../../features/settings/about_help_screen.dart';
 import '../../features/settings/privacy_screen.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/settings/upgrade_screen.dart';
@@ -111,6 +112,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           path: '/notifications',
           builder: (c, s) => const NotificationsScreen()),
       GoRoute(path: '/privacy', builder: (c, s) => const PrivacyScreen()),
+      GoRoute(path: '/about', builder: (c, s) => const AboutHelpScreen()),
       GoRoute(path: '/upgrade', builder: (c, s) => const UpgradeScreen()),
       GoRoute(path: '/insights', builder: (c, s) => const InsightsScreen()),
       GoRoute(

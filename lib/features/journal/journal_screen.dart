@@ -11,7 +11,7 @@ import '../../state/journal_provider.dart';
 import '../../state/repo_providers.dart';
 import '../../widgets/pg_button.dart';
 import '../../widgets/pg_card.dart';
-import '../../widgets/pg_passphrase_unlock.dart';
+import '../../widgets/pg_cloud_restore.dart';
 import '../../widgets/pg_pill.dart';
 
 const _types = ['All', 'Gratitude', 'Request', 'Testimony', 'Reflection'];
@@ -93,9 +93,9 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
           Expanded(
             child: entriesAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, st) => e is PassphraseRequiredException
+              error: (e, st) => e is CloudRestoreRequiredException
                   ? Center(
-                      child: PgPassphraseUnlock(
+                      child: PgCloudRestoreUnlock(
                         uid: ref.read(currentUserIdProvider)!,
                         onUnlocked: () => ref.invalidate(journalProvider),
                       ),

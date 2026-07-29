@@ -6,7 +6,7 @@ import '../../core/security/encryption_service.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../state/journal_provider.dart';
 import '../../state/repo_providers.dart';
-import '../../widgets/pg_passphrase_unlock.dart';
+import '../../widgets/pg_cloud_restore.dart';
 import '../../widgets/pg_pill.dart';
 import '../../widgets/pg_text_field.dart';
 
@@ -45,7 +45,7 @@ class _JournalNewScreenState extends ConsumerState<JournalNewScreen> {
           .read(journalProvider.notifier)
           .add(type: _type, title: title, body: body);
       if (mounted) context.pop(true);
-    } on PassphraseRequiredException {
+    } on CloudRestoreRequiredException {
       if (mounted) setState(() => _needsUnlock = true);
     } catch (e) {
       if (mounted) {
@@ -103,7 +103,7 @@ class _JournalNewScreenState extends ConsumerState<JournalNewScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                 child: _needsUnlock
-                    ? PgPassphraseUnlock(
+                    ? PgCloudRestoreUnlock(
                         uid: ref.read(currentUserIdProvider)!,
                         onUnlocked: () {
                           setState(() => _needsUnlock = false);

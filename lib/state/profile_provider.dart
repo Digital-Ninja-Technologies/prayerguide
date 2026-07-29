@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/models/pg_profile.dart';
+import 'notifications_provider.dart';
 import 'repo_providers.dart';
 
 class ProfileNotifier extends AsyncNotifier<PgProfile> {
@@ -30,6 +31,7 @@ class ProfileNotifier extends AsyncNotifier<PgProfile> {
     await repo.logSession(durationSeconds: durationSeconds, category: category);
     ref.invalidateSelf();
     await future;
+    await ref.read(notificationsProvider.notifier).reapply();
   }
 }
 

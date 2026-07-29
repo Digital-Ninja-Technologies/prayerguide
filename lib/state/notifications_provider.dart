@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/notifications/notification_scheduler.dart';
 import '../data/models/notification_prefs.dart';
 import '../data/repositories/notifications_repository.dart';
+import 'profile_provider.dart';
 import 'repo_providers.dart';
 
 final notificationsRepositoryProvider = Provider((ref) => NotificationsRepository());
@@ -10,15 +14,31 @@ class NotificationsNotifier extends AsyncNotifier<NotificationPrefs> {
   @override
   Future<NotificationPrefs> build() async {
     ref.watch(currentUserIdProvider);
-    return ref.read(notificationsRepositoryProvider).fetch();
+    final prefs = await ref.read(notificationsRepositoryProvider).fetch();
+    unawaited(_applyToScheduler(prefs));
+    return prefs;
+  }
+
+  Future<void> _applyToScheduler(NotificationPrefs prefs) async {
+    final lastPrayedOn = ref.read(profileProvider).valueOrNull?.lastPrayedOn;
+    await NotificationScheduler.instance.applyPrefs(prefs, lastPrayedOn: lastPrayedOn);
+  }
+
+  /// Re-applies the current prefs to the scheduler — e.g. after a prayer
+  /// session completes, so today's streak-protection nudge is cancelled.
+  Future<void> reapply() async {
+    final prefs = state.value;
+    if (prefs != null) await _applyToScheduler(prefs);
   }
 
   Future<void> _patch(Map<String, dynamic> patch, NotificationPrefs Function(NotificationPrefs) apply) async {
     final current = state.value;
     if (current == null) return;
-    state = AsyncData(apply(current));
+    final next = apply(current);
+    state = AsyncData(next);
     try {
       await ref.read(notificationsRepositoryProvider).update(patch);
+      await _applyToScheduler(next);
     } catch (_) {
       state = AsyncData(current);
       rethrow;
