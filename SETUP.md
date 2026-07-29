@@ -280,9 +280,21 @@ WebRTC/SFU provider (LiveKit, Agora, Daily.co) — presence alone doesn't
 carry audio, and wiring that in is a separate, larger integration
 requiring a provider account/API key.
 
-**UI-complete, local/mock state (matches the design, not yet backed by a
-table read/write):** Upgrade/paywall (no real billing — needs RevenueCat
-or App Store/Play Billing).
+**The 7-day free trial is real, actual paid billing is not**: "Start
+7-day free trial" on the Upgrade screen writes a real row to the
+`subscriptions` table (`tier: 'premium', provider: 'trial', renews_at:
+now + 7 days`) via `lib/state/subscription_provider.dart` — no payment
+method is collected, since there's no billing integration to collect one
+into. The Upgrade screen and Settings' premium card both show real trial
+status ("Trial active until `<date>`"), computed live by comparing
+`renews_at` to now (nothing flips `tier` back to `'free'` automatically
+without a server job, so this app computes "is it actually still active"
+on every read instead of trusting a stale flag). Once the trial's
+`renews_at` passes, premium access simply lapses — there's no charge,
+and nothing to cancel. Monthly/annual prices shown are still just display
+copy: **UI-complete, local/mock state:** actually charging for a
+subscription needs RevenueCat or native App Store/Play Billing, which
+isn't wired up.
 
 **Needs platform work beyond this codebase (per the PRD's own risk
 callouts):** Focus Mode's actual app-blocking (iOS Screen Time entitlement,

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
+import '../../data/models/subscription_status.dart';
 import '../../state/profile_provider.dart';
 import '../../state/repo_providers.dart';
+import '../../state/subscription_provider.dart';
 import '../../state/theme_provider.dart';
 import '../../widgets/pg_toggle.dart';
 
@@ -77,7 +80,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 22),
-          _PremiumCard(onTap: () => context.push('/upgrade')),
+          _PremiumCard(onTap: () => context.push('/upgrade'), sub: ref.watch(subscriptionProvider).valueOrNull),
           const SizedBox(height: 22),
           Text('NOTIFICATIONS',
               style: PgText.sans(
@@ -186,12 +189,18 @@ class SettingsScreen extends ConsumerWidget {
 }
 
 class _PremiumCard extends StatelessWidget {
-  const _PremiumCard({required this.onTap});
+  const _PremiumCard({required this.onTap, required this.sub});
   final VoidCallback onTap;
+  final SubscriptionStatus? sub;
 
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
+    final active = sub?.isActive ?? false;
+    final title = active ? (sub!.isTrial ? 'Trial active' : 'Premium active') : 'Go Premium';
+    final subtitle = active && sub!.isTrial && sub!.renewsAt != null
+        ? 'Until ${DateFormat('MMM d').format(sub!.renewsAt!)} · Audio Bible, growth insights, unlimited companions'
+        : 'Audio Bible, growth insights, unlimited companions';
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -219,19 +228,16 @@ class _PremiumCard extends StatelessWidget {
                       end: Alignment.bottomRight),
                   borderRadius: BorderRadius.circular(13),
                 ),
-                child: const Icon(Icons.workspace_premium_outlined,
-                    color: Color(0xFF2A1A05)),
+                child: Icon(active ? Icons.check_rounded : Icons.workspace_premium_outlined,
+                    color: const Color(0xFF2A1A05)),
               ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Go Premium',
-                        style: TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.w800)),
-                    Text('Audio Bible, growth insights, unlimited companions',
-                        style: TextStyle(fontSize: 12.5, color: c.dim)),
+                    Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                    Text(subtitle, style: TextStyle(fontSize: 12.5, color: c.dim)),
                   ],
                 ),
               ),

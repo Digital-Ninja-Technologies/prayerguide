@@ -105,12 +105,14 @@ Fasting, Focus Mode session logging, Challenges, Companion/Invite, Guide
 Library, real scheduled Notifications, Groups, Prayer Together, and Audio
 Prayer Room presence (all three of the latter live, via Supabase Realtime).
 
-What's left as UI-only: the Upgrade/paywall screen (needs RevenueCat or
-native store billing). Two things are real in part: Audio Prayer Room's
-member presence/raised-hands are live, but nobody can actually hear each
-other yet (needs a WebRTC/SFU provider); Focus Mode's session *tracking*
-is real but actual app-*blocking* needs platform entitlements (iOS Screen
-Time, Android Accessibility Service — both common store-rejection causes)
+Three things are real in part: the Upgrade screen's 7-day free trial
+actually grants premium (tracked in `subscriptions`, no payment
+collected) and expires on its own, but real paid billing needs RevenueCat
+or native store billing; Audio Prayer Room's member presence/raised-hands
+are live, but nobody can actually hear each other yet (needs a WebRTC/SFU
+provider); Focus Mode's session *tracking* is real but actual
+app-*blocking* needs platform entitlements (iOS Screen Time, Android
+Accessibility Service — both common store-rejection causes)
 beyond this codebase.
 
 See **[SETUP.md](SETUP.md)** for the full, maintained breakdown of what's
