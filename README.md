@@ -100,13 +100,16 @@ Google/Apple auth — is in **[SETUP.md](SETUP.md)**.
 
 Nearly everything is wired to Supabase now — auth, Journal, Prayer
 Requests (with companion sharing), Profile/Settings, Prayer Streak, Bible
-reader/notes/plans/devotional, Growth Insights, Fasting, Focus Mode session
-logging, Challenges, Companion/Invite, Guide Library, Notifications,
-Groups, and Prayer Together (live, via Supabase Realtime Presence).
+reader/notes/plans/devotional, Scripture of the Day, Growth Insights,
+Fasting, Focus Mode session logging, Challenges, Companion/Invite, Guide
+Library, real scheduled Notifications, Groups, Prayer Together, and Audio
+Prayer Room presence (all three of the latter live, via Supabase Realtime).
 
-What's left as UI-only: Audio Prayer Room (needs WebRTC/SFU) and the
-Upgrade/paywall screen (needs RevenueCat or native store billing). Focus
-Mode's actual app-*blocking* also needs platform entitlements (iOS Screen
+What's left as UI-only: the Upgrade/paywall screen (needs RevenueCat or
+native store billing). Two things are real in part: Audio Prayer Room's
+member presence/raised-hands are live, but nobody can actually hear each
+other yet (needs a WebRTC/SFU provider); Focus Mode's session *tracking*
+is real but actual app-*blocking* needs platform entitlements (iOS Screen
 Time, Android Accessibility Service — both common store-rejection causes)
 beyond this codebase.
 

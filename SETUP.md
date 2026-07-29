@@ -226,9 +226,11 @@ now:
 - **Notifications** — all five toggles (morning/evening prayer, scripture
   nudge, streak protection, companion check-ins) read and write the
   existing `notification_prefs` table in real time; reminder/quiet-hours
-  times shown are the real stored values. This only persists the
-  *preference*; actually scheduling local/push notifications from those
-  preferences is still unbuilt (needs a notifications/scheduling package).
+  times shown are the real stored values. Morning/evening/scripture/streak-
+  protection also schedule real local notifications now (see the
+  Notifications section further up) — only companion check-ins remain
+  preference-only, since that one needs a server push, not a local
+  schedule.
 - **Groups** — real `groups` + `group_members` tables (already scaffolded
   in `0001_init.sql`); migration `0008` adds a shareable invite code +
   `redeem_group_invite` RPC (same pattern as Companion invites, needed
@@ -256,13 +258,35 @@ audio is playing; tapping the same pill again stops it. To swap or add a
 track, drop a file in `assets/audio/` and update the `_fileFor` map in
 `ambience_player.dart` plus the pill list in `timer_screen.dart`.
 
+**Scripture of the Day is real**: both the Home screen card and the full
+`/scripture` screen pull from a 14-entry library
+(`lib/data/scripture/scripture_of_day_library.dart`) cycled by
+day-of-year (offset from the Devotional's own rotation so they don't show
+the same verse on the same day), with verse text pulled live from the
+bundled KJV — not a single hardcoded verse and a literally hardcoded
+"JULY 21" date. Home's Devotional/Challenges/Companion mini-tiles and the
+"Start today's prayer" card also now show real data (today's devotional
+title, your actual active-challenge day count, your real companion's
+name, real time-of-day) instead of hardcoded placeholders.
+
+**Audio Prayer Room is real for presence, not for voice**: joining a
+room (`/room?groupId=...`, reachable from a group's "Join live room"
+button in Groups) opens a Supabase Realtime Presence channel keyed to
+that group (`lib/features/room/room_screen.dart`, same technique as
+Prayer Together) — the member grid, count, host badge, and raised hands
+are all real and synced live across everyone in the room. What's
+*not* real: nobody can actually hear each other. Real voice needs a
+WebRTC/SFU provider (LiveKit, Agora, Daily.co) — presence alone doesn't
+carry audio, and wiring that in is a separate, larger integration
+requiring a provider account/API key.
+
 **UI-complete, local/mock state (matches the design, not yet backed by a
-table read/write):** Audio Room, Upgrade/paywall (no real billing — needs
-RevenueCat or App Store/Play Billing).
+table read/write):** Upgrade/paywall (no real billing — needs RevenueCat
+or App Store/Play Billing).
 
 **Needs platform work beyond this codebase (per the PRD's own risk
 callouts):** Focus Mode's actual app-blocking (iOS Screen Time entitlement,
 Android Accessibility Service — both are common App/Play Store rejection
 causes; apply for the entitlement before committing to a release), Audio
-Prayer Rooms (WebRTC/audio SFU + moderation), and in-app purchases for the
-Upgrade screen.
+Prayer Rooms' actual voice transport (WebRTC/audio SFU + moderation — see
+above), and in-app purchases for the Upgrade screen.

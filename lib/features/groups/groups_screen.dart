@@ -154,6 +154,18 @@ class GroupsScreen extends ConsumerWidget {
             SizedBox(
               width: double.infinity,
               child: PgButton(
+                label: 'Join live room',
+                icon: const Icon(Icons.podcasts_rounded, size: 17, color: Colors.white),
+                onPressed: () {
+                  Navigator.of(sheetContext).pop();
+                  context.push('/room?groupId=${group.id}');
+                },
+              ),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: PgButton(
                 label: 'Leave group',
                 variant: PgButtonVariant.outline,
                 onPressed: () async {

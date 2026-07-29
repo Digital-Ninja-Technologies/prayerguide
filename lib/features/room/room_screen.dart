@@ -1,19 +1,125 @@
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'dart:async';
 
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../../core/supabase/supabase_config.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
+import '../../state/groups_provider.dart';
+import '../../state/profile_provider.dart';
 import '../../widgets/pg_back_button.dart';
 
-class RoomScreen extends StatelessWidget {
-  const RoomScreen({super.key});
+class RoomScreen extends ConsumerWidget {
+  const RoomScreen({super.key, required this.groupId});
+  final String groupId;
 
-  static const _members = [
-    ('Grace', true, true),
-    ('David', false, false),
-    ('Maria', false, false),
-    ('John', false, false),
-  ];
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final groupsAsync = ref.watch(groupsProvider);
+    final groups = groupsAsync.valueOrNull;
+    final group = groups == null ? null : (groups.where((g) => g.id == groupId).isEmpty ? null : groups.firstWhere((g) => g.id == groupId));
+    final myName = ref.watch(profileProvider).valueOrNull?.name ?? 'You';
+
+    if (groupId.isEmpty || (groupsAsync.hasValue && group == null)) {
+      return Scaffold(
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(28),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text("Couldn't find that room.", textAlign: TextAlign.center),
+                const SizedBox(height: 16),
+                TextButton(onPressed: () => context.pop(), child: const Text('Close')),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+    if (group == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    return _RoomPresence(groupId: groupId, groupName: group.name, createdBy: group.createdBy, myName: myName);
+  }
+}
+
+class _RoomPresence extends StatefulWidget {
+  const _RoomPresence({required this.groupId, required this.groupName, required this.createdBy, required this.myName});
+  final String groupId;
+  final String groupName;
+  final String createdBy;
+  final String myName;
+
+  @override
+  State<_RoomPresence> createState() => _RoomPresenceState();
+}
+
+class _Participant {
+  _Participant({required this.uid, required this.name, required this.handRaised});
+  final String uid;
+  final String name;
+  final bool handRaised;
+}
+
+class _RoomPresenceState extends State<_RoomPresence> {
+  late final String _myUid = supa.auth.currentUser!.id;
+  late final RealtimeChannel _channel;
+  bool _handRaised = false;
+  List<_Participant> _participants = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _channel = supa.channel('room-${widget.groupId}', opts: const RealtimeChannelConfig(enabled: true));
+    _channel.onPresenceSync((_) => _handleSync()).subscribe((status, error) async {
+      if (status == RealtimeSubscribeStatus.subscribed) {
+        await _track();
+      }
+    });
+  }
+
+  Future<void> _track() {
+    return _channel.track({'user_id': _myUid, 'name': widget.myName, 'hand_raised': _handRaised});
+  }
+
+  void _handleSync() {
+    final seen = <String, _Participant>{};
+    for (final entry in _channel.presenceState()) {
+      for (final p in entry.presences) {
+        final uid = p.payload['user_id'] as String?;
+        if (uid == null) continue;
+        seen[uid] = _Participant(
+          uid: uid,
+          name: p.payload['name'] as String? ?? '?',
+          handRaised: p.payload['hand_raised'] as bool? ?? false,
+        );
+      }
+    }
+    if (!mounted) return;
+    setState(() => _participants = seen.values.toList()..sort((a, b) => a.name.compareTo(b.name)));
+  }
+
+  Future<void> _toggleHand() async {
+    setState(() => _handRaised = !_handRaised);
+    await _track();
+  }
+
+  Future<void> _leave() async {
+    await _channel.untrack();
+    await supa.removeChannel(_channel);
+    if (mounted) context.pop();
+  }
+
+  @override
+  void dispose() {
+    _channel.untrack();
+    supa.removeChannel(_channel);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +142,7 @@ class RoomScreen extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      PgBackButton(onTap: () => context.pop()),
+                      PgBackButton(onTap: _leave),
                       Row(
                         children: [
                           Container(width: 8, height: 8, decoration: BoxDecoration(color: c.teal, shape: BoxShape.circle)),
@@ -53,21 +159,31 @@ class RoomScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Tuesday Small Group', style: PgText.serif(size: 22, weight: FontWeight.w600)),
+                      Text(widget.groupName, style: PgText.serif(size: 22, weight: FontWeight.w600)),
                       const SizedBox(height: 4),
-                      Text('9 in the room · hosted by Grace', style: TextStyle(fontSize: 13, color: c.dim)),
-                      const SizedBox(height: 22),
-                      GridView.count(
-                        crossAxisCount: 4,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        mainAxisSpacing: 16,
-                        crossAxisSpacing: 10,
-                        childAspectRatio: 0.75,
-                        children: [
-                          for (final m in _members) _MemberAvatar(name: m.$1, host: m.$2, speaking: m.$3),
-                        ],
+                      Text(
+                        '${_participants.length} in the room',
+                        style: TextStyle(fontSize: 13, color: c.dim),
                       ),
+                      const SizedBox(height: 22),
+                      if (_participants.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          child: Text('Waiting for others to join…', style: TextStyle(fontSize: 13.5, color: c.faint)),
+                        )
+                      else
+                        GridView.count(
+                          crossAxisCount: 4,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          mainAxisSpacing: 16,
+                          crossAxisSpacing: 10,
+                          childAspectRatio: 0.75,
+                          children: [
+                            for (final p in _participants)
+                              _MemberAvatar(name: p.name, host: p.uid == widget.createdBy, handRaised: p.handRaised),
+                          ],
+                        ),
                     ],
                   ),
                 ),
@@ -78,20 +194,22 @@ class RoomScreen extends StatelessWidget {
                     children: [
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: () {},
+                          onPressed: _toggleHand,
                           style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: c.line),
+                            side: BorderSide(color: _handRaised ? c.teal : c.line),
+                            backgroundColor: _handRaised ? c.tealSoft : null,
                             padding: const EdgeInsets.all(15),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                           ),
-                          icon: Icon(Icons.back_hand_outlined, size: 18, color: c.text),
-                          label: Text('Raise hand', style: TextStyle(color: c.text, fontSize: 14.5, fontWeight: FontWeight.w700)),
+                          icon: Icon(Icons.back_hand_outlined, size: 18, color: _handRaised ? c.teal : c.text),
+                          label: Text(_handRaised ? 'Hand raised' : 'Raise hand',
+                              style: TextStyle(color: _handRaised ? c.teal : c.text, fontSize: 14.5, fontWeight: FontWeight.w700)),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: ElevatedButton(
-                          onPressed: () => context.pop(),
+                          onPressed: _leave,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: c.danger,
                             padding: const EdgeInsets.all(15),
@@ -113,10 +231,10 @@ class RoomScreen extends StatelessWidget {
 }
 
 class _MemberAvatar extends StatelessWidget {
-  const _MemberAvatar({required this.name, required this.host, required this.speaking});
+  const _MemberAvatar({required this.name, required this.host, required this.handRaised});
   final String name;
   final bool host;
-  final bool speaking;
+  final bool handRaised;
 
   @override
   Widget build(BuildContext context) {
@@ -133,20 +251,21 @@ class _MemberAvatar extends StatelessWidget {
                 shape: BoxShape.circle,
                 color: host ? null : c.surface2,
                 gradient: host ? LinearGradient(colors: [c.teal, c.tealDeep], begin: Alignment.topLeft, end: Alignment.bottomRight) : null,
-                border: speaking ? Border.all(color: c.teal, width: 2) : null,
+                border: handRaised ? Border.all(color: c.amber, width: 2) : null,
               ),
               alignment: Alignment.center,
-              child: Text(name[0], style: TextStyle(fontWeight: FontWeight.w800, color: host ? c.onTeal : c.dim)),
+              child: Text(name.isNotEmpty ? name[0].toUpperCase() : '?',
+                  style: TextStyle(fontWeight: FontWeight.w800, color: host ? c.onTeal : c.dim)),
             ),
-            if (speaking)
+            if (handRaised)
               Positioned(
                 bottom: -2,
                 right: -2,
                 child: Container(
                   width: 20,
                   height: 20,
-                  decoration: BoxDecoration(color: c.teal, shape: BoxShape.circle, border: Border.all(color: c.bg, width: 2)),
-                  child: Icon(Icons.mic_rounded, size: 10, color: c.onTeal),
+                  decoration: BoxDecoration(color: c.amber, shape: BoxShape.circle, border: Border.all(color: c.bg, width: 2)),
+                  child: Icon(Icons.back_hand_rounded, size: 10, color: c.onAmber),
                 ),
               ),
           ],

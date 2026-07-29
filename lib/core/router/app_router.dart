@@ -143,7 +143,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/together', builder: (c, s) => const TogetherScreen()),
       GoRoute(path: '/groups', builder: (c, s) => const GroupsScreen()),
       GoRoute(path: '/groups/new', builder: (c, s) => const GroupNewScreen()),
-      GoRoute(path: '/room', builder: (c, s) => const RoomScreen()),
+      GoRoute(
+        path: '/room',
+        builder: (c, s) => RoomScreen(groupId: s.uri.queryParameters['groupId'] ?? ''),
+      ),
     ],
   );
 });

@@ -1,24 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
+import '../../data/scripture/scripture_of_day_library.dart';
+import '../../state/bible_library_provider.dart';
 import '../../widgets/pg_button.dart';
 import '../../widgets/pg_header.dart';
 
-class ScriptureScreen extends StatelessWidget {
+class ScriptureScreen extends ConsumerWidget {
   const ScriptureScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final c = context.colors;
+    final today = DateTime.now();
+    final entry = scriptureOfDayForDate(today);
+    final libraryAsync = ref.watch(bibleLibraryProvider);
+
     return Scaffold(
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(26, 6, 26, 40),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            PgHeader(eyebrow: 'JULY 21', onBack: () => context.pop()),
+            PgHeader(eyebrow: DateFormat('MMMM d').format(today).toUpperCase(), onBack: () => context.pop()),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 10),
               child: Column(
@@ -27,29 +35,31 @@ class ScriptureScreen extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: PgText.serif(size: 11, letterSpacing: 3, color: c.teal)),
                   const SizedBox(height: 20),
-                  Text(
-                    '"Be still, and know that I am God: I will be exalted among the heathen, I will be exalted in the earth."',
-                    textAlign: TextAlign.center,
-                    style: PgText.serif(size: 27, weight: FontWeight.w500, height: 1.5),
+                  libraryAsync.when(
+                    loading: () => const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    error: (e, st) => Text('Could not load scripture text.', style: TextStyle(color: c.danger)),
+                    data: (library) {
+                      final verses = library.versesFor(entry.book, entry.chapter);
+                      final text = verses.isEmpty ? '' : verses.sublist(entry.verseStart - 1, entry.verseEnd).join(' ');
+                      return Text(
+                        '"$text"',
+                        textAlign: TextAlign.center,
+                        style: PgText.serif(size: 27, weight: FontWeight.w500, height: 1.5),
+                      );
+                    },
                   ),
                   const SizedBox(height: 18),
-                  Text('Psalm 46:10 · KJV', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: c.amber)),
+                  Text('${entry.reference} · KJV', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: c.amber)),
                 ],
               ),
             ),
             const SizedBox(height: 14),
-            _Block(
-              label: 'EXPLANATION',
-              labelColor: c.teal,
-              body:
-                  "In the middle of chaos, God's invitation is not to strive harder but to grow still. Stillness is where we remember who holds the world — and that it isn't us.",
-            ),
+            _Block(label: 'EXPLANATION', labelColor: c.teal, body: entry.explanation),
             const SizedBox(height: 14),
-            _Block(
-              label: 'PRAYER FOCUS',
-              labelColor: c.amber,
-              body: 'Ask God to quiet an anxious part of your heart today, and to help you rest in his authority.',
-            ),
+            _Block(label: 'PRAYER FOCUS', labelColor: c.amber, body: entry.prayerFocus),
             const SizedBox(height: 14),
             Container(
               padding: const EdgeInsets.all(20),
@@ -64,8 +74,7 @@ class ScriptureScreen extends StatelessWidget {
                   Text('REFLECTION QUESTION',
                       style: PgText.sans(size: 12, weight: FontWeight.w700, color: c.dim, letterSpacing: 1)),
                   const SizedBox(height: 10),
-                  Text('What are you trying to control that you could hand to God today?',
-                      style: PgText.serif(size: 18, height: 1.5)),
+                  Text(entry.question, style: PgText.serif(size: 18, height: 1.5)),
                 ],
               ),
             ),

@@ -5,6 +5,13 @@ import 'package:intl/intl.dart';
 
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
+import '../../data/devotional/devotional_library.dart';
+import '../../data/models/challenge_progress.dart';
+import '../../data/scripture/scripture_of_day_library.dart';
+import '../../data/static/pg_content.dart';
+import '../../state/bible_library_provider.dart';
+import '../../state/challenge_provider.dart';
+import '../../state/companion_provider.dart';
 import '../../state/notifications_provider.dart';
 import '../../state/profile_provider.dart';
 import '../../widgets/pg_card.dart';
@@ -25,7 +32,18 @@ class HomeScreen extends ConsumerWidget {
     final name = profileAsync.valueOrNull?.name;
     final greetingName =
         (name == null || name.isEmpty) ? 'friend' : name.split(' ').first;
-    final dateStr = DateFormat('EEEE · MMMM d').format(DateTime.now());
+    final now = DateTime.now();
+    final dateStr = DateFormat('EEEE · MMMM d').format(now);
+    final timeOfDay = now.hour < 12 ? 'Morning' : (now.hour < 18 ? 'Afternoon' : 'Evening');
+    final scriptureEntry = scriptureOfDayForDate(now);
+    final devotionalEntry = devotionalForDate(now);
+    final libraryAsync = ref.watch(bibleLibraryProvider);
+    final companionAsync = ref.watch(companionProvider);
+    final companionName = companionAsync.valueOrNull?.companion?.otherName;
+    final challengesAsync = ref.watch(challengeProvider);
+    final activeChallenge = challengesAsync.valueOrNull
+        ?.where((p) => p.active && p.currentDay < p.totalDays)
+        .fold<ChallengeProgress?>(null, (best, p) => best == null || p.startedAt.isAfter(best.startedAt) ? p : best);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(22, 6, 22, 34),
@@ -105,11 +123,20 @@ class HomeScreen extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 14),
-                Text('"Be still, and know that I am God."',
-                    style: PgText.serif(
-                        size: 22, weight: FontWeight.w500, height: 1.4)),
+                libraryAsync.when(
+                  loading: () => const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2)),
+                  error: (e, st) => Text('Could not load scripture text.', style: TextStyle(color: c.danger)),
+                  data: (library) {
+                    final verses = library.versesFor(scriptureEntry.book, scriptureEntry.chapter);
+                    final text = verses.isEmpty
+                        ? ''
+                        : verses.sublist(scriptureEntry.verseStart - 1, scriptureEntry.verseEnd).join(' ');
+                    return Text('"$text"',
+                        style: PgText.serif(size: 22, weight: FontWeight.w500, height: 1.4));
+                  },
+                ),
                 const SizedBox(height: 12),
-                Text('Psalm 46:10',
+                Text(scriptureEntry.reference,
                     style: TextStyle(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w600,
@@ -147,7 +174,7 @@ class HomeScreen extends ConsumerWidget {
                               fontWeight: FontWeight.w800,
                               color: c.onTeal)),
                       const SizedBox(height: 3),
-                      Text('Morning · Thanksgiving · 8 min',
+                      Text('$timeOfDay · ${guideCategories.first.name} · ${guideCategories.first.duration}',
                           style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
@@ -217,21 +244,23 @@ class HomeScreen extends ConsumerWidget {
                   icon: Icons.menu_book_outlined,
                   color: c.amber,
                   title: 'Devotional',
-                  subtitle: 'Today · Anchored',
+                  subtitle: 'Today · ${devotionalEntry.title}',
                   onTap: () => context.push('/devotional'),
                 ),
                 _MiniTile(
                   icon: Icons.emoji_events_outlined,
                   color: c.teal,
                   title: 'Challenges',
-                  subtitle: '40 Days · Day 12',
+                  subtitle: activeChallenge == null
+                      ? 'Start a challenge'
+                      : '${activeChallenge.totalDays} Days · Day ${activeChallenge.currentDay + 1}',
                   onTap: () => context.push('/challenges'),
                 ),
                 _MiniTile(
                   icon: Icons.diversity_1_outlined,
                   color: c.teal,
                   title: 'Companion',
-                  subtitle: 'Pray with David',
+                  subtitle: companionName == null ? 'Invite a companion' : 'Pray with $companionName',
                   onTap: () => context.push('/companion'),
                   last: true,
                 ),
