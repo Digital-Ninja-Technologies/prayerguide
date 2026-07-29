@@ -14,41 +14,32 @@ import '../../state/profile_provider.dart';
 import '../../widgets/pg_back_button.dart';
 
 class TogetherScreen extends ConsumerWidget {
-  const TogetherScreen({super.key});
+  const TogetherScreen({super.key, required this.companionRowId});
+  final String companionRowId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final companionAsync = ref.watch(companionProvider);
+    final detailAsync = ref.watch(companionDetailProvider(companionRowId));
     final myName = ref.watch(profileProvider).valueOrNull?.name ?? 'You';
 
     return Scaffold(
-      body: companionAsync.when(
+      body: detailAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, st) => _NoCompanionState(
-          message: 'Could not load your companion.\n$e',
+          message: 'Could not load this companion.\n$e',
           onClose: () => context.pop(),
         ),
-        data: (state) {
-          final companion = state.companion;
-          if (companion == null) {
-            return _NoCompanionState(
-              message: "You'll need a prayer companion before you can pray together live.",
-              onClose: () => context.pop(),
-              onInvite: () => context.pushReplacement('/companion/invite'),
-            );
-          }
-          return _TogetherSession(companion: companion, myName: myName);
-        },
+        data: (state) =>
+            _TogetherSession(companion: state.companion, myName: myName),
       ),
     );
   }
 }
 
 class _NoCompanionState extends StatelessWidget {
-  const _NoCompanionState({required this.message, required this.onClose, this.onInvite});
+  const _NoCompanionState({required this.message, required this.onClose});
   final String message;
   final VoidCallback onClose;
-  final VoidCallback? onInvite;
 
   @override
   Widget build(BuildContext context) {
@@ -61,10 +52,10 @@ class _NoCompanionState extends StatelessWidget {
           children: [
             Icon(Icons.diversity_1_outlined, size: 40, color: c.dim),
             const SizedBox(height: 16),
-            Text(message, textAlign: TextAlign.center, style: TextStyle(fontSize: 15, height: 1.6, color: c.dim)),
+            Text(message,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 15, height: 1.6, color: c.dim)),
             const SizedBox(height: 22),
-            if (onInvite != null)
-              TextButton(onPressed: onInvite, child: const Text('Invite a companion')),
             TextButton(onPressed: onClose, child: const Text('Close')),
           ],
         ),
@@ -99,7 +90,9 @@ class _TogetherSessionState extends ConsumerState<_TogetherSession> {
       'together-${widget.companion.companionRowId}',
       opts: const RealtimeChannelConfig(enabled: true),
     );
-    _channel.onPresenceSync((_) => _handleSync()).subscribe((status, error) async {
+    _channel
+        .onPresenceSync((_) => _handleSync())
+        .subscribe((status, error) async {
       if (status == RealtimeSubscribeStatus.subscribed) {
         await _channel.track({
           'user_id': _myUid,
@@ -116,7 +109,8 @@ class _TogetherSessionState extends ConsumerState<_TogetherSession> {
     for (final entry in _channel.presenceState()) {
       for (final p in entry.presences) {
         final uid = p.payload['user_id'] as String?;
-        final joinedAt = DateTime.tryParse(p.payload['joined_at'] as String? ?? '');
+        final joinedAt =
+            DateTime.tryParse(p.payload['joined_at'] as String? ?? '');
         if (uid == _myUid) {
           mine = joinedAt;
         } else if (uid == widget.companion.otherUserId) {
@@ -135,7 +129,8 @@ class _TogetherSessionState extends ConsumerState<_TogetherSession> {
   void _syncTicker() {
     _ticker?.cancel();
     if (!_bothPresent) return;
-    final start = _myJoinedAt!.isAfter(_theirJoinedAt!) ? _myJoinedAt! : _theirJoinedAt!;
+    final start =
+        _myJoinedAt!.isAfter(_theirJoinedAt!) ? _myJoinedAt! : _theirJoinedAt!;
     void tick() {
       if (!mounted) return;
       setState(() => _elapsed = DateTime.now().difference(start));
@@ -169,15 +164,21 @@ class _TogetherSessionState extends ConsumerState<_TogetherSession> {
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    final myInitial = widget.myName.isNotEmpty ? widget.myName[0].toUpperCase() : '?';
-    final theirInitial = widget.companion.otherName.isNotEmpty ? widget.companion.otherName[0].toUpperCase() : '?';
+    final myInitial =
+        widget.myName.isNotEmpty ? widget.myName[0].toUpperCase() : '?';
+    final theirInitial = widget.companion.otherName.isNotEmpty
+        ? widget.companion.otherName[0].toUpperCase()
+        : '?';
 
     return Stack(
       children: [
         Positioned.fill(
           child: DecoratedBox(
             decoration: BoxDecoration(
-              gradient: RadialGradient(center: const Alignment(0, -0.5), radius: 1, colors: [c.tealSoft, Colors.transparent]),
+              gradient: RadialGradient(
+                  center: const Alignment(0, -0.5),
+                  radius: 1,
+                  colors: [c.tealSoft, Colors.transparent]),
             ),
           ),
         ),
@@ -191,14 +192,25 @@ class _TogetherSessionState extends ConsumerState<_TogetherSession> {
                   children: [
                     PgBackButton(icon: Icons.close_rounded, onTap: _leave),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(color: c.tealSoft, borderRadius: BorderRadius.circular(100)),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                          color: c.tealSoft,
+                          borderRadius: BorderRadius.circular(100)),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Container(width: 8, height: 8, decoration: BoxDecoration(color: c.teal, shape: BoxShape.circle)),
+                          Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                  color: c.teal, shape: BoxShape.circle)),
                           const SizedBox(width: 8),
-                          Text(_bothPresent ? 'LIVE TOGETHER' : 'WAITING', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: c.teal)),
+                          Text(_bothPresent ? 'LIVE TOGETHER' : 'WAITING',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
+                                  color: c.teal)),
                         ],
                       ),
                     ),
@@ -215,7 +227,11 @@ class _TogetherSessionState extends ConsumerState<_TogetherSession> {
                         height: 52,
                         child: Stack(
                           children: [
-                            _Avatar(letter: myInitial, colors: [c.teal, c.tealDeep], fg: c.onTeal, dim: false),
+                            _Avatar(
+                                letter: myInitial,
+                                colors: [c.teal, c.tealDeep],
+                                fg: c.onTeal,
+                                dim: false),
                             Positioned(
                               left: 40,
                               child: _Avatar(
@@ -230,25 +246,43 @@ class _TogetherSessionState extends ConsumerState<_TogetherSession> {
                       ),
                       const SizedBox(height: 26),
                       _bothPresent
-                          ? Text(_label, style: const TextStyle(fontSize: 52, fontWeight: FontWeight.w300))
+                          ? Text(_label,
+                              style: const TextStyle(
+                                  fontSize: 52, fontWeight: FontWeight.w300))
                           : Text(
                               'Waiting for ${widget.companion.otherName}…',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: c.dim),
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: c.dim),
                             ),
                       const SizedBox(height: 26),
                       Container(
                         padding: const EdgeInsets.all(18),
                         constraints: const BoxConstraints(maxWidth: 280),
-                        decoration: BoxDecoration(color: c.surface, border: Border.all(color: c.line), borderRadius: BorderRadius.circular(18)),
+                        decoration: BoxDecoration(
+                            color: c.surface,
+                            border: Border.all(color: c.line),
+                            borderRadius: BorderRadius.circular(18)),
                         child: Column(
                           children: [
                             Text('PRAYING TOGETHER',
-                                style: PgText.sans(size: 11, weight: FontWeight.w800, color: c.teal, letterSpacing: 1)),
+                                style: PgText.sans(
+                                    size: 11,
+                                    weight: FontWeight.w800,
+                                    color: c.teal,
+                                    letterSpacing: 1)),
                             const SizedBox(height: 8),
-                            Text("Bear ye one another's burdens, and so fulfil the law of Christ.",
-                                textAlign: TextAlign.center, style: PgText.serif(size: 17, height: 1.5)),
+                            Text(
+                                "Bear ye one another's burdens, and so fulfil the law of Christ.",
+                                textAlign: TextAlign.center,
+                                style: PgText.serif(size: 17, height: 1.5)),
                             const SizedBox(height: 8),
-                            Text('Galatians 6:2', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: c.amber)),
+                            Text('Galatians 6:2',
+                                style: TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: c.amber)),
                           ],
                         ),
                       ),
@@ -265,9 +299,14 @@ class _TogetherSessionState extends ConsumerState<_TogetherSession> {
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: c.line2),
                       padding: const EdgeInsets.all(15),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
                     ),
-                    child: Text('Leave session', style: TextStyle(color: c.dim, fontSize: 15, fontWeight: FontWeight.w700)),
+                    child: Text('Leave session',
+                        style: TextStyle(
+                            color: c.dim,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700)),
                   ),
                 ),
               ),
@@ -280,7 +319,11 @@ class _TogetherSessionState extends ConsumerState<_TogetherSession> {
 }
 
 class _Avatar extends StatelessWidget {
-  const _Avatar({required this.letter, required this.colors, required this.fg, required this.dim});
+  const _Avatar(
+      {required this.letter,
+      required this.colors,
+      required this.fg,
+      required this.dim});
   final String letter;
   final List<Color> colors;
   final Color fg;
@@ -296,11 +339,15 @@ class _Avatar extends StatelessWidget {
         height: 52,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: LinearGradient(colors: colors, begin: Alignment.topLeft, end: Alignment.bottomRight),
+          gradient: LinearGradient(
+              colors: colors,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight),
           border: Border.all(color: c.bg, width: 2),
         ),
         alignment: Alignment.center,
-        child: Text(letter, style: TextStyle(fontWeight: FontWeight.w800, color: fg)),
+        child: Text(letter,
+            style: TextStyle(fontWeight: FontWeight.w800, color: fg)),
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import '../../core/purchases/premium_gate.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../state/companion_provider.dart';
 import '../../widgets/pg_header.dart';
@@ -41,13 +42,19 @@ class _InviteScreenState extends ConsumerState<InviteScreen> {
   Future<void> _redeem() async {
     final code = _redeemController.text.trim();
     if (code.isEmpty) return;
+
+    final companions = await ref.read(companionsProvider.future);
+    if (!mounted) return;
+    if (companions.isNotEmpty && !await requirePremium(context)) return;
+    if (!mounted) return;
+
     setState(() {
       _redeeming = true;
       _error = null;
     });
     try {
       await ref.read(companionRepositoryProvider).redeemInvite(code);
-      ref.invalidate(companionProvider);
+      ref.invalidate(companionsProvider);
       if (mounted) context.pop();
     } catch (e) {
       setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
@@ -135,24 +142,32 @@ class _InviteScreenState extends ConsumerState<InviteScreen> {
                         data: link,
                         backgroundColor: Colors.white,
                         eyeStyle: const QrEyeStyle(color: Color(0xFF0E1513)),
-                        dataModuleStyle: const QrDataModuleStyle(color: Color(0xFF0E1513)),
+                        dataModuleStyle:
+                            const QrDataModuleStyle(color: Color(0xFF0E1513)),
                       ),
               ),
               const SizedBox(height: 14),
               Text(
-                _code == null ? 'Preparing your invite…' : 'Have them scan this to pair instantly.',
+                _code == null
+                    ? 'Preparing your invite…'
+                    : 'Have them scan this to pair instantly.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 13, color: c.dim),
               ),
               const SizedBox(height: 14),
               OutlinedButton.icon(
                 onPressed: _scan,
-                icon: Icon(Icons.qr_code_scanner_rounded, size: 18, color: c.teal),
-                label: Text('Scan a code instead', style: TextStyle(color: c.teal, fontWeight: FontWeight.w700)),
+                icon: Icon(Icons.qr_code_scanner_rounded,
+                    size: 18, color: c.teal),
+                label: Text('Scan a code instead',
+                    style:
+                        TextStyle(color: c.teal, fontWeight: FontWeight.w700)),
                 style: OutlinedButton.styleFrom(
                   side: BorderSide(color: c.line),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
               ),
             ],

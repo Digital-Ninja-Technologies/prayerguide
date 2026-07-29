@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/pg_colors.dart';
 import '../../state/challenge_provider.dart';
+import '../../state/companion_provider.dart';
 import '../../widgets/pg_form_error.dart';
 import '../../widgets/pg_pill.dart';
 import '../../widgets/pg_text_field.dart';
@@ -176,7 +177,7 @@ class _ChallengeNewScreenState extends ConsumerState<ChallengeNewScreen> {
                       color: Colors.transparent,
                       child: InkWell(
                         borderRadius: BorderRadius.circular(16),
-                        onTap: () => context.push('/companion/invite'),
+                        onTap: () => pushInviteCompanion(context, ref),
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(

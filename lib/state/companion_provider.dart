@@ -1,5 +1,8 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../core/purchases/premium_gate.dart';
 import '../core/supabase/supabase_config.dart';
 import '../data/models/companion.dart';
 import '../data/repositories/companion_repository.dart';
@@ -7,31 +10,43 @@ import 'repo_providers.dart';
 
 final companionRepositoryProvider = Provider((ref) => CompanionRepository());
 
-class CompanionState {
-  const CompanionState({
-    this.companion,
+/// All of the current user's companion pairs.
+final companionsProvider = FutureProvider<List<Companion>>((ref) async {
+  ref.watch(currentUserIdProvider);
+  return ref.read(companionRepositoryProvider).fetchCompanions();
+});
+
+class CompanionDetailState {
+  const CompanionDetailState({
+    required this.companion,
     this.recentCheckins = const [],
     this.myTodayCheckin,
     this.sharedRequests = const [],
   });
 
-  final Companion? companion;
+  final Companion companion;
   final List<CompanionCheckinEntry> recentCheckins;
   final String? myTodayCheckin;
   final List<SharedRequest> sharedRequests;
 }
 
-class CompanionNotifier extends AsyncNotifier<CompanionState> {
+/// Check-ins and shared requests for one specific companion pair, keyed by
+/// its `companions` row id — lets two people looking at the same pair see
+/// the same detail page regardless of which of them opened it.
+class CompanionDetailNotifier
+    extends FamilyAsyncNotifier<CompanionDetailState, String> {
   @override
-  Future<CompanionState> build() async {
-    ref.watch(currentUserIdProvider);
+  Future<CompanionDetailState> build(String companionRowId) async {
     final repo = ref.read(companionRepositoryProvider);
-    final companion = await repo.fetchCompanion();
-    if (companion == null) return const CompanionState();
+    final companion = await repo.fetchCompanionByRowId(companionRowId);
+    if (companion == null) {
+      throw StateError('That companion could not be found.');
+    }
 
     final uid = supa.auth.currentUser!.id;
-    final checkins = await repo.fetchRecentCheckins(companion.companionRowId);
-    final sharedRequests = await repo.fetchSharedRequests(myUserId: uid, otherUserId: companion.otherUserId);
+    final checkins = await repo.fetchRecentCheckins(companionRowId);
+    final sharedRequests = await repo.fetchSharedRequests(
+        myUserId: uid, otherUserId: companion.otherUserId);
 
     final now = DateTime.now();
     String? myToday;
@@ -41,7 +56,7 @@ class CompanionNotifier extends AsyncNotifier<CompanionState> {
         break;
       }
     }
-    return CompanionState(
+    return CompanionDetailState(
       companion: companion,
       recentCheckins: checkins,
       myTodayCheckin: myToday,
@@ -49,16 +64,31 @@ class CompanionNotifier extends AsyncNotifier<CompanionState> {
     );
   }
 
-  bool _isSameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
+  bool _isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
 
   Future<void> setCheckin(String status) async {
-    final companion = state.value?.companion;
-    if (companion == null) return;
     final repo = ref.read(companionRepositoryProvider);
-    await repo.checkin(companionId: companion.companionRowId, status: status);
+    await repo.checkin(companionId: arg, status: status);
     ref.invalidateSelf();
     await future;
   }
 }
 
-final companionProvider = AsyncNotifierProvider<CompanionNotifier, CompanionState>(CompanionNotifier.new);
+final companionDetailProvider = AsyncNotifierProvider.family<
+    CompanionDetailNotifier, CompanionDetailState, String>(
+  CompanionDetailNotifier.new,
+);
+
+/// Navigates to the invite screen — first presenting the Premium paywall if
+/// the user already has a companion and isn't on Premium, since the free
+/// plan includes one companion and Premium unlocks unlimited.
+Future<void> pushInviteCompanion(BuildContext context, WidgetRef ref) async {
+  final companions = await ref.read(companionsProvider.future);
+  if (!context.mounted) return;
+  if (companions.isNotEmpty) {
+    final granted = await requirePremium(context);
+    if (!granted) return;
+  }
+  if (context.mounted) context.push('/companion/invite');
+}

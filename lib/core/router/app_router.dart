@@ -9,7 +9,8 @@ import '../../features/bible/bible_screen.dart';
 import '../../features/challenges/challenge_detail_screen.dart';
 import '../../features/challenges/challenge_new_screen.dart';
 import '../../features/challenges/challenges_screen.dart';
-import '../../features/companion/companion_screen.dart';
+import '../../features/companion/companion_detail_screen.dart';
+import '../../features/companion/companion_list_screen.dart';
 import '../../features/companion/invite_screen.dart';
 import '../../features/companion/qr_scan_screen.dart';
 import '../../features/devotional/devotional_screen.dart';
@@ -127,9 +128,17 @@ final routerProvider = Provider<GoRouter>((ref) {
           path: '/focus/setup', builder: (c, s) => const FocusSetupScreen()),
       GoRoute(
           path: '/focus/active', builder: (c, s) => const FocusActiveScreen()),
-      GoRoute(path: '/companion', builder: (c, s) => const CompanionScreen()),
       GoRoute(
-          path: '/companion/invite', builder: (c, s) => const InviteScreen()),
+          path: '/companion', builder: (c, s) => const CompanionListScreen()),
+      GoRoute(
+        path: '/companion/invite',
+        builder: (c, s) => const InviteScreen(),
+      ),
+      GoRoute(
+        path: '/companion/:id',
+        builder: (c, s) =>
+            CompanionDetailScreen(companionRowId: s.pathParameters['id']!),
+      ),
       GoRoute(
           path: '/companion/invite/scan',
           builder: (c, s) => const QrScanScreen()),
@@ -150,7 +159,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: '/devotional', builder: (c, s) => const DevotionalScreen()),
       GoRoute(path: '/fasting', builder: (c, s) => const FastingScreen()),
-      GoRoute(path: '/together', builder: (c, s) => const TogetherScreen()),
+      GoRoute(
+        path: '/together/:id',
+        builder: (c, s) =>
+            TogetherScreen(companionRowId: s.pathParameters['id']!),
+      ),
       GoRoute(path: '/groups', builder: (c, s) => const GroupsScreen()),
       GoRoute(path: '/groups/new', builder: (c, s) => const GroupNewScreen()),
       GoRoute(

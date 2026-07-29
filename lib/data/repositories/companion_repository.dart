@@ -4,17 +4,42 @@ import '../../core/supabase/supabase_config.dart';
 import '../models/companion.dart';
 
 class CompanionRepository {
-  Future<Companion?> fetchCompanion() async {
+  /// All companion pairs the current user is part of, most recent first.
+  Future<List<Companion>> fetchCompanions() async {
+    final uid = supa.auth.currentUser!.id;
+    final rows = await supa
+        .from('companions')
+        .select()
+        .or('user_a.eq.$uid,user_b.eq.$uid')
+        .order('created_at', ascending: false);
+    if (rows.isEmpty) return [];
+
+    String otherIdOf(Map<String, dynamic> row) => row['user_a'] == uid
+        ? row['user_b'] as String
+        : row['user_a'] as String;
+
+    final otherIds = rows.map(otherIdOf).toList();
+    final profileRows = await supa
+        .from('profiles')
+        .select('id, name, streak_count')
+        .inFilter('id', otherIds);
+    final profileById = {
+      for (final p in profileRows) p['id'] as String: p,
+    };
+
+    return rows
+        .map((row) => _companionFromRow(row, uid, profileById[otherIdOf(row)]))
+        .toList();
+  }
+
+  Future<Companion?> fetchCompanionByRowId(String companionRowId) async {
     final uid = supa.auth.currentUser!.id;
     final row = await supa
         .from('companions')
         .select()
-        .or('user_a.eq.$uid,user_b.eq.$uid')
-        .order('created_at', ascending: false)
-        .limit(1)
+        .eq('id', companionRowId)
         .maybeSingle();
     if (row == null) return null;
-
     final otherId = row['user_a'] == uid
         ? row['user_b'] as String
         : row['user_a'] as String;
@@ -23,8 +48,15 @@ class CompanionRepository {
         .select('name, streak_count')
         .eq('id', otherId)
         .maybeSingle();
-    final name = (profileRow?['name'] as String?)?.trim();
+    return _companionFromRow(row, uid, profileRow);
+  }
 
+  Companion _companionFromRow(
+      Map<String, dynamic> row, String uid, Map<String, dynamic>? profileRow) {
+    final otherId = row['user_a'] == uid
+        ? row['user_b'] as String
+        : row['user_a'] as String;
+    final name = (profileRow?['name'] as String?)?.trim();
     return Companion(
       companionRowId: row['id'] as String,
       otherUserId: otherId,

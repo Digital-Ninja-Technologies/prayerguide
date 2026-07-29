@@ -76,8 +76,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final scriptureEntry = scriptureOfDayForDate(now);
     final devotionalEntry = devotionalForDate(now);
     final libraryAsync = ref.watch(bibleLibraryProvider);
-    final companionAsync = ref.watch(companionProvider);
-    final companionName = companionAsync.valueOrNull?.companion?.otherName;
+    final companionsAsync = ref.watch(companionsProvider);
+    final companions = companionsAsync.valueOrNull ?? const [];
     final challengesAsync = ref.watch(challengeProvider);
     final activeChallenge = challengesAsync.valueOrNull
         ?.where((p) => p.active && p.currentDay < p.totalDays)
@@ -326,9 +326,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         icon: Icons.diversity_1_outlined,
                         color: c.teal,
                         title: 'Companion',
-                        subtitle: companionName == null
+                        subtitle: companions.isEmpty
                             ? 'Invite a companion'
-                            : 'Pray with $companionName',
+                            : companions.length == 1
+                                ? 'Pray with ${companions.first.otherName}'
+                                : '${companions.length} companions',
                         onTap: () => context.push('/companion'),
                         last: true,
                       ),
