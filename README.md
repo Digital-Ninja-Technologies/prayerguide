@@ -56,6 +56,16 @@ Not every screen is backed by live data yet — see
 - **flutter_local_notifications** — real, scheduled prayer/scripture
   reminders (see SETUP.md's Notifications section for what's and isn't
   wired).
+- **RevenueCat** (`purchases_flutter` / `purchases_ui_flutter`) — real
+  Monthly/Annual subscription billing on the Upgrade screen, already
+  wired to a RevenueCat Test Store out of the box (no Apple/Google
+  developer account needed to try the full purchase/restore flow); see
+  SETUP.md §3b to go live with real stores.
+- **LiveKit** (`livekit_client`) — real voice for Audio Prayer Room, with
+  join tokens minted server-side by a Supabase Edge Function
+  (`supabase/functions/livekit-token`) that verifies group membership
+  first; see SETUP.md §3c. Rooms work presence-only (no voice) until
+  `LIVEKIT_URL` is configured.
 - **Bundled KJV text** — the Bible reader's full text ships locally as a
   JSON asset (`assets/bible/kjv.json`), not fetched from an API, so
   reading/search/reading-plan scheduling all work offline.
@@ -101,19 +111,22 @@ Google/Apple auth — is in **[SETUP.md](SETUP.md)**.
 Nearly everything is wired to Supabase now — auth, Journal, Prayer
 Requests (with companion sharing), Profile/Settings, Prayer Streak, Bible
 reader/notes/plans/devotional, Scripture of the Day, Growth Insights,
-Fasting, Focus Mode session logging, Challenges, Companion/Invite, Guide
-Library, real scheduled Notifications, Groups, Prayer Together, and Audio
-Prayer Room presence (all three of the latter live, via Supabase Realtime).
+Fasting, Focus Mode session logging, Challenges, Companion/Invite
+(multiple companions, free tier capped at one, Premium unlimited), Guide
+Library, real scheduled Notifications, Groups, and Prayer Together — all
+live via Supabase Realtime where relevant.
 
-Three things are real in part: the Upgrade screen's 7-day free trial
-actually grants premium (tracked in `subscriptions`, no payment
-collected) and expires on its own, but real paid billing needs RevenueCat
-or native store billing; Audio Prayer Room's member presence/raised-hands
-are live, but nobody can actually hear each other yet (needs a WebRTC/SFU
-provider); Focus Mode's session *tracking* is real but actual
-app-*blocking* needs platform entitlements (iOS Screen Time, Android
-Accessibility Service — both common store-rejection causes)
-beyond this codebase.
+Billing and Audio Prayer Room voice are both real now too, not just UI:
+the Upgrade screen sells actual Monthly/Annual subscriptions through
+RevenueCat (already wired to a Test Store out of the box — see
+SETUP.md §3b to go live with real Apple/Google accounts), and Audio
+Prayer Room gets real voice via LiveKit once configured (SETUP.md §3c);
+without `LIVEKIT_URL` set, rooms still work presence-only (member grid,
+host badge, raised hands, all live) rather than failing. Focus Mode's
+session *tracking* is real, but actual app-*blocking* needs platform
+entitlements (iOS Screen Time, Android Accessibility Service — both
+common store-rejection causes) beyond this codebase, and the Offline
+Audio Bible still needs a real audio content source.
 
 See **[SETUP.md](SETUP.md)** for the full, maintained breakdown of what's
 real vs. not, and why.
