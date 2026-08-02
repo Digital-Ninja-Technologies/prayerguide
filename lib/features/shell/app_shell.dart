@@ -3,8 +3,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../widgets/pg_bottom_nav.dart';
 
-/// Wraps the 5 primary tabs (Home, Bible, Journal, Streak, Profile) with the
-/// persistent bottom nav bar, matching the prototype's app shell.
+/// Wraps the primary tabs (Home, Bible, Journal, Sermons, Streak, Profile)
+/// with the persistent bottom nav bar.
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.shell});
 

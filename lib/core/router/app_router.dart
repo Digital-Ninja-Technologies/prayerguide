@@ -31,6 +31,9 @@ import '../../features/requests/request_new_screen.dart';
 import '../../features/requests/requests_screen.dart';
 import '../../features/room/room_screen.dart';
 import '../../features/scripture/scripture_screen.dart';
+import '../../features/sermons/sermon_note_detail_screen.dart';
+import '../../features/sermons/sermon_note_new_screen.dart';
+import '../../features/sermons/sermon_notes_screen.dart';
 import '../../features/settings/insights_screen.dart';
 import '../../features/settings/notifications_screen.dart';
 import '../../features/settings/about_help_screen.dart';
@@ -79,6 +82,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           ]),
           StatefulShellBranch(routes: [
             GoRoute(path: '/journal', builder: (c, s) => const JournalScreen()),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(path: '/sermons', builder: (c, s) => const SermonNotesScreen()),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(path: '/streak', builder: (c, s) => const StreakScreen()),
@@ -170,6 +176,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/room',
         builder: (c, s) =>
             RoomScreen(groupId: s.uri.queryParameters['groupId'] ?? ''),
+      ),
+      GoRoute(
+          path: '/sermons/new', builder: (c, s) => const SermonNoteNewScreen()),
+      GoRoute(
+        path: '/sermons/:id',
+        builder: (c, s) =>
+            SermonNoteDetailScreen(noteId: s.pathParameters['id']!),
       ),
     ],
   );

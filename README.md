@@ -26,6 +26,10 @@ The app covers all four phases of the product spec
   Groups, Audio Prayer Room.
 - **Phase 4 — intelligence.** Growth Insights.
 
+Beyond the original 4-phase PRD, there's also a **Sermon Note Taker**
+(its own bottom nav tab) — record audio and type notes at the same time,
+optimized for taking notes live during a sermon.
+
 There is no AI Prayer Assistant — it was removed (see `git log` for
 `Add custom app icon, remove unwired Prayer Assistant feature`) since it
 required a deployed Supabase Edge Function and an Anthropic API key that
@@ -40,7 +44,12 @@ Not every screen is backed by live data yet — see
 - **Flutter / Dart** — single codebase for iOS + Android.
 - **flutter_riverpod** — app state (auth, profile, journal, requests).
 - **go_router** — declarative routing; `StatefulShellRoute` drives the
-  persistent bottom nav (Home / Bible / Journal / Streak / Profile).
+  persistent bottom nav (Home / Bible / Journal / Sermons / Streak /
+  Profile).
+- **record / audioplayers** — Sermon Note Taker: real mono-AAC recording
+  (`lib/core/audio/sermon_recorder.dart`) uploaded to a private Supabase
+  Storage bucket, played back from a signed URL. Web builds fall back to
+  notes-only (no recording API there).
 - **Supabase** — Postgres + Auth (email/password, Google, Apple). Schema and
   RLS policies live in `supabase/migrations/`.
 - **Client-side encryption** — journal entries are encrypted on-device
@@ -113,8 +122,9 @@ Requests (with companion sharing), Profile/Settings, Prayer Streak, Bible
 reader/notes/plans/devotional, Scripture of the Day, Growth Insights,
 Fasting, Focus Mode session logging, Challenges, Companion/Invite
 (multiple companions, free tier capped at one, Premium unlimited), Guide
-Library, real scheduled Notifications, Groups, and Prayer Together — all
-live via Supabase Realtime where relevant.
+Library, real scheduled Notifications, Groups, Prayer Together, and the
+Sermon Note Taker (real audio recording + notes, uploaded to private
+Storage) — all live via Supabase Realtime where relevant.
 
 Billing and Audio Prayer Room voice are both real now too, not just UI:
 the Upgrade screen sells actual Monthly/Annual subscriptions through

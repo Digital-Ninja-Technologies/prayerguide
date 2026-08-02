@@ -38,7 +38,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Prayer Guide uses your camera to scan a companion's invite QR code.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Prayer Guide uses your microphone so others in an Audio Prayer Room can hear you speak.</string>
+	<string>Prayer Guide uses your microphone so others in an Audio Prayer Room can hear you speak, and to record sermon notes.</string>
 	<key>FlutterDeepLinkingEnabled</key>
 	<false/>
 	<key>LSRequiresIPhoneOS</key>

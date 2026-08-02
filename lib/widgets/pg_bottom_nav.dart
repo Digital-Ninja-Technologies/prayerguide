@@ -13,12 +13,12 @@ const pgNavItems = [
   PgNavItem(Icons.home_rounded, 'Home', '/home'),
   PgNavItem(Icons.menu_book_rounded, 'Bible', '/bible'),
   PgNavItem(Icons.edit_note_rounded, 'Journal', '/journal'),
+  PgNavItem(Icons.mic_rounded, 'Sermons', '/sermons'),
   PgNavItem(Icons.local_fire_department_rounded, 'Streak', '/streak'),
   PgNavItem(Icons.person_rounded, 'Profile', '/settings'),
 ];
 
-/// Bottom tab bar matching the prototype's 5-tab shell (Home / Bible /
-/// Journal / Streak / Profile).
+/// Bottom tab bar: Home / Bible / Journal / Sermons / Streak / Profile.
 class PgBottomNav extends StatelessWidget {
   const PgBottomNav({super.key, required this.currentRoute, required this.onTap});
 

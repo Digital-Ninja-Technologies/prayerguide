@@ -27,10 +27,14 @@ This creates `profiles`, `journal_entries`, `prayer_requests`,
 `prayer_sessions` (feeds the streak via a DB trigger), `bible_notes`,
 `notification_prefs`, `companions`/`companion_invites`/`companion_checkins`,
 `challenge_progress`, `reading_plan_progress`, `fasting_sessions`,
-`focus_sessions`, `groups`, and `subscriptions` — all with RLS policies
-scoping rows to their owner. (An early migration also created
+`focus_sessions`, `groups`, `subscriptions`, and `sermon_notes` — all with
+RLS policies scoping rows to their owner. (An early migration also created
 `encryption_keys` for passphrase-based key escrow; migration `0009` drops
-it now that cloud backup replaced that scheme — see below.)
+it now that cloud backup replaced that scheme — see below.) Migration
+`0014` also creates a private `sermon-audio` Storage bucket (with RLS on
+`storage.objects` scoping each user to their own folder) for the Sermon
+Note Taker's recordings — nothing extra to configure, `supabase db push`
+sets it up along with everything else.
 
 **Social auth (Google / Apple) via Supabase** — the app code side is done:
 `AuthRepository.signInWithGoogle/signInWithApple` call `signInWithOAuth` with
@@ -387,6 +391,22 @@ back to presence-only rather than failing.
 **Subscriptions are real, real billing included** (see §3b): the Upgrade
 screen sells actual Monthly/Annual subscriptions through RevenueCat, with
 live entitlement status, purchase/restore, and Customer Center management.
+
+**Sermon Note Taker is real** (`lib/features/sermons/`, its own bottom nav
+tab): record audio while typing notes at the same time — the two aren't
+sequential steps. `lib/core/audio/sermon_recorder.dart` wraps the `record`
+package (mono AAC-LC, since it's speech not music) with start/pause/
+resume/stop; on save, the recording uploads to the private `sermon-audio`
+Storage bucket (migration `0014`) and the note (title, speaker, scripture
+reference, notes text, audio path/duration) is written to `sermon_notes`.
+Playback on the detail screen streams from a short-lived signed URL — the
+bucket is private, so that's the only way to reach the audio. Recording
+is disabled in web builds (`kIsWeb`-gated; the underlying platform APIs
+aren't there) — typed notes still work fine there. Notes text is plain,
+RLS-protected like Prayer Requests, not end-to-end encrypted like Journal
+— sermon notes aren't the kind of content that scheme was built to
+protect, and encrypting them would block a future "share this note"
+feature the same way it did for Requests.
 
 **Still needs platform work beyond this codebase (per the PRD's own risk
 callouts):** Focus Mode's actual app-blocking (iOS Screen Time entitlement,
