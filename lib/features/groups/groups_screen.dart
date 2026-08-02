@@ -7,6 +7,7 @@ import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
 import '../../data/models/pg_group.dart';
 import '../../state/groups_provider.dart';
+import '../../widgets/pg_back_button.dart';
 import '../../widgets/pg_button.dart';
 import '../../widgets/pg_card.dart';
 import '../../widgets/pg_icon_badge.dart';
@@ -32,8 +33,14 @@ class GroupsScreen extends ConsumerWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Groups',
-                        style: PgText.serif(size: 26, weight: FontWeight.w600)),
+                    Row(
+                      children: [
+                        PgBackButton(onTap: () => context.pop()),
+                        const SizedBox(width: 12),
+                        Text('Groups',
+                            style: PgText.serif(size: 26, weight: FontWeight.w600)),
+                      ],
+                    ),
                     Row(
                       children: [
                         TextButton(

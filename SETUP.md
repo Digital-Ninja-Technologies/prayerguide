@@ -189,6 +189,37 @@ subscribers self-serve cancel/manage their plan from inside the app —
 configure it in the dashboard and it's already wired up as a "Manage
 subscription" button on the Upgrade screen once a subscription is active.
 
+## 3c. LiveKit (Audio Prayer Room voice)
+
+Audio Prayer Room (Groups → a room's "Join live room") already has real,
+live member presence via Supabase Realtime (`lib/features/room/room_screen.dart`)
+— the member grid, host badge, and raised hands are genuinely synced.
+Actually hearing each other needs [LiveKit](https://livekit.io):
+
+1. Create a free [LiveKit Cloud](https://cloud.livekit.io) account and
+   project.
+2. From the project's Settings → Keys, grab the **API Key**, **API
+   Secret**, and the **WebSocket URL** (`wss://your-project.livekit.cloud`).
+3. **Put the API Key/Secret in Supabase Edge Function secrets — never in
+   `.env`.** A client-embedded secret could be extracted from the app
+   bundle and used to mint join tokens for any room. Either run:
+   ```
+   supabase secrets set LIVEKIT_API_KEY=... LIVEKIT_API_SECRET=...
+   ```
+   or set them in the Supabase dashboard → Edge Functions → Secrets.
+4. **Deploy the token function**: `supabase functions deploy livekit-token`
+   (or paste `supabase/functions/livekit-token/index.ts` into a new Edge
+   Function in the dashboard). It verifies the caller is actually a member
+   of the group before minting a token — see the file for details.
+5. **Put only the WebSocket URL** in `.env` as `LIVEKIT_URL` — this one is
+   just a connection endpoint, safe to ship client-side.
+
+Once `LIVEKIT_URL` is set, `room_screen.dart` requests microphone
+permission, fetches a token from the Edge Function, and joins the room's
+voice automatically alongside presence — with a mic mute/unmute button.
+Leave it blank to disable — rooms stay presence-only (today's behavior)
+rather than failing.
+
 ## 4. What's real vs. prototype-visual
 
 **Wired to Supabase (real CRUD, survives app restart):**
@@ -344,36 +375,22 @@ bundled KJV — not a single hardcoded verse and a literally hardcoded
 title, your actual active-challenge day count, your real companion's
 name, real time-of-day) instead of hardcoded placeholders.
 
-**Audio Prayer Room is real for presence, not for voice**: joining a
-room (`/room?groupId=...`, reachable from a group's "Join live room"
-button in Groups) opens a Supabase Realtime Presence channel keyed to
-that group (`lib/features/room/room_screen.dart`, same technique as
-Prayer Together) — the member grid, count, host badge, and raised hands
-are all real and synced live across everyone in the room. What's
-*not* real: nobody can actually hear each other. Real voice needs a
-WebRTC/SFU provider (LiveKit, Agora, Daily.co) — presence alone doesn't
-carry audio, and wiring that in is a separate, larger integration
-requiring a provider account/API key.
+**Audio Prayer Room is real, including voice, once LiveKit is
+configured** (see §3c): joining a room (reachable from a group's "Join
+live room" button in Groups) opens a Supabase Realtime Presence channel
+keyed to that group (`lib/features/room/room_screen.dart`, same technique
+as Prayer Together) — the member grid, count, host badge, and raised
+hands are all real and synced live. With `LIVEKIT_URL` set, it also joins
+real LiveKit voice with a mic mute/unmute button. Without it, rooms fall
+back to presence-only rather than failing.
 
-**The 7-day free trial is real, actual paid billing is not**: "Start
-7-day free trial" on the Upgrade screen writes a real row to the
-`subscriptions` table (`tier: 'premium', provider: 'trial', renews_at:
-now + 7 days`) via `lib/state/subscription_provider.dart` — no payment
-method is collected, since there's no billing integration to collect one
-into. The Upgrade screen and Settings' premium card both show real trial
-status ("Trial active until `<date>`"), computed live by comparing
-`renews_at` to now (nothing flips `tier` back to `'free'` automatically
-without a server job, so this app computes "is it actually still active"
-on every read instead of trusting a stale flag). Once the trial's
-`renews_at` passes, premium access simply lapses — there's no charge,
-and nothing to cancel. Monthly/annual prices shown are still just display
-copy: **UI-complete, local/mock state:** actually charging for a
-subscription needs RevenueCat or native App Store/Play Billing, which
-isn't wired up.
+**Subscriptions are real, real billing included** (see §3b): the Upgrade
+screen sells actual Monthly/Annual subscriptions through RevenueCat, with
+live entitlement status, purchase/restore, and Customer Center management.
 
-**Needs platform work beyond this codebase (per the PRD's own risk
+**Still needs platform work beyond this codebase (per the PRD's own risk
 callouts):** Focus Mode's actual app-blocking (iOS Screen Time entitlement,
 Android Accessibility Service — both are common App/Play Store rejection
-causes; apply for the entitlement before committing to a release), Audio
-Prayer Rooms' actual voice transport (WebRTC/audio SFU + moderation — see
-above), and in-app purchases for the Upgrade screen.
+causes; apply for the entitlement before committing to a release) and
+Offline Audio Bible (needs a real audio content source — see the Digital
+Bible Platform integration, once wired up).

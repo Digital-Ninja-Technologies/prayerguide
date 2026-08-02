@@ -13,6 +13,7 @@ import '../../data/static/pg_content.dart';
 import '../../state/bible_library_provider.dart';
 import '../../state/challenge_provider.dart';
 import '../../state/companion_provider.dart';
+import '../../state/groups_provider.dart';
 import '../../state/notifications_provider.dart';
 import '../../state/profile_provider.dart';
 import '../../widgets/pg_button.dart';
@@ -78,6 +79,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final libraryAsync = ref.watch(bibleLibraryProvider);
     final companionsAsync = ref.watch(companionsProvider);
     final companions = companionsAsync.valueOrNull ?? const [];
+    final groupsAsync = ref.watch(groupsProvider);
+    final groups = groupsAsync.valueOrNull ?? const [];
     final challengesAsync = ref.watch(challengeProvider);
     final activeChallenge = challengesAsync.valueOrNull
         ?.where((p) => p.active && p.currentDay < p.totalDays)
@@ -301,41 +304,53 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 const SizedBox(height: 20),
                 const PgSectionLabel('More ways to pray',
                     padding: EdgeInsets.only(bottom: 12)),
-                SizedBox(
-                  height: 108,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: [
-                      _MiniTile(
-                        icon: Icons.menu_book_outlined,
-                        color: c.amber,
-                        title: 'Devotional',
-                        subtitle: 'Today · ${devotionalEntry.title}',
-                        onTap: () => context.push('/devotional'),
-                      ),
-                      _MiniTile(
-                        icon: Icons.emoji_events_outlined,
-                        color: c.teal,
-                        title: 'Challenges',
-                        subtitle: activeChallenge == null
-                            ? 'Start a challenge'
-                            : '${activeChallenge.totalDays} Days · Day ${activeChallenge.currentDay + 1}',
-                        onTap: () => context.push('/challenges'),
-                      ),
-                      _MiniTile(
-                        icon: Icons.diversity_1_outlined,
-                        color: c.teal,
-                        title: 'Companion',
-                        subtitle: companions.isEmpty
-                            ? 'Invite a companion'
-                            : companions.length == 1
-                                ? 'Pray with ${companions.first.otherName}'
-                                : '${companions.length} companions',
-                        onTap: () => context.push('/companion'),
-                        last: true,
-                      ),
-                    ],
-                  ),
+                GridView.count(
+                  crossAxisCount: 2,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  mainAxisSpacing: 10,
+                  crossAxisSpacing: 10,
+                  childAspectRatio: 1.55,
+                  children: [
+                    _MiniTile(
+                      icon: Icons.menu_book_outlined,
+                      color: c.amber,
+                      title: 'Devotional',
+                      subtitle: 'Today · ${devotionalEntry.title}',
+                      onTap: () => context.push('/devotional'),
+                    ),
+                    _MiniTile(
+                      icon: Icons.emoji_events_outlined,
+                      color: c.teal,
+                      title: 'Challenges',
+                      subtitle: activeChallenge == null
+                          ? 'Start a challenge'
+                          : '${activeChallenge.totalDays} Days · Day ${activeChallenge.currentDay + 1}',
+                      onTap: () => context.push('/challenges'),
+                    ),
+                    _MiniTile(
+                      icon: Icons.diversity_1_outlined,
+                      color: c.teal,
+                      title: 'Companion',
+                      subtitle: companions.isEmpty
+                          ? 'Invite a companion'
+                          : companions.length == 1
+                              ? 'Pray with ${companions.first.otherName}'
+                              : '${companions.length} companions',
+                      onTap: () => context.push('/companion'),
+                    ),
+                    _MiniTile(
+                      icon: Icons.groups_outlined,
+                      color: c.amber,
+                      title: 'Groups',
+                      subtitle: groups.isEmpty
+                          ? 'Join a group'
+                          : groups.length == 1
+                              ? groups.first.name
+                              : '${groups.length} groups',
+                      onTap: () => context.push('/groups'),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -492,7 +507,6 @@ class _MiniTile extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.onTap,
-    this.last = false,
   });
 
   final IconData icon;
@@ -500,34 +514,28 @@ class _MiniTile extends StatelessWidget {
   final String title;
   final String subtitle;
   final VoidCallback onTap;
-  final bool last;
 
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    return Padding(
-      padding: EdgeInsets.only(right: last ? 0 : 10),
-      child: PgCard(
-        radius: 18,
-        padding: const EdgeInsets.all(15),
-        onTap: onTap,
-        child: SizedBox(
-          width: 130,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, size: 22, color: color),
-              const SizedBox(height: 10),
-              Text(title,
-                  style: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 2),
-              Text(subtitle,
-                  style: TextStyle(fontSize: 11.5, color: c.dim),
-                  overflow: TextOverflow.ellipsis),
-            ],
-          ),
-        ),
+    return PgCard(
+      radius: 18,
+      padding: const EdgeInsets.all(15),
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 22, color: color),
+          const SizedBox(height: 10),
+          Text(title,
+              style:
+                  const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 2),
+          Text(subtitle,
+              style: TextStyle(fontSize: 11.5, color: c.dim),
+              overflow: TextOverflow.ellipsis),
+        ],
       ),
     );
   }
