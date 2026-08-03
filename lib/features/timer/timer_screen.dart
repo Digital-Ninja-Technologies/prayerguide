@@ -193,7 +193,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
   Widget build(BuildContext context) {
     final c = context.colors;
     final total = _preset * 60;
-    final circumference = 2 * math.pi * 120;
+    const circumference = 2 * math.pi * 120;
     final offset = circumference * (1 - _remaining / total);
     final state = _done
         ? 'Complete'

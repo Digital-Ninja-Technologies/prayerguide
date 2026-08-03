@@ -6,8 +6,9 @@ class ProfileRepository {
     final uid = supa.auth.currentUser!.id;
     final row =
         await supa.from('profiles').select().eq('id', uid).maybeSingle();
-    if (row == null)
+    if (row == null) {
       return PgProfile.empty(uid, email: supa.auth.currentUser?.email);
+    }
     return PgProfile.fromMap(row);
   }
 

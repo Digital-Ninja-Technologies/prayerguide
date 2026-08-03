@@ -121,7 +121,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () => context.go('/streak'),
+                    onTap: () => context.push('/streak'),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [

@@ -85,9 +85,10 @@ class GroupsScreen extends ConsumerWidget {
                       style: TextStyle(color: c.danger)),
                 ),
                 data: (groups) {
-                  if (groups.isEmpty)
+                  if (groups.isEmpty) {
                     return _EmptyState(
                         onNew: () => context.push('/groups/new'));
+                  }
                   return Column(
                     children: [
                       for (final g in groups)

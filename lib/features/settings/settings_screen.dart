@@ -147,6 +147,12 @@ class SettingsScreen extends ConsumerWidget {
             child: Column(
               children: [
                 _LinkRow(
+                  icon: Icons.local_fire_department_outlined,
+                  label: 'Your streak',
+                  onTap: () => context.push('/streak'),
+                  showBorder: true,
+                ),
+                _LinkRow(
                   icon: Icons.lock_outline_rounded,
                   label: 'Privacy & encryption',
                   onTap: () => context.push('/privacy'),

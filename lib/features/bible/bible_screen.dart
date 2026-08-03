@@ -97,14 +97,16 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
     final existing = notifier.bookmarkFor(_chapterRef);
     if (existing != null) {
       await notifier.remove(existing.id);
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text('Bookmark removed')));
+      }
     } else {
       await notifier.add(kind: 'bookmark', reference: _chapterRef);
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('$_chapterRef bookmarked')));
+      }
     }
   }
 
@@ -148,9 +150,10 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
       await ref
           .read(bibleNotesProvider.notifier)
           .add(kind: 'highlight', reference: reference, verseText: text);
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Highlighted $reference')));
+      }
     } else if (action == 'note') {
       await _promptForNote(ref, reference, text);
     }
@@ -186,9 +189,10 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
     if (note != null && note.isNotEmpty) {
       await ref.read(bibleNotesProvider.notifier).add(
           kind: 'note', reference: reference, verseText: verseText, note: note);
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Note saved on $reference')));
+      }
     }
   }
 

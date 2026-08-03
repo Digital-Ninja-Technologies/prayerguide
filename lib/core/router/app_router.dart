@@ -87,9 +87,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             GoRoute(path: '/sermons', builder: (c, s) => const SermonNotesScreen()),
           ]),
           StatefulShellBranch(routes: [
-            GoRoute(path: '/streak', builder: (c, s) => const StreakScreen()),
-          ]),
-          StatefulShellBranch(routes: [
             GoRoute(
                 path: '/settings', builder: (c, s) => const SettingsScreen()),
           ]),
@@ -121,6 +118,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
           path: '/notifications',
           builder: (c, s) => const NotificationsScreen()),
+      GoRoute(path: '/streak', builder: (c, s) => const StreakScreen()),
       GoRoute(path: '/privacy', builder: (c, s) => const PrivacyScreen()),
       GoRoute(
           path: '/privacy-policy',

@@ -59,9 +59,10 @@ class _RequestsScreenState extends ConsumerState<RequestsScreen> {
                     style: TextStyle(color: c.danger)),
               ),
               data: (reqs) {
-                if (reqs.isEmpty)
+                if (reqs.isEmpty) {
                   return _EmptyState(
                       onAdd: () => context.push('/requests/new'));
+                }
 
                 final byStatus = <String, List<PrayerRequest>>{};
                 for (final r in reqs) {
