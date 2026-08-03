@@ -164,12 +164,17 @@ switch to production keys. To go live:
    `upgrade_screen.dart` looks up packages by `PackageType.monthly` /
    `PackageType.annual`, so the packages must use RevenueCat's standard
    monthly/annual package types.
-6. **Design the Paywall** (RevenueCat dashboard → Paywalls) for the
-   `PrayerGuide` entitlement — used by `requirePremium()`
-   (`lib/core/purchases/premium_gate.dart`) to gate premium-only features
-   at the point of use (currently wired to the Focus Mode entry point in
-   `timer_screen.dart`; call `requirePremium(context)` before unlocking any
-   other premium feature the same way).
+6. Premium-only features are gated at the point of use by `requirePremium()`
+   (`lib/core/purchases/premium_gate.dart`): it checks live entitlement
+   status via `subscriptionProvider` and, if the user isn't on Premium (or
+   an active trial), shows an in-app popup naming the feature and its
+   benefit with an "Upgrade to Premium" button that pushes `/upgrade` (the
+   app's own Upgrade screen, not RevenueCat's hosted Paywall UI). Currently
+   wired to Focus Mode (`timer_screen.dart`) and multiple companions
+   (`companion_provider.dart`'s `pushInviteCompanion`,
+   `invite_screen.dart`'s redeem flow) — call `requirePremium(context, ref,
+   feature: ..., description: ...)` before unlocking any other premium
+   feature the same way.
 7. **Copy the real per-platform public SDK keys** (RevenueCat dashboard →
    Project Settings → API Keys — the public SDK keys, not the secret key)
    into `.env` as `REVENUECAT_IOS_API_KEY` / `REVENUECAT_ANDROID_API_KEY`,

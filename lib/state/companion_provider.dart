@@ -87,7 +87,14 @@ Future<void> pushInviteCompanion(BuildContext context, WidgetRef ref) async {
   final companions = await ref.read(companionsProvider.future);
   if (!context.mounted) return;
   if (companions.isNotEmpty) {
-    final granted = await requirePremium(context);
+    final granted = await requirePremium(
+      context,
+      ref,
+      feature: 'Multiple Prayer Companions',
+      description:
+          'The free plan includes one prayer companion. Upgrade to pair with '
+          'unlimited companions.',
+    );
     if (!granted) return;
   }
   if (context.mounted) context.push('/companion/invite');

@@ -408,9 +408,15 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
                         icon:
                             Icon(Icons.timer_outlined, size: 17, color: c.teal),
                         onPressed: () async {
-                          if (await requirePremium(context)) {
-                            if (context.mounted) context.push('/focus/setup');
-                          }
+                          final granted = await requirePremium(
+                            context,
+                            ref,
+                            feature: 'Focus Mode',
+                            description:
+                                'Silence distractions during prayer with a gentle, '
+                                'distraction-free session timer and app-blocking.',
+                          );
+                          if (granted && context.mounted) context.push('/focus/setup');
                         },
                       ),
                     ],

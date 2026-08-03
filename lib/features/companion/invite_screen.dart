@@ -45,7 +45,17 @@ class _InviteScreenState extends ConsumerState<InviteScreen> {
 
     final companions = await ref.read(companionsProvider.future);
     if (!mounted) return;
-    if (companions.isNotEmpty && !await requirePremium(context)) return;
+    if (companions.isNotEmpty) {
+      final granted = await requirePremium(
+        context,
+        ref,
+        feature: 'Multiple Prayer Companions',
+        description:
+            'The free plan includes one prayer companion. Upgrade to pair with '
+            'unlimited companions.',
+      );
+      if (!granted) return;
+    }
     if (!mounted) return;
 
     setState(() {
