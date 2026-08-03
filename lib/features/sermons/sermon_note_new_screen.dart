@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/audio/sermon_recorder.dart';
 import '../../core/theme/pg_colors.dart';
@@ -11,7 +14,15 @@ import '../../state/sermon_notes_provider.dart';
 import '../../widgets/pg_header.dart';
 import '../../widgets/pg_text_field.dart';
 
-enum _RecordState { idle, recording, paused, stopped }
+enum _RecordState { idle, recording, paused }
+
+class _Take {
+  _Take({required this.path, required this.durationSeconds});
+  final String path;
+  final int durationSeconds;
+}
+
+const _draftPrefsKey = 'sermon_note_draft_v1';
 
 class SermonNoteNewScreen extends ConsumerStatefulWidget {
   const SermonNoteNewScreen({super.key});
@@ -29,13 +40,66 @@ class _SermonNoteNewScreenState extends ConsumerState<SermonNoteNewScreen> {
   final _recorder = SermonRecorder();
   _RecordState _recordState = _RecordState.idle;
   int _elapsedSeconds = 0;
-  String? _audioPath;
+  final List<_Take> _takes = [];
   Timer? _ticker;
+  Timer? _draftDebounce;
 
   bool _saving = false;
   String? _error;
 
   bool get _canRecord => !kIsWeb;
+
+  @override
+  void initState() {
+    super.initState();
+    _restoreDraft();
+    for (final c in [_title, _speaker, _scripture, _notes]) {
+      c.addListener(_scheduleDraftSave);
+    }
+  }
+
+  Future<void> _restoreDraft() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_draftPrefsKey);
+    if (raw == null || !mounted) return;
+    try {
+      final draft = jsonDecode(raw) as Map<String, dynamic>;
+      _title.text = draft['title'] as String? ?? '';
+      _speaker.text = draft['speaker'] as String? ?? '';
+      _scripture.text = draft['scripture'] as String? ?? '';
+      _notes.text = draft['notes'] as String? ?? '';
+      if (_title.text.isNotEmpty || _notes.text.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Restored your unsaved draft')),
+        );
+      }
+    } catch (_) {
+      // Corrupt or outdated draft shape — ignore it rather than crash.
+    }
+  }
+
+  void _scheduleDraftSave() {
+    _draftDebounce?.cancel();
+    _draftDebounce = Timer(const Duration(milliseconds: 500), _saveDraft);
+  }
+
+  Future<void> _saveDraft() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      _draftPrefsKey,
+      jsonEncode({
+        'title': _title.text,
+        'speaker': _speaker.text,
+        'scripture': _scripture.text,
+        'notes': _notes.text,
+      }),
+    );
+  }
+
+  Future<void> _clearDraft() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_draftPrefsKey);
+  }
 
   Future<void> _toggleRecord() async {
     if (_recordState == _RecordState.idle) {
@@ -61,22 +125,15 @@ class _SermonNoteNewScreenState extends ConsumerState<SermonNoteNewScreen> {
     }
   }
 
+  /// Stops and locks in the current take — it joins the list permanently;
+  /// there's no re-record/overwrite, only starting another new take.
   Future<void> _stopRecording() async {
     _ticker?.cancel();
     final path = await _recorder.stop();
-    setState(() {
-      _audioPath = path;
-      _recordState = _RecordState.stopped;
-    });
-  }
-
-  Future<void> _discardRecording() async {
-    _ticker?.cancel();
-    if (_recordState == _RecordState.recording || _recordState == _RecordState.paused) {
-      await _recorder.cancel();
+    if (path != null) {
+      _takes.add(_Take(path: path, durationSeconds: _elapsedSeconds));
     }
     setState(() {
-      _audioPath = null;
       _elapsedSeconds = 0;
       _recordState = _RecordState.idle;
     });
@@ -87,6 +144,16 @@ class _SermonNoteNewScreenState extends ConsumerState<SermonNoteNewScreen> {
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
       setState(() => _elapsedSeconds++);
     });
+  }
+
+  Future<void> _deleteTake(int index) async {
+    final take = _takes[index];
+    setState(() => _takes.removeAt(index));
+    try {
+      await File(take.path).delete();
+    } catch (_) {
+      // Best-effort — a leftover temp file isn't worth surfacing to the user.
+    }
   }
 
   Future<void> _save() async {
@@ -105,9 +172,11 @@ class _SermonNoteNewScreenState extends ConsumerState<SermonNoteNewScreen> {
             speaker: _speaker.text.trim().isEmpty ? null : _speaker.text.trim(),
             scriptureRef: _scripture.text.trim().isEmpty ? null : _scripture.text.trim(),
             notes: _notes.text.trim(),
-            audioFilePath: _audioPath,
-            audioDurationSeconds: _audioPath == null ? null : _elapsedSeconds,
+            initialRecordingPaths: [
+              for (final t in _takes) (path: t.path, durationSeconds: t.durationSeconds),
+            ],
           );
+      await _clearDraft();
       if (mounted) context.pop(true);
     } catch (e) {
       if (mounted) setState(() => _error = 'Could not save: $e');
@@ -116,15 +185,16 @@ class _SermonNoteNewScreenState extends ConsumerState<SermonNoteNewScreen> {
     }
   }
 
-  String get _label {
-    final m = _elapsedSeconds ~/ 60;
-    final s = _elapsedSeconds % 60;
+  String _fmt(int seconds) {
+    final m = seconds ~/ 60;
+    final s = seconds % 60;
     return '$m:${s.toString().padLeft(2, '0')}';
   }
 
   @override
   void dispose() {
     _ticker?.cancel();
+    _draftDebounce?.cancel();
     if (_recordState == _RecordState.recording || _recordState == _RecordState.paused) {
       _recorder.cancel();
     }
@@ -172,13 +242,26 @@ class _SermonNoteNewScreenState extends ConsumerState<SermonNoteNewScreen> {
                       ],
                     ),
                     const SizedBox(height: 18),
-                    if (_canRecord) _RecordPanel(
-                      state: _recordState,
-                      label: _label,
-                      onToggle: _toggleRecord,
-                      onStop: _stopRecording,
-                      onDiscard: _discardRecording,
-                    ) else
+                    if (_canRecord) ...[
+                      _RecordPanel(
+                        state: _recordState,
+                        label: _fmt(_elapsedSeconds),
+                        onToggle: _toggleRecord,
+                        onStop: _stopRecording,
+                      ),
+                      if (_takes.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        for (var i = 0; i < _takes.length; i++)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 6),
+                            child: _TakeRow(
+                              index: i + 1,
+                              durationLabel: _fmt(_takes[i].durationSeconds),
+                              onDelete: () => _deleteTake(i),
+                            ),
+                          ),
+                      ],
+                    ] else
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(14),
@@ -213,20 +296,52 @@ class _SermonNoteNewScreenState extends ConsumerState<SermonNoteNewScreen> {
   }
 }
 
+class _TakeRow extends StatelessWidget {
+  const _TakeRow({required this.index, required this.durationLabel, required this.onDelete});
+  final int index;
+  final String durationLabel;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(color: c.surface2, borderRadius: BorderRadius.circular(12)),
+      child: Row(
+        children: [
+          Icon(Icons.check_circle_rounded, color: c.teal, size: 16),
+          const SizedBox(width: 8),
+          Text('Take $index', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: c.text)),
+          const Spacer(),
+          Text(durationLabel, style: TextStyle(fontSize: 12.5, color: c.dim)),
+          const SizedBox(width: 10),
+          InkWell(
+            onTap: onDelete,
+            borderRadius: BorderRadius.circular(20),
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Icon(Icons.close_rounded, size: 16, color: c.faint),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _RecordPanel extends StatelessWidget {
   const _RecordPanel({
     required this.state,
     required this.label,
     required this.onToggle,
     required this.onStop,
-    required this.onDiscard,
   });
 
   final _RecordState state;
   final String label;
   final VoidCallback onToggle;
   final VoidCallback onStop;
-  final VoidCallback onDiscard;
 
   @override
   Widget build(BuildContext context) {
@@ -254,7 +369,6 @@ class _RecordPanel extends StatelessWidget {
               _RecordState.idle => 'Ready to record',
               _RecordState.recording => 'Recording…',
               _RecordState.paused => 'Paused',
-              _RecordState.stopped => 'Recording saved to this note',
             },
             style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: c.dim, letterSpacing: .5),
           ),
@@ -262,24 +376,23 @@ class _RecordPanel extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (state != _RecordState.stopped)
-                Material(
-                  color: active ? c.surface2 : c.teal,
-                  shape: const CircleBorder(),
-                  child: InkWell(
-                    customBorder: const CircleBorder(),
-                    onTap: onToggle,
-                    child: SizedBox(
-                      width: 60,
-                      height: 60,
-                      child: Icon(
-                        state == _RecordState.recording ? Icons.pause_rounded : Icons.mic_rounded,
-                        color: active ? c.text : c.onTeal,
-                        size: 26,
-                      ),
+              Material(
+                color: active ? c.surface2 : c.teal,
+                shape: const CircleBorder(),
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: onToggle,
+                  child: SizedBox(
+                    width: 60,
+                    height: 60,
+                    child: Icon(
+                      state == _RecordState.recording ? Icons.pause_rounded : Icons.mic_rounded,
+                      color: active ? c.text : c.onTeal,
+                      size: 26,
                     ),
                   ),
                 ),
+              ),
               if (active) ...[
                 const SizedBox(width: 14),
                 Material(
@@ -291,11 +404,6 @@ class _RecordPanel extends StatelessWidget {
                     child: const SizedBox(width: 60, height: 60, child: Icon(Icons.stop_rounded, color: Colors.white, size: 26)),
                   ),
                 ),
-              ],
-              if (state == _RecordState.stopped) ...[
-                Icon(Icons.check_circle_rounded, color: c.teal, size: 30),
-                const SizedBox(width: 10),
-                TextButton(onPressed: onDiscard, child: const Text('Re-record')),
               ],
             ],
           ),
