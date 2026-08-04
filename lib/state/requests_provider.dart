@@ -28,18 +28,21 @@ class RequestsNotifier extends AsyncNotifier<List<PrayerRequest>> {
     state = AsyncData([req, ...state.value ?? []]);
   }
 
-  Future<void> _patch(String id, Map<String, dynamic> patch, PrayerRequest Function(PrayerRequest) apply) async {
+  Future<void> _patch(String id, Map<String, dynamic> patch,
+      PrayerRequest Function(PrayerRequest) apply) async {
     final repo = ref.read(requestsRepositoryProvider);
     final current = state.value ?? [];
     state = AsyncData([
-      for (final r in current) if (r.id == id) apply(r) else r,
+      for (final r in current)
+        if (r.id == id) apply(r) else r,
     ]);
     await repo.update(id, patch);
   }
 
   Future<void> toggleReminder(String id) async {
     final r = (state.value ?? []).firstWhere((r) => r.id == id);
-    await _patch(id, {'reminder': !r.reminder}, (x) => x.copyWith(reminder: !x.reminder));
+    await _patch(id, {'reminder': !r.reminder},
+        (x) => x.copyWith(reminder: !x.reminder));
   }
 
   Future<void> toggleShared(String id) async {
@@ -57,14 +60,26 @@ class RequestsNotifier extends AsyncNotifier<List<PrayerRequest>> {
   }
 
   Future<void> archive(String id) async {
-    await _patch(id, {'status': 'archived'}, (x) => x.copyWith(status: 'archived'));
+    await _patch(
+        id, {'status': 'archived'}, (x) => x.copyWith(status: 'archived'));
   }
 
   Future<void> restore(String id) async {
     await _patch(id, {'status': 'active'}, (x) => x.copyWith(status: 'active'));
   }
+
+  Future<void> delete(String id) async {
+    final repo = ref.read(requestsRepositoryProvider);
+    final current = state.value ?? [];
+    state = AsyncData([
+      for (final r in current)
+        if (r.id != id) r
+    ]);
+    await repo.delete(id);
+  }
 }
 
-final requestsProvider = AsyncNotifierProvider<RequestsNotifier, List<PrayerRequest>>(
+final requestsProvider =
+    AsyncNotifierProvider<RequestsNotifier, List<PrayerRequest>>(
   RequestsNotifier.new,
 );

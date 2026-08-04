@@ -6,9 +6,13 @@ import '../models/prayer_request.dart';
 /// companion possible. See supabase/migrations/0007_unencrypt_requests_for_sharing.sql.
 class RequestsRepository {
   Future<List<PrayerRequest>> fetchAll() async {
-    final rows =
-        await supa.from('prayer_requests').select().order('created_at', ascending: false);
-    return (rows as List).map((r) => PrayerRequest.fromMap(r as Map<String, dynamic>)).toList();
+    final rows = await supa
+        .from('prayer_requests')
+        .select()
+        .order('created_at', ascending: false);
+    return (rows as List)
+        .map((r) => PrayerRequest.fromMap(r as Map<String, dynamic>))
+        .toList();
   }
 
   Future<PrayerRequest> create({
@@ -37,7 +41,10 @@ class RequestsRepository {
   Future<void> update(String id, Map<String, dynamic> patch) async {
     await supa
         .from('prayer_requests')
-        .update({...patch, 'updated_at': DateTime.now().toIso8601String()})
-        .eq('id', id);
+        .update({...patch, 'updated_at': DateTime.now().toIso8601String()}).eq(
+            'id', id);
   }
+
+  Future<void> delete(String id) =>
+      supa.from('prayer_requests').delete().eq('id', id);
 }

@@ -31,12 +31,11 @@ class _RequestsScreenState extends ConsumerState<RequestsScreen> {
     final reqsAsync = ref.watch(requestsProvider);
 
     return Scaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(22, 6, 22, 40),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            PgHeader(
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(22, 6, 22, 0),
+            child: PgHeader(
               title: 'Requests',
               onBack: () => context.pop(),
               trailing: PgButton(
@@ -47,71 +46,82 @@ class _RequestsScreenState extends ConsumerState<RequestsScreen> {
                 onPressed: () => context.push('/requests/new'),
               ),
             ),
-            const SizedBox(height: 10),
-            reqsAsync.when(
-              loading: () => const Padding(
-                padding: EdgeInsets.symmetric(vertical: 60),
-                child: Center(child: CircularProgressIndicator()),
-              ),
-              error: (e, st) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 40),
-                child: Text('Could not load requests.\n$e',
-                    style: TextStyle(color: c.danger)),
-              ),
-              data: (reqs) {
-                if (reqs.isEmpty) {
-                  return _EmptyState(
-                      onAdd: () => context.push('/requests/new'));
-                }
-
-                final byStatus = <String, List<PrayerRequest>>{};
-                for (final r in reqs) {
-                  (byStatus[r.status] ??= []).add(r);
-                }
-                final filtered = byStatus[_tab] ?? const [];
-                final notifier = ref.read(requestsProvider.notifier);
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        for (final t in const [
-                          ('active', 'Active'),
-                          ('answered', 'Answered'),
-                          ('archived', 'Archived')
-                        ])
-                          Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: PgPill(
-                              label: '${t.$2} · ${byStatus[t.$1]?.length ?? 0}',
-                              active: _tab == t.$1,
-                              onTap: () => setState(() => _tab = t.$1),
-                            ),
-                          ),
-                      ],
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(22, 0, 22, 40),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 10),
+                  reqsAsync.when(
+                    loading: () => const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 60),
+                      child: Center(child: CircularProgressIndicator()),
                     ),
-                    const SizedBox(height: 18),
-                    if (filtered.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 40),
-                        child: Center(
-                            child: Text('Nothing here yet.',
-                                style:
-                                    TextStyle(color: c.faint, fontSize: 14))),
-                      )
-                    else
-                      for (final r in filtered)
-                        _RequestCard(
-                            key: ValueKey(r.id),
-                            request: r,
-                            notifier: notifier),
-                  ],
-                );
-              },
+                    error: (e, st) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 40),
+                      child: Text('Could not load requests.\n$e',
+                          style: TextStyle(color: c.danger)),
+                    ),
+                    data: (reqs) {
+                      if (reqs.isEmpty) {
+                        return _EmptyState(
+                            onAdd: () => context.push('/requests/new'));
+                      }
+
+                      final byStatus = <String, List<PrayerRequest>>{};
+                      for (final r in reqs) {
+                        (byStatus[r.status] ??= []).add(r);
+                      }
+                      final filtered = byStatus[_tab] ?? const [];
+                      final notifier = ref.read(requestsProvider.notifier);
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              for (final t in const [
+                                ('active', 'Active'),
+                                ('answered', 'Answered'),
+                                ('archived', 'Archived')
+                              ])
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: PgPill(
+                                    label:
+                                        '${t.$2} · ${byStatus[t.$1]?.length ?? 0}',
+                                    active: _tab == t.$1,
+                                    onTap: () => setState(() => _tab = t.$1),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 18),
+                          if (filtered.isEmpty)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 40),
+                              child: Center(
+                                  child: Text('Nothing here yet.',
+                                      style: TextStyle(
+                                          color: c.faint, fontSize: 14))),
+                            )
+                          else
+                            for (final r in filtered)
+                              _RequestCard(
+                                  key: ValueKey(r.id),
+                                  request: r,
+                                  notifier: notifier),
+                        ],
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -216,12 +226,47 @@ class _RequestCard extends StatelessWidget {
                 ],
               )
             else
-              SizedBox(
-                width: double.infinity,
-                child: _ActionBtn(
-                    label: 'Restore to active',
-                    color: c.teal,
-                    onTap: () => notifier.restore(request.id)),
+              Row(
+                children: [
+                  Expanded(
+                    child: _ActionBtn(
+                        label: 'Restore to active',
+                        color: c.teal,
+                        onTap: () => notifier.restore(request.id)),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _ActionBtn(
+                      label: 'Delete',
+                      color: c.danger,
+                      onTap: () async {
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            backgroundColor: c.surface,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18)),
+                            title: const Text('Delete this request?'),
+                            content: const Text("This can't be undone."),
+                            actions: [
+                              TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(false),
+                                  child: const Text('Cancel')),
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.of(context).pop(true),
+                                child: Text('Delete',
+                                    style: TextStyle(color: c.danger)),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirmed == true) notifier.delete(request.id);
+                      },
+                    ),
+                  ),
+                ],
               ),
           ],
         ),
