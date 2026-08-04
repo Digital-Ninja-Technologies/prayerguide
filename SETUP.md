@@ -49,7 +49,14 @@ provider-console configuration, which can't be done from this repo:
 1. **Supabase Dashboard → Authentication → URL Configuration → Redirect URLs**
    — add `io.supabase.prayerguide://login-callback/` to the allow list (in
    addition to whatever your Site URL is). OAuth will fail silently without
-   this.
+   this. **On web** (`flutter run -d chrome`, or any web deployment), the
+   custom `io.supabase.prayerguide://` scheme means nothing to a browser —
+   `AuthRepository` redirects to the page's own origin instead (see
+   `_oauthRedirect` in `auth_repository.dart`), so also add that origin
+   (e.g. `http://localhost:PORT` for local dev, or your deployed domain) to
+   the same Redirect URLs allow list. The password-reset email link uses the
+   same redirect and needs the same allow-list entries — without them, the
+   "Forgot password" flow sends an email whose link goes nowhere useful.
 2. **Google** — in [Google Cloud Console](https://console.cloud.google.com/apis/credentials),
    create an OAuth 2.0 Client ID (Web application type — Supabase's hosted
    authorize/callback endpoint does the redirect, so the *web* client type is

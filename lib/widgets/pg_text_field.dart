@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/theme/pg_colors.dart';
 
 /// Rounded surface input field matching the prototype's form fields.
-class PgTextField extends StatelessWidget {
+class PgTextField extends StatefulWidget {
   const PgTextField({
     super.key,
     this.controller,
@@ -18,6 +18,9 @@ class PgTextField extends StatelessWidget {
 
   final TextEditingController? controller;
   final String? hint;
+
+  /// When true, this is a password-style field: text starts hidden and an
+  /// eye icon lets the user reveal/hide it.
   final bool obscureText;
   final TextInputType? keyboardType;
   final int maxLines;
@@ -30,6 +33,13 @@ class PgTextField extends StatelessWidget {
   final String? errorText;
 
   @override
+  State<PgTextField> createState() => _PgTextFieldState();
+}
+
+class _PgTextFieldState extends State<PgTextField> {
+  late bool _obscured = widget.obscureText;
+
+  @override
   Widget build(BuildContext context) {
     final c = context.colors;
     OutlineInputBorder border(Color color) => OutlineInputBorder(
@@ -37,19 +47,19 @@ class PgTextField extends StatelessWidget {
           borderSide: BorderSide(color: color),
         );
     return TextField(
-      controller: controller,
-      obscureText: obscureText,
-      keyboardType: keyboardType,
-      maxLines: maxLines,
+      controller: widget.controller,
+      obscureText: _obscured,
+      keyboardType: widget.keyboardType,
+      maxLines: widget.obscureText ? 1 : widget.maxLines,
       style: TextStyle(
         color: c.text,
         fontSize: 15.5,
-        fontWeight: fontWeight,
-        fontFamily: serif ? 'Spectral' : null,
+        fontWeight: widget.fontWeight,
+        fontFamily: widget.serif ? 'Spectral' : null,
       ),
       cursorColor: c.teal,
       decoration: InputDecoration(
-        hintText: hint,
+        hintText: widget.hint,
         hintStyle: TextStyle(color: c.faint, fontWeight: FontWeight.w500),
         filled: true,
         fillColor: c.surface,
@@ -57,12 +67,24 @@ class PgTextField extends StatelessWidget {
         border: border(c.line),
         enabledBorder: border(c.line),
         focusedBorder: border(c.teal),
-        errorText: errorText,
+        errorText: widget.errorText,
         errorMaxLines: 2,
         errorStyle: TextStyle(
             color: c.danger, fontSize: 12.5, fontWeight: FontWeight.w600),
         errorBorder: border(c.danger),
         focusedErrorBorder: border(c.danger),
+        suffixIcon: widget.obscureText
+            ? IconButton(
+                onPressed: () => setState(() => _obscured = !_obscured),
+                icon: Icon(
+                  _obscured
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                  size: 20,
+                  color: c.faint,
+                ),
+              )
+            : null,
       ),
     );
   }

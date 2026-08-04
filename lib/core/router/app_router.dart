@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show AuthChangeEvent;
 
 import '../../features/bible/bible_notes_screen.dart';
 import '../../features/bible/bible_screen.dart';
@@ -25,6 +26,7 @@ import '../../features/home/home_screen.dart';
 import '../../features/journal/journal_new_screen.dart';
 import '../../features/journal/journal_screen.dart';
 import '../../features/onboarding/onboarding_screen.dart';
+import '../../features/onboarding/reset_password_confirm_screen.dart';
 import '../../features/plans/plan_detail_screen.dart';
 import '../../features/plans/plans_screen.dart';
 import '../../features/requests/request_new_screen.dart';
@@ -51,13 +53,31 @@ import '../../features/together/together_screen.dart';
 import '../supabase/supabase_config.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
+  // Set when Supabase reports a password-recovery session (the user clicked
+  // the link in a reset-password email) — consumed once by `redirect` below
+  // to force a detour to the "set a new password" screen regardless of
+  // where the deep link actually landed.
+  var passwordRecovery = false;
+  final authSub = supa.auth.onAuthStateChange.listen((state) {
+    if (state.event == AuthChangeEvent.passwordRecovery) {
+      passwordRecovery = true;
+    }
+  });
+  ref.onDispose(authSub.cancel);
+
   return GoRouter(
     initialLocation: '/splash',
     refreshListenable: GoRouterRefreshStream(supa.auth.onAuthStateChange),
     redirect: (context, state) {
-      final loggedIn = supa.auth.currentUser != null;
       final loc = state.matchedLocation;
-      final isAuthFlow = loc == '/splash' || loc == '/onboarding';
+      if (passwordRecovery) {
+        passwordRecovery = false;
+        if (loc != '/reset-password-confirm') return '/reset-password-confirm';
+      }
+      final loggedIn = supa.auth.currentUser != null;
+      final isAuthFlow = loc == '/splash' ||
+          loc == '/onboarding' ||
+          loc == '/reset-password-confirm';
       if (!loggedIn && !isAuthFlow) return '/onboarding';
       if (loggedIn && loc == '/onboarding') return '/home';
       return null;
@@ -65,6 +85,10 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(path: '/splash', builder: (c, s) => const SplashScreen()),
       GoRoute(path: '/onboarding', builder: (c, s) => const OnboardingScreen()),
+      GoRoute(
+        path: '/reset-password-confirm',
+        builder: (c, s) => const ResetPasswordConfirmScreen(),
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => AppShell(shell: shell),
         branches: [

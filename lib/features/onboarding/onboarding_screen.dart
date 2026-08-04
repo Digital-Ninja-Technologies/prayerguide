@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/errors/friendly_error.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
 import '../../state/repo_providers.dart';
@@ -77,7 +78,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     try {
       await action();
     } catch (e) {
-      setState(() => _error = e.toString());
+      setState(() => _error = friendlyErrorMessage(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -301,6 +302,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           PgTextField(
               controller: _passwordCtrl, hint: '••••••••', obscureText: true),
           PgFormError(_error, topSpacing: 12),
+          if (_info != null) ...[
+            const SizedBox(height: 12),
+            Text(_info!, style: TextStyle(color: c.teal, fontSize: 13)),
+          ],
           const Spacer(),
           PgButton(
             label: _loading ? 'Signing in…' : 'Sign in',
@@ -374,7 +379,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       await ref
                           .read(authRepositoryProvider)
                           .sendPasswordReset(_emailCtrl.text.trim());
-                      if (mounted) setState(() => _step = _Step.email);
+                      if (mounted) {
+                        setState(() {
+                          _step = _Step.email;
+                          _info = 'Check your email for a reset link.';
+                        });
+                      }
                     }),
           ),
         ],
