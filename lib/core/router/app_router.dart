@@ -35,6 +35,7 @@ import '../../features/sermons/sermon_note_detail_screen.dart';
 import '../../features/sermons/sermon_note_new_screen.dart';
 import '../../features/sermons/sermon_notes_screen.dart';
 import '../../features/settings/insights_screen.dart';
+import '../../features/settings/notification_day_times_screen.dart';
 import '../../features/settings/notifications_screen.dart';
 import '../../features/settings/about_help_screen.dart';
 import '../../features/settings/privacy_policy_screen.dart';
@@ -77,6 +78,8 @@ final routerProvider = Provider<GoRouter>((ref) {
                 initialBook: s.uri.queryParameters['book'],
                 initialChapter:
                     int.tryParse(s.uri.queryParameters['chapter'] ?? ''),
+                planKey: s.uri.queryParameters['planKey'],
+                planDay: int.tryParse(s.uri.queryParameters['day'] ?? ''),
               ),
             ),
           ]),
@@ -84,7 +87,8 @@ final routerProvider = Provider<GoRouter>((ref) {
             GoRoute(path: '/journal', builder: (c, s) => const JournalScreen()),
           ]),
           StatefulShellBranch(routes: [
-            GoRoute(path: '/sermons', builder: (c, s) => const SermonNotesScreen()),
+            GoRoute(
+                path: '/sermons', builder: (c, s) => const SermonNotesScreen()),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(
@@ -110,6 +114,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/scripture', builder: (c, s) => const ScriptureScreen()),
       GoRoute(
           path: '/journal/new', builder: (c, s) => const JournalNewScreen()),
+      GoRoute(
+        path: '/journal/:id',
+        builder: (c, s) => JournalEditScreen(entryId: s.pathParameters['id']!),
+      ),
       GoRoute(path: '/requests', builder: (c, s) => const RequestsScreen()),
       GoRoute(
           path: '/requests/new', builder: (c, s) => const RequestNewScreen()),
@@ -118,6 +126,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
           path: '/notifications',
           builder: (c, s) => const NotificationsScreen()),
+      GoRoute(
+        path: '/notifications/times/:kind',
+        builder: (c, s) =>
+            NotificationDayTimesScreen(kind: s.pathParameters['kind']!),
+      ),
       GoRoute(path: '/streak', builder: (c, s) => const StreakScreen()),
       GoRoute(path: '/privacy', builder: (c, s) => const PrivacyScreen()),
       GoRoute(

@@ -48,5 +48,28 @@ class JournalRepository {
     return JournalEntry.fromMap({...row, 'title': title, 'body': body});
   }
 
-  Future<void> delete(String id) => supa.from('journal_entries').delete().eq('id', id);
+  Future<JournalEntry> update({
+    required String id,
+    required String type,
+    required String title,
+    required String body,
+  }) async {
+    final uid = supa.auth.currentUser!.id;
+    final titleCipher = await _enc.encrypt(uid, title);
+    final bodyCipher = await _enc.encrypt(uid, body);
+    final row = await supa
+        .from('journal_entries')
+        .update({
+          'type': type,
+          'title_cipher': titleCipher,
+          'body_cipher': bodyCipher,
+        })
+        .eq('id', id)
+        .select()
+        .single();
+    return JournalEntry.fromMap({...row, 'title': title, 'body': body});
+  }
+
+  Future<void> delete(String id) =>
+      supa.from('journal_entries').delete().eq('id', id);
 }

@@ -4,24 +4,54 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/security/encryption_service.dart';
 import '../../core/theme/pg_colors.dart';
+import '../../data/models/journal_entry.dart';
 import '../../state/journal_provider.dart';
 import '../../state/repo_providers.dart';
 import '../../widgets/pg_cloud_restore.dart';
 import '../../widgets/pg_pill.dart';
 import '../../widgets/pg_text_field.dart';
 
+/// Loads an existing entry by id (from the already-fetched journal list)
+/// and hands it to [JournalNewScreen] in edit mode.
+class JournalEditScreen extends ConsumerWidget {
+  const JournalEditScreen({super.key, required this.entryId});
+  final String entryId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final entries = ref.watch(journalProvider).valueOrNull ?? const [];
+    JournalEntry? entry;
+    for (final e in entries) {
+      if (e.id == entryId) {
+        entry = e;
+        break;
+      }
+    }
+    if (entry == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    return JournalNewScreen(entry: entry);
+  }
+}
+
 class JournalNewScreen extends ConsumerStatefulWidget {
-  const JournalNewScreen({super.key});
+  const JournalNewScreen({super.key, this.entry});
+
+  /// When set, this screen edits an existing entry instead of creating one.
+  final JournalEntry? entry;
 
   @override
   ConsumerState<JournalNewScreen> createState() => _JournalNewScreenState();
 }
 
 class _JournalNewScreenState extends ConsumerState<JournalNewScreen> {
-  String _type = 'Gratitude';
-  final _title = TextEditingController();
-  final _body = TextEditingController();
+  bool get _editing => widget.entry != null;
+
+  late String _type = widget.entry?.type ?? 'Gratitude';
+  late final _title = TextEditingController(text: widget.entry?.title ?? '');
+  late final _body = TextEditingController(text: widget.entry?.body ?? '');
   bool _saving = false;
+  bool _deleting = false;
   String? _titleError;
   bool _needsUnlock = false;
 
@@ -41,9 +71,18 @@ class _JournalNewScreenState extends ConsumerState<JournalNewScreen> {
       _saving = true;
     });
     try {
-      await ref
-          .read(journalProvider.notifier)
-          .add(type: _type, title: title, body: body);
+      if (_editing) {
+        await ref.read(journalProvider.notifier).edit(
+              id: widget.entry!.id,
+              type: _type,
+              title: title,
+              body: body,
+            );
+      } else {
+        await ref
+            .read(journalProvider.notifier)
+            .add(type: _type, title: title, body: body);
+      }
       if (mounted) context.pop(true);
     } on CloudRestoreRequiredException {
       if (mounted) setState(() => _needsUnlock = true);
@@ -54,6 +93,40 @@ class _JournalNewScreenState extends ConsumerState<JournalNewScreen> {
       }
     } finally {
       if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _delete() async {
+    final c = context.colors;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: c.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: const Text('Delete this entry?'),
+        content: const Text("This can't be undone."),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text('Delete', style: TextStyle(color: c.danger)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    setState(() => _deleting = true);
+    try {
+      await ref.read(journalProvider.notifier).delete(widget.entry!.id);
+      if (mounted) context.pop(true);
+    } catch (e) {
+      if (mounted) {
+        setState(() => _deleting = false);
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Could not delete: $e')));
+      }
     }
   }
 
@@ -84,16 +157,33 @@ class _JournalNewScreenState extends ConsumerState<JournalNewScreen> {
                             fontWeight: FontWeight.w700,
                             fontSize: 14)),
                   ),
-                  const Text('New entry',
-                      style:
-                          TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
-                  TextButton(
-                    onPressed: _saving ? null : _save,
-                    child: Text('Save',
-                        style: TextStyle(
-                            color: c.teal,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 14)),
+                  Text(_editing ? 'Edit entry' : 'New entry',
+                      style: const TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.w700)),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_editing)
+                        IconButton(
+                          onPressed: _deleting ? null : _delete,
+                          icon: _deleting
+                              ? SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2, color: c.danger))
+                              : Icon(Icons.delete_outline_rounded,
+                                  color: c.danger, size: 20),
+                        ),
+                      TextButton(
+                        onPressed: _saving ? null : _save,
+                        child: Text('Save',
+                            style: TextStyle(
+                                color: c.teal,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 14)),
+                      ),
+                    ],
                   ),
                 ],
               ),

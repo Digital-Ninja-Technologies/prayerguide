@@ -78,7 +78,8 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Journal', style: PgText.serif(size: 26, weight: FontWeight.w600)),
+                Text('Journal',
+                    style: PgText.serif(size: 26, weight: FontWeight.w600)),
                 PgButton(
                   label: 'New',
                   expand: false,
@@ -102,14 +103,16 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                     )
                   : Center(
                       child: Text('Could not load your journal.\n$e',
-                          textAlign: TextAlign.center, style: TextStyle(color: c.danger)),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: c.danger)),
                     ),
               data: (entries) {
                 if (entries.isEmpty) {
                   return Center(child: _EmptyState(onNew: _createEntry));
                 }
-                final filtered =
-                    _filter == 'All' ? entries : entries.where((e) => e.type == _filter).toList();
+                final filtered = _filter == 'All'
+                    ? entries
+                    : entries.where((e) => e.type == _filter).toList();
                 return SingleChildScrollView(
                   padding: const EdgeInsets.only(bottom: 40),
                   child: Column(
@@ -123,13 +126,22 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                             for (final t in _types)
                               Padding(
                                 padding: const EdgeInsets.only(right: 8),
-                                child: PgPill(label: t, active: _filter == t, onTap: () => setState(() => _filter = t)),
+                                child: PgPill(
+                                    label: t,
+                                    active: _filter == t,
+                                    onTap: () => setState(() => _filter = t)),
                               ),
                           ],
                         ),
                       ),
                       const SizedBox(height: 18),
-                      for (final e in filtered) _EntryCard(entry: e, tagColor: _tagColor(e.type, c), tagBg: _tagBg(e.type, c)),
+                      for (final e in filtered)
+                        _EntryCard(
+                          entry: e,
+                          tagColor: _tagColor(e.type, c),
+                          tagBg: _tagBg(e.type, c),
+                          onTap: () => context.push('/journal/${e.id}'),
+                        ),
                     ],
                   ),
                 );
@@ -143,11 +155,16 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
 }
 
 class _EntryCard extends StatelessWidget {
-  const _EntryCard({required this.entry, required this.tagColor, required this.tagBg});
+  const _EntryCard(
+      {required this.entry,
+      required this.tagColor,
+      required this.tagBg,
+      required this.onTap});
 
   final JournalEntry entry;
   final Color tagColor;
   final Color tagBg;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -157,6 +174,7 @@ class _EntryCard extends StatelessWidget {
       child: PgCard(
         radius: 18,
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 17),
+        onTap: onTap,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -164,18 +182,30 @@ class _EntryCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: tagBg, borderRadius: BorderRadius.circular(100)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                      color: tagBg, borderRadius: BorderRadius.circular(100)),
                   child: Text(entry.type.toUpperCase(),
-                      style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, letterSpacing: .5, color: tagColor)),
+                      style: TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: .5,
+                          color: tagColor)),
                 ),
-                Text(_friendlyDate(entry.createdAt), style: TextStyle(fontSize: 12, color: c.faint, fontWeight: FontWeight.w600)),
+                Text(_friendlyDate(entry.createdAt),
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: c.faint,
+                        fontWeight: FontWeight.w600)),
               ],
             ),
             const SizedBox(height: 9),
-            Text(entry.title, style: PgText.serif(size: 17, weight: FontWeight.w600)),
+            Text(entry.title,
+                style: PgText.serif(size: 17, weight: FontWeight.w600)),
             const SizedBox(height: 5),
-            Text(entry.excerpt, style: TextStyle(fontSize: 13.5, height: 1.55, color: c.dim)),
+            Text(entry.excerpt,
+                style: TextStyle(fontSize: 13.5, height: 1.55, color: c.dim)),
           ],
         ),
       ),
@@ -206,11 +236,13 @@ class _EmptyState extends StatelessWidget {
           Container(
             width: 78,
             height: 78,
-            decoration: BoxDecoration(color: c.tealSoft, borderRadius: BorderRadius.circular(24)),
+            decoration: BoxDecoration(
+                color: c.tealSoft, borderRadius: BorderRadius.circular(24)),
             child: Icon(Icons.edit_note_rounded, size: 36, color: c.teal),
           ),
           const SizedBox(height: 16),
-          Text('Your journal is quiet', style: PgText.serif(size: 21, weight: FontWeight.w600)),
+          Text('Your journal is quiet',
+              style: PgText.serif(size: 21, weight: FontWeight.w600)),
           const SizedBox(height: 8),
           SizedBox(
             width: 250,
@@ -221,7 +253,8 @@ class _EmptyState extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          PgButton(label: 'Write your first entry', expand: false, onPressed: onNew),
+          PgButton(
+              label: 'Write your first entry', expand: false, onPressed: onNew),
         ],
       ),
     );
