@@ -1,16 +1,29 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/notifications/notification_scheduler.dart';
 import '../data/models/challenge_progress.dart';
 import '../data/repositories/challenge_repository.dart';
+import 'notifications_provider.dart';
 import 'repo_providers.dart';
 
 final challengeRepositoryProvider = Provider((ref) => ChallengeRepository());
 
 class ChallengeNotifier extends AsyncNotifier<List<ChallengeProgress>> {
   @override
-  Future<List<ChallengeProgress>> build() {
+  Future<List<ChallengeProgress>> build() async {
     ref.watch(currentUserIdProvider);
-    return ref.read(challengeRepositoryProvider).fetchAll();
+    final challenges = await ref.read(challengeRepositoryProvider).fetchAll();
+    unawaited(_applyReminders(challenges));
+    return challenges;
+  }
+
+  Future<void> _applyReminders(List<ChallengeProgress> challenges) async {
+    final enabled =
+        ref.read(notificationsProvider).valueOrNull?.challengeReminders ?? true;
+    await NotificationScheduler.instance
+        .applyChallengeReminders(challenges, enabled: enabled);
   }
 
   /// The most recently started challenge for [challengeKey], if any.
@@ -47,16 +60,26 @@ class ChallengeNotifier extends AsyncNotifier<List<ChallengeProgress>> {
     final current = state.value ?? const <ChallengeProgress>[];
 
     if (existing == null) {
-      final created = await repo.start(challengeKey: challengeKey, name: name, totalDays: totalDays);
+      final created = await repo.start(
+          challengeKey: challengeKey, name: name, totalDays: totalDays);
       final advanced = await repo.markDayComplete(created.id, totalDays);
-      state = AsyncData([advanced, ...current]);
+      final next = [advanced, ...current];
+      state = AsyncData(next);
+      unawaited(_applyReminders(next));
       return advanced;
     }
 
     final advanced = await repo.markDayComplete(existing.id, totalDays);
-    state = AsyncData([for (final p in current) if (p.id == existing.id) advanced else p]);
+    final next = [
+      for (final p in current)
+        if (p.id == existing.id) advanced else p
+    ];
+    state = AsyncData(next);
+    unawaited(_applyReminders(next));
     return advanced;
   }
 }
 
-final challengeProvider = AsyncNotifierProvider<ChallengeNotifier, List<ChallengeProgress>>(ChallengeNotifier.new);
+final challengeProvider =
+    AsyncNotifierProvider<ChallengeNotifier, List<ChallengeProgress>>(
+        ChallengeNotifier.new);

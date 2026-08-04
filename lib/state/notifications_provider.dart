@@ -8,7 +8,8 @@ import '../data/repositories/notifications_repository.dart';
 import 'profile_provider.dart';
 import 'repo_providers.dart';
 
-final notificationsRepositoryProvider = Provider((ref) => NotificationsRepository());
+final notificationsRepositoryProvider =
+    Provider((ref) => NotificationsRepository());
 
 class NotificationsNotifier extends AsyncNotifier<NotificationPrefs> {
   @override
@@ -21,7 +22,8 @@ class NotificationsNotifier extends AsyncNotifier<NotificationPrefs> {
 
   Future<void> _applyToScheduler(NotificationPrefs prefs) async {
     final lastPrayedOn = ref.read(profileProvider).valueOrNull?.lastPrayedOn;
-    await NotificationScheduler.instance.applyPrefs(prefs, lastPrayedOn: lastPrayedOn);
+    await NotificationScheduler.instance
+        .applyPrefs(prefs, lastPrayedOn: lastPrayedOn);
   }
 
   /// Re-applies the current prefs to the scheduler — e.g. after a prayer
@@ -31,7 +33,8 @@ class NotificationsNotifier extends AsyncNotifier<NotificationPrefs> {
     if (prefs != null) await _applyToScheduler(prefs);
   }
 
-  Future<void> _patch(Map<String, dynamic> patch, NotificationPrefs Function(NotificationPrefs) apply) async {
+  Future<void> _patch(Map<String, dynamic> patch,
+      NotificationPrefs Function(NotificationPrefs) apply) async {
     final current = state.value;
     if (current == null) return;
     final next = apply(current);
@@ -51,16 +54,30 @@ class NotificationsNotifier extends AsyncNotifier<NotificationPrefs> {
   Future<void> setEveningPrayer(bool v) =>
       _patch({'evening_prayer': v}, (p) => p.copyWith(eveningPrayer: v));
 
+  Future<void> setMorningTime(int weekday, String hhmm) => _patch(
+        {NotificationPrefs.morningColumn(weekday): hhmm},
+        (p) => p.copyWith(morningTimes: {...p.morningTimes, weekday: hhmm}),
+      );
+
+  Future<void> setEveningTime(int weekday, String hhmm) => _patch(
+        {NotificationPrefs.eveningColumn(weekday): hhmm},
+        (p) => p.copyWith(eveningTimes: {...p.eveningTimes, weekday: hhmm}),
+      );
+
   Future<void> setScriptureOfDay(bool v) =>
       _patch({'scripture_of_day': v}, (p) => p.copyWith(scriptureOfDay: v));
 
   Future<void> setStreakProtection(bool v) =>
       _patch({'streak_protection': v}, (p) => p.copyWith(streakProtection: v));
 
-  Future<void> setCompanionCheckins(bool v) =>
-      _patch({'companion_checkins': v}, (p) => p.copyWith(companionCheckins: v));
+  Future<void> setCompanionCheckins(bool v) => _patch(
+      {'companion_checkins': v}, (p) => p.copyWith(companionCheckins: v));
+
+  Future<void> setChallengeReminders(bool v) => _patch(
+      {'challenge_reminders': v}, (p) => p.copyWith(challengeReminders: v));
 }
 
-final notificationsProvider = AsyncNotifierProvider<NotificationsNotifier, NotificationPrefs>(
+final notificationsProvider =
+    AsyncNotifierProvider<NotificationsNotifier, NotificationPrefs>(
   NotificationsNotifier.new,
 );
