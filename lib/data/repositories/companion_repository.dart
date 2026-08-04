@@ -113,6 +113,24 @@ class CompanionRepository {
         .toList();
   }
 
+  /// All check-ins (both members) within [month] — feeds the calendar view,
+  /// which needs every day covered, not just the most recent N entries.
+  Future<List<CompanionCheckinEntry>> fetchCheckinsForMonth(
+      String companionId, DateTime month) async {
+    final start = DateTime(month.year, month.month, 1);
+    final end = DateTime(month.year, month.month + 1, 1);
+    final rows = await supa
+        .from('companion_checkins')
+        .select()
+        .eq('companion_id', companionId)
+        .gte('created_at', start.toIso8601String())
+        .lt('created_at', end.toIso8601String())
+        .order('created_at', ascending: false);
+    return (rows as List)
+        .map((r) => CompanionCheckinEntry.fromMap(r as Map<String, dynamic>))
+        .toList();
+  }
+
   /// Requests either of you has explicitly marked shared — visible via the
   /// owner-only policy for your own rows and the companion-visibility
   /// policy for theirs (see migration 0007).
@@ -123,7 +141,7 @@ class CompanionRepository {
   }) async {
     final rows = await supa
         .from('prayer_requests')
-        .select('user_id, category, title, created_at')
+        .select('id, user_id, category, title, created_at')
         .eq('shared_with_companion', true)
         .inFilter('user_id', [myUserId, otherUserId])
         .order('created_at', ascending: false)
@@ -132,6 +150,23 @@ class CompanionRepository {
         .map((r) => SharedRequest.fromMap(r as Map<String, dynamic>))
         .toList();
   }
+
+  /// Stops sharing one of the current user's own requests from the
+  /// Companion screen — it disappears from the shared view (for both
+  /// people) but stays exactly where it was in the owner's own Requests
+  /// list, since this only flips `shared_with_companion` rather than
+  /// deleting the request itself. RLS's owner-only update policy on
+  /// prayer_requests means this can only ever succeed for a request you
+  /// created yourself.
+  Future<void> unshareRequest(String requestId) => supa
+      .from('prayer_requests')
+      .update({'shared_with_companion': false}).eq('id', requestId);
+
+  /// Ends a companion pairing — either member can do this (see migration
+  /// 0001's "Companions deletable by either member" policy). Doesn't touch
+  /// the check-in history or past shared requests, only the pairing itself.
+  Future<void> removeCompanion(String companionRowId) =>
+      supa.from('companions').delete().eq('id', companionRowId);
 
   String _generateCode() {
     const chars =

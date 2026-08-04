@@ -19,13 +19,13 @@ final companionsProvider = FutureProvider<List<Companion>>((ref) async {
 class CompanionDetailState {
   const CompanionDetailState({
     required this.companion,
-    this.recentCheckins = const [],
+    this.monthCheckins = const [],
     this.myTodayCheckin,
     this.sharedRequests = const [],
   });
 
   final Companion companion;
-  final List<CompanionCheckinEntry> recentCheckins;
+  final List<CompanionCheckinEntry> monthCheckins;
   final String? myTodayCheckin;
   final List<SharedRequest> sharedRequests;
 }
@@ -44,11 +44,11 @@ class CompanionDetailNotifier
     }
 
     final uid = supa.auth.currentUser!.id;
-    final checkins = await repo.fetchRecentCheckins(companionRowId);
+    final now = DateTime.now();
+    final checkins = await repo.fetchCheckinsForMonth(companionRowId, now);
     final sharedRequests = await repo.fetchSharedRequests(
         myUserId: uid, otherUserId: companion.otherUserId);
 
-    final now = DateTime.now();
     String? myToday;
     for (final entry in checkins) {
       if (entry.userId == uid && _isSameDay(entry.createdAt, now)) {
@@ -58,7 +58,7 @@ class CompanionDetailNotifier
     }
     return CompanionDetailState(
       companion: companion,
-      recentCheckins: checkins,
+      monthCheckins: checkins,
       myTodayCheckin: myToday,
       sharedRequests: sharedRequests,
     );
@@ -72,6 +72,21 @@ class CompanionDetailNotifier
     await repo.checkin(companionId: arg, status: status);
     ref.invalidateSelf();
     await future;
+  }
+
+  Future<void> unshareRequest(String requestId) async {
+    final repo = ref.read(companionRepositoryProvider);
+    await repo.unshareRequest(requestId);
+    ref.invalidateSelf();
+    await future;
+  }
+
+  /// Ends this pairing. The companion list refreshes too, since it no
+  /// longer includes this pair either.
+  Future<void> removeCompanion() async {
+    final repo = ref.read(companionRepositoryProvider);
+    await repo.removeCompanion(arg);
+    ref.invalidate(companionsProvider);
   }
 }
 
