@@ -18,12 +18,11 @@ class CompanionListScreen extends ConsumerWidget {
     final companionsAsync = ref.watch(companionsProvider);
 
     return Scaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(22, 6, 22, 40),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            PgHeader(
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(22, 6, 22, 0),
+            child: PgHeader(
               title: 'Companions',
               onBack: () => context.pop(),
               trailing: TextButton.icon(
@@ -44,38 +43,48 @@ class CompanionListScreen extends ConsumerWidget {
                         fontWeight: FontWeight.w700)),
               ),
             ),
-            companionsAsync.when(
-              loading: () => const Padding(
-                padding: EdgeInsets.symmetric(vertical: 60),
-                child: Center(child: CircularProgressIndicator()),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(22, 0, 22, 40),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  companionsAsync.when(
+                    loading: () => const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 60),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                    error: (e, st) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 40),
+                      child: Text('Could not load your companions.\n$e',
+                          style: TextStyle(color: c.danger)),
+                    ),
+                    data: (companions) {
+                      if (companions.isEmpty) {
+                        return _EmptyState(
+                            onInvite: () => pushInviteCompanion(context, ref));
+                      }
+                      return Column(
+                        children: [
+                          for (final companion in companions)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _CompanionTile(
+                                companion: companion,
+                                onTap: () => context.push(
+                                    '/companion/${companion.companionRowId}'),
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
               ),
-              error: (e, st) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 40),
-                child: Text('Could not load your companions.\n$e',
-                    style: TextStyle(color: c.danger)),
-              ),
-              data: (companions) {
-                if (companions.isEmpty) {
-                  return _EmptyState(
-                      onInvite: () => pushInviteCompanion(context, ref));
-                }
-                return Column(
-                  children: [
-                    for (final companion in companions)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _CompanionTile(
-                          companion: companion,
-                          onTap: () => context
-                              .push('/companion/${companion.companionRowId}'),
-                        ),
-                      ),
-                  ],
-                );
-              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -19,51 +19,78 @@ class PlansScreen extends ConsumerWidget {
     final progressAsync = ref.watch(readingPlanProvider);
 
     return Scaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(22, 6, 22, 40),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            PgHeader(title: 'Reading Plans', onBack: () => context.pop()),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Text('Read through Scripture at a pace that fits your life.', style: TextStyle(fontSize: 14.5, color: c.dim)),
-            ),
-            for (final def in readingPlanDefs.values)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 11),
-                child: PgCard(
-                  radius: 16,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-                  onTap: () => context.push('/plans/${def.key}'),
-                  child: Row(
-                    children: [
-                      PgIconBadge(icon: Icons.menu_book_outlined, color: c.teal, background: c.tealSoft, size: 44, radius: 13),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(22, 6, 22, 0),
+            child:
+                PgHeader(title: 'Reading Plans', onBack: () => context.pop()),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(22, 0, 22, 40),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Text(
+                        'Read through Scripture at a pace that fits your life.',
+                        style: TextStyle(fontSize: 14.5, color: c.dim)),
+                  ),
+                  for (final def in readingPlanDefs.values)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 11),
+                      child: PgCard(
+                        radius: 16,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 15),
+                        onTap: () => context.push('/plans/${def.key}'),
+                        child: Row(
                           children: [
-                            Text(def.name, style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700)),
-                            Text(def.sub, style: TextStyle(fontSize: 12.5, color: c.dim)),
+                            PgIconBadge(
+                                icon: Icons.menu_book_outlined,
+                                color: c.teal,
+                                background: c.tealSoft,
+                                size: 44,
+                                radius: 13),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(def.name,
+                                      style: const TextStyle(
+                                          fontSize: 15.5,
+                                          fontWeight: FontWeight.w700)),
+                                  Text(def.sub,
+                                      style: TextStyle(
+                                          fontSize: 12.5, color: c.dim)),
+                                ],
+                              ),
+                            ),
+                            Text(
+                              _label(progressAsync, def),
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: c.teal),
+                            ),
                           ],
                         ),
                       ),
-                      Text(
-                        _label(progressAsync, def),
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: c.teal),
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
+                ],
               ),
-          ],
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  String _label(AsyncValue<List<ReadingPlanProgress>> progressAsync, ReadingPlanDef def) {
+  String _label(
+      AsyncValue<List<ReadingPlanProgress>> progressAsync, ReadingPlanDef def) {
     final entries = progressAsync.valueOrNull;
     if (entries == null) return '';
     for (final p in entries) {

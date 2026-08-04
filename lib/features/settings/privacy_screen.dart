@@ -72,159 +72,172 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
   Widget build(BuildContext context) {
     final c = context.colors;
     return Scaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(22, 6, 22, 40),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            PgHeader(
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(22, 6, 22, 0),
+            child: PgHeader(
                 title: 'Privacy & encryption', onBack: () => context.pop()),
-            Container(
-              padding: const EdgeInsets.all(18),
-              margin: const EdgeInsets.only(bottom: 20),
-              decoration: BoxDecoration(
-                  color: c.tealSoft,
-                  border: Border.all(color: c.line),
-                  borderRadius: BorderRadius.circular(18)),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(Icons.lock_outline_rounded, size: 20, color: c.teal),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      "Your journal entries are end-to-end encrypted. The encryption key lives only on your device — Supabase, and anyone with database access, only ever sees ciphertext. Prayer requests are stored as plain text (protected by row-level access rules) so you can choose to share them with your prayer companion.",
-                      style:
-                          TextStyle(fontSize: 13.5, height: 1.6, color: c.text),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Text('CLOUD BACKUP',
-                style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1,
-                    color: c.dim)),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                  color: c.surface,
-                  border: Border.all(color: c.line),
-                  borderRadius: BorderRadius.circular(18)),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(22, 0, 22, 40),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Icon(
-                        _isIOS ? Icons.cloud_outlined : Icons.cloud_outlined,
-                        size: 18,
-                        color: c.teal,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        _isIOS
-                            ? 'Back up to iCloud'
-                            : (_isAndroid
-                                ? 'Back up to Google Drive'
-                                : 'Cloud backup'),
-                        style: const TextStyle(
-                            fontSize: 14.5, fontWeight: FontWeight.w700),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _isIOS
-                        ? "Without this, a new device or a reinstall can't decrypt entries you've already written — nobody can, not even you. Back up your key to iCloud Keychain so it's ready on your other devices automatically."
-                        : _isAndroid
-                            ? "Without this, a new device or a reinstall can't decrypt entries you've already written — nobody can, not even you. Back up your key to your Google account's private app storage."
-                            : "Cloud backup is available on iOS (iCloud) and Android (Google Drive).",
-                    style: TextStyle(fontSize: 13, height: 1.55, color: c.dim),
-                  ),
-                  if (_isIOS && _isBackedUp == true) ...[
-                    const SizedBox(height: 10),
-                    Row(
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    margin: const EdgeInsets.only(bottom: 20),
+                    decoration: BoxDecoration(
+                        color: c.tealSoft,
+                        border: Border.all(color: c.line),
+                        borderRadius: BorderRadius.circular(18)),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.check_circle_outline_rounded,
-                            size: 16, color: c.teal),
-                        const SizedBox(width: 6),
-                        Text('Backed up to iCloud',
+                        Icon(Icons.lock_outline_rounded,
+                            size: 20, color: c.teal),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            "Your journal entries are end-to-end encrypted. The encryption key lives only on your device — Supabase, and anyone with database access, only ever sees ciphertext. Prayer requests are stored as plain text (protected by row-level access rules) so you can choose to share them with your prayer companion.",
                             style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: c.teal)),
+                                fontSize: 13.5, height: 1.6, color: c.text),
+                          ),
+                        ),
                       ],
                     ),
-                  ],
-                  if (_status != null) ...[
-                    const SizedBox(height: 10),
-                    Text(_status!,
-                        style: TextStyle(
-                            fontSize: 13, color: c.teal, height: 1.5)),
-                  ],
-                  if (_error != null) ...[
-                    const SizedBox(height: 10),
-                    Text(_error!,
-                        style: TextStyle(
-                            fontSize: 13, color: c.danger, height: 1.5)),
-                  ],
-                  if (_isIOS || _isAndroid) ...[
-                    const SizedBox(height: 14),
-                    PgButton(
-                      label: _working ? 'Backing up…' : 'Back up now',
-                      variant: PgButtonVariant.outline,
-                      onPressed: _working ? null : _backup,
+                  ),
+                  Text('CLOUD BACKUP',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1,
+                          color: c.dim)),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                        color: c.surface,
+                        border: Border.all(color: c.line),
+                        borderRadius: BorderRadius.circular(18)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              _isIOS
+                                  ? Icons.cloud_outlined
+                                  : Icons.cloud_outlined,
+                              size: 18,
+                              color: c.teal,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              _isIOS
+                                  ? 'Back up to iCloud'
+                                  : (_isAndroid
+                                      ? 'Back up to Google Drive'
+                                      : 'Cloud backup'),
+                              style: const TextStyle(
+                                  fontSize: 14.5, fontWeight: FontWeight.w700),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _isIOS
+                              ? "Without this, a new device or a reinstall can't decrypt entries you've already written — nobody can, not even you. Back up your key to iCloud Keychain so it's ready on your other devices automatically."
+                              : _isAndroid
+                                  ? "Without this, a new device or a reinstall can't decrypt entries you've already written — nobody can, not even you. Back up your key to your Google account's private app storage."
+                                  : "Cloud backup is available on iOS (iCloud) and Android (Google Drive).",
+                          style: TextStyle(
+                              fontSize: 13, height: 1.55, color: c.dim),
+                        ),
+                        if (_isIOS && _isBackedUp == true) ...[
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Icon(Icons.check_circle_outline_rounded,
+                                  size: 16, color: c.teal),
+                              const SizedBox(width: 6),
+                              Text('Backed up to iCloud',
+                                  style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: c.teal)),
+                            ],
+                          ),
+                        ],
+                        if (_status != null) ...[
+                          const SizedBox(height: 10),
+                          Text(_status!,
+                              style: TextStyle(
+                                  fontSize: 13, color: c.teal, height: 1.5)),
+                        ],
+                        if (_error != null) ...[
+                          const SizedBox(height: 10),
+                          Text(_error!,
+                              style: TextStyle(
+                                  fontSize: 13, color: c.danger, height: 1.5)),
+                        ],
+                        if (_isIOS || _isAndroid) ...[
+                          const SizedBox(height: 14),
+                          PgButton(
+                            label: _working ? 'Backing up…' : 'Back up now',
+                            variant: PgButtonVariant.outline,
+                            onPressed: _working ? null : _backup,
+                          ),
+                          if (_isAndroid &&
+                              !CloudBackupService.instance.isConfigured) ...[
+                            const SizedBox(height: 10),
+                            Text(
+                              "Google Drive backup isn't configured for this build yet (needs GOOGLE_OAUTH_CLIENT_ID) — see SETUP.md.",
+                              style: TextStyle(
+                                  fontSize: 12, color: c.faint, height: 1.5),
+                            ),
+                          ],
+                        ],
+                      ],
                     ),
-                    if (_isAndroid &&
-                        !CloudBackupService.instance.isConfigured) ...[
-                      const SizedBox(height: 10),
-                      Text(
-                        "Google Drive backup isn't configured for this build yet (needs GOOGLE_OAUTH_CLIENT_ID) — see SETUP.md.",
-                        style: TextStyle(
-                            fontSize: 12, color: c.faint, height: 1.5),
-                      ),
-                    ],
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text('LEGAL',
-                style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1,
-                    color: c.dim)),
-            const SizedBox(height: 12),
-            Container(
-              decoration: BoxDecoration(
-                  color: c.surface,
-                  border: Border.all(color: c.line),
-                  borderRadius: BorderRadius.circular(18)),
-              padding: const EdgeInsets.symmetric(horizontal: 18),
-              child: Column(
-                children: [
-                  _LegalLinkRow(
-                    icon: Icons.privacy_tip_outlined,
-                    label: 'Privacy Policy',
-                    onTap: () => context.push('/privacy-policy'),
-                    showBorder: true,
                   ),
-                  _LegalLinkRow(
-                    icon: Icons.description_outlined,
-                    label: 'Terms of Use',
-                    onTap: () => context.push('/terms-of-use'),
-                    showBorder: false,
+                  const SizedBox(height: 24),
+                  Text('LEGAL',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1,
+                          color: c.dim)),
+                  const SizedBox(height: 12),
+                  Container(
+                    decoration: BoxDecoration(
+                        color: c.surface,
+                        border: Border.all(color: c.line),
+                        borderRadius: BorderRadius.circular(18)),
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                    child: Column(
+                      children: [
+                        _LegalLinkRow(
+                          icon: Icons.privacy_tip_outlined,
+                          label: 'Privacy Policy',
+                          onTap: () => context.push('/privacy-policy'),
+                          showBorder: true,
+                        ),
+                        _LegalLinkRow(
+                          icon: Icons.description_outlined,
+                          label: 'Terms of Use',
+                          onTap: () => context.push('/terms-of-use'),
+                          showBorder: false,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -35,7 +35,9 @@ class _BibleNotesScreenState extends ConsumerState<BibleNotesScreen> {
         title: const Text('Remove this?'),
         content: Text(note.reference),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel')),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             child: Text('Remove', style: TextStyle(color: c.danger)),
@@ -60,7 +62,8 @@ class _BibleNotesScreenState extends ConsumerState<BibleNotesScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(22, 6, 22, 0),
-              child: PgHeader(title: 'Bookmarks & Notes', onBack: () => context.pop()),
+              child: PgHeader(
+                  title: 'Bookmarks & Notes', onBack: () => context.pop()),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(22, 0, 22, 18),
@@ -69,7 +72,10 @@ class _BibleNotesScreenState extends ConsumerState<BibleNotesScreen> {
                   for (final t in _tabs)
                     Padding(
                       padding: const EdgeInsets.only(right: 8),
-                      child: PgPill(label: t.$2, active: _kind == t.$1, onTap: () => setState(() => _kind = t.$1)),
+                      child: PgPill(
+                          label: t.$2,
+                          active: _kind == t.$1,
+                          onTap: () => setState(() => _kind = t.$1)),
                     ),
                 ],
               ),
@@ -81,12 +87,15 @@ class _BibleNotesScreenState extends ConsumerState<BibleNotesScreen> {
                   child: Padding(
                     padding: const EdgeInsets.all(24),
                     child: Text('Could not load your notes.\n$e',
-                        textAlign: TextAlign.center, style: TextStyle(color: c.danger)),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: c.danger)),
                   ),
                 ),
                 data: (notes) {
                   final filtered = notes.where((n) => n.kind == _kind).toList();
-                  if (filtered.isEmpty) return Center(child: _EmptyState(kind: _kind));
+                  if (filtered.isEmpty) {
+                    return Center(child: _EmptyState(kind: _kind));
+                  }
                   return ListView(
                     padding: const EdgeInsets.fromLTRB(22, 0, 22, 40),
                     children: [
@@ -96,7 +105,8 @@ class _BibleNotesScreenState extends ConsumerState<BibleNotesScreen> {
                           child: GestureDetector(
                             onLongPress: () => _confirmDelete(n),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 15),
                               decoration: BoxDecoration(
                                 color: c.surface,
                                 border: Border.all(color: c.line),
@@ -105,28 +115,42 @@ class _BibleNotesScreenState extends ConsumerState<BibleNotesScreen> {
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Container(width: 3, height: 40, color: n.kind == 'highlight' ? c.amber : c.teal),
+                                  Container(
+                                      width: 3,
+                                      height: 40,
+                                      color: n.kind == 'highlight'
+                                          ? c.amber
+                                          : c.teal),
                                   const SizedBox(width: 13),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           n.reference,
                                           style: TextStyle(
                                             fontSize: 12,
                                             fontWeight: FontWeight.w700,
-                                            color: n.kind == 'highlight' ? c.amber : c.teal,
+                                            color: n.kind == 'highlight'
+                                                ? c.amber
+                                                : c.teal,
                                           ),
                                         ),
                                         if (n.verseText != null) ...[
                                           const SizedBox(height: 6),
-                                          Text(n.verseText!, style: PgText.serif(size: 15.5, height: 1.5)),
+                                          Text(n.verseText!,
+                                              style: PgText.serif(
+                                                  size: 15.5, height: 1.5)),
                                         ],
-                                        if (n.note != null && n.note!.isNotEmpty) ...[
+                                        if (n.note != null &&
+                                            n.note!.isNotEmpty) ...[
                                           const SizedBox(height: 8),
                                           Text(n.note!,
-                                              style: TextStyle(fontSize: 13, color: c.dim, fontStyle: FontStyle.italic)),
+                                              style: TextStyle(
+                                                  fontSize: 13,
+                                                  color: c.dim,
+                                                  fontStyle: FontStyle.italic)),
                                         ],
                                       ],
                                     ),
@@ -139,7 +163,8 @@ class _BibleNotesScreenState extends ConsumerState<BibleNotesScreen> {
                       Center(
                         child: Padding(
                           padding: const EdgeInsets.only(top: 4),
-                          child: Text('Hold an entry to remove it', style: TextStyle(fontSize: 11.5, color: c.faint)),
+                          child: Text('Hold an entry to remove it',
+                              style: TextStyle(fontSize: 11.5, color: c.faint)),
                         ),
                       ),
                     ],
@@ -179,11 +204,13 @@ class _EmptyState extends StatelessWidget {
           Container(
             width: 70,
             height: 70,
-            decoration: BoxDecoration(color: c.tealSoft, borderRadius: BorderRadius.circular(22)),
+            decoration: BoxDecoration(
+                color: c.tealSoft, borderRadius: BorderRadius.circular(22)),
             child: Icon(icon, size: 32, color: c.teal),
           ),
           const SizedBox(height: 16),
-          Text('No $label yet', style: PgText.serif(size: 19, weight: FontWeight.w600)),
+          Text('No $label yet',
+              style: PgText.serif(size: 19, weight: FontWeight.w600)),
           const SizedBox(height: 8),
           Text(
             'Tap a verse while reading to $label it.',

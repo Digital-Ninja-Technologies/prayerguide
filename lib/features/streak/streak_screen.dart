@@ -35,137 +35,162 @@ class StreakScreen extends ConsumerWidget {
     final firstWeekday = DateTime(now.year, now.month, 1).weekday % 7; // 0=Sun
 
     return Scaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(22, 6, 22, 40),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            PgHeader(title: 'Your rhythm', onBack: () => context.pop()),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _StreakHero(
-                    icon: Icons.local_fire_department_rounded,
-                    color: c.amber,
-                    value: streak,
-                    label: 'prayer streak',
-                    message: streak > 0
-                        ? "$streak day${streak == 1 ? '' : 's'} of prayer. A freeze keeps it safe if you need to rest."
-                        : 'Every rhythm begins with one day.',
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _StreakHero(
-                    icon: Icons.calendar_month_rounded,
-                    color: c.teal,
-                    value: appOpenStreak,
-                    label: 'day streak',
-                    message: appOpenStreak > 0
-                        ? "$appOpenStreak day${appOpenStreak == 1 ? '' : 's'} showing up, whether or not you prayed."
-                        : 'Opening the app today starts this one.',
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 18),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                  color: c.surface,
-                  border: Border.all(color: c.line),
-                  borderRadius: BorderRadius.circular(22)),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(22, 6, 22, 0),
+            child: PgHeader(title: 'Your rhythm', onBack: () => context.pop()),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(22, 0, 22, 40),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const SizedBox(height: 16),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(monthName,
-                          style: const TextStyle(
-                              fontSize: 15, fontWeight: FontWeight.w700)),
-                      Row(
-                        children: [
-                          _Legend(color: c.teal, label: 'Prayed', filled: true),
-                          const SizedBox(width: 14),
-                          _Legend(
-                              color: c.amber, label: 'Frozen', filled: false),
-                        ],
+                      Expanded(
+                        child: _StreakHero(
+                          icon: Icons.local_fire_department_rounded,
+                          color: c.amber,
+                          value: streak,
+                          label: 'prayer streak',
+                          message: streak > 0
+                              ? "$streak day${streak == 1 ? '' : 's'} of prayer. A freeze keeps it safe if you need to rest."
+                              : 'Every rhythm begins with one day.',
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _StreakHero(
+                          icon: Icons.calendar_month_rounded,
+                          color: c.teal,
+                          value: appOpenStreak,
+                          label: 'day streak',
+                          message: appOpenStreak > 0
+                              ? "$appOpenStreak day${appOpenStreak == 1 ? '' : 's'} showing up, whether or not you prayed."
+                              : 'Opening the app today starts this one.',
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  GridView.count(
-                    crossAxisCount: 7,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    mainAxisSpacing: 8,
-                    crossAxisSpacing: 8,
-                    childAspectRatio: 1,
-                    children: [
-                      for (final d in const ['S', 'M', 'T', 'W', 'T', 'F', 'S'])
-                        Center(
-                            child: Text(d,
-                                style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: c.faint))),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  daysAsync.when(
-                    loading: () => const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 30),
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
-                    error: (e, st) => const SizedBox.shrink(),
-                    data: (qualifyingDays) => GridView.count(
-                      crossAxisCount: 7,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      mainAxisSpacing: 8,
-                      crossAxisSpacing: 8,
+                  const SizedBox(height: 18),
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                        color: c.surface,
+                        border: Border.all(color: c.line),
+                        borderRadius: BorderRadius.circular(22)),
+                    child: Column(
                       children: [
-                        for (var i = 0; i < firstWeekday; i++) const SizedBox(),
-                        for (var day = 1; day <= daysInMonth; day++)
-                          _DayCell(
-                            day: day,
-                            active: qualifyingDays.contains(day),
-                            future: day > now.day,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(monthName,
+                                style: const TextStyle(
+                                    fontSize: 15, fontWeight: FontWeight.w700)),
+                            Row(
+                              children: [
+                                _Legend(
+                                    color: c.teal,
+                                    label: 'Prayed',
+                                    filled: true),
+                                const SizedBox(width: 14),
+                                _Legend(
+                                    color: c.amber,
+                                    label: 'Frozen',
+                                    filled: false),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        GridView.count(
+                          crossAxisCount: 7,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          mainAxisSpacing: 8,
+                          crossAxisSpacing: 8,
+                          childAspectRatio: 1,
+                          children: [
+                            for (final d in const [
+                              'S',
+                              'M',
+                              'T',
+                              'W',
+                              'T',
+                              'F',
+                              'S'
+                            ])
+                              Center(
+                                  child: Text(d,
+                                      style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                          color: c.faint))),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        daysAsync.when(
+                          loading: () => const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 30),
+                            child: Center(child: CircularProgressIndicator()),
                           ),
+                          error: (e, st) => const SizedBox.shrink(),
+                          data: (qualifyingDays) => GridView.count(
+                            crossAxisCount: 7,
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            mainAxisSpacing: 8,
+                            crossAxisSpacing: 8,
+                            children: [
+                              for (var i = 0; i < firstWeekday; i++)
+                                const SizedBox(),
+                              for (var day = 1; day <= daysInMonth; day++)
+                                _DayCell(
+                                  day: day,
+                                  active: qualifyingDays.contains(day),
+                                  future: day > now.day,
+                                ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
+                  const SizedBox(height: 22),
+                  Text('MILESTONES',
+                      style: PgText.sans(
+                          size: 12,
+                          weight: FontWeight.w700,
+                          color: c.dim,
+                          letterSpacing: 1)),
+                  const SizedBox(height: 14),
+                  GridView.builder(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 12,
+                      mainAxisExtent: 128,
+                    ),
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: milestoneDays.length,
+                    itemBuilder: (context, i) {
+                      final days = milestoneDays[i];
+                      return _MilestoneCard(
+                          days: days, achieved: streak >= days);
+                    },
+                  ),
+                  const SizedBox(height: 22),
+                  _HideStreakRow(hidden: profile?.hideStreakCount ?? false),
                 ],
               ),
             ),
-            const SizedBox(height: 22),
-            Text('MILESTONES',
-                style: PgText.sans(
-                    size: 12,
-                    weight: FontWeight.w700,
-                    color: c.dim,
-                    letterSpacing: 1)),
-            const SizedBox(height: 14),
-            GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                mainAxisExtent: 128,
-              ),
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: milestoneDays.length,
-              itemBuilder: (context, i) {
-                final days = milestoneDays[i];
-                return _MilestoneCard(days: days, achieved: streak >= days);
-              },
-            ),
-            const SizedBox(height: 22),
-            _HideStreakRow(hidden: profile?.hideStreakCount ?? false),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -21,74 +21,116 @@ class ScriptureScreen extends ConsumerWidget {
     final libraryAsync = ref.watch(bibleLibraryProvider);
 
     return Scaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(26, 6, 26, 40),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            PgHeader(eyebrow: DateFormat('MMMM d').format(today).toUpperCase(), onBack: () => context.pop()),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              child: Column(
-                children: [
-                  Text('SCRIPTURE OF THE DAY',
-                      textAlign: TextAlign.center,
-                      style: PgText.serif(size: 11, letterSpacing: 3, color: c.teal)),
-                  const SizedBox(height: 20),
-                  libraryAsync.when(
-                    loading: () => const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 12),
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                    error: (e, st) => Text('Could not load scripture text.', style: TextStyle(color: c.danger)),
-                    data: (library) {
-                      final verses = library.versesFor(entry.book, entry.chapter);
-                      final text = verses.isEmpty ? '' : verses.sublist(entry.verseStart - 1, entry.verseEnd).join(' ');
-                      return Text(
-                        '"$text"',
-                        textAlign: TextAlign.center,
-                        style: PgText.serif(size: 27, weight: FontWeight.w500, height: 1.5),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 18),
-                  Text('${entry.reference} · KJV', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: c.amber)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 14),
-            _Block(label: 'EXPLANATION', labelColor: c.teal, body: entry.explanation),
-            const SizedBox(height: 14),
-            _Block(label: 'PRAYER FOCUS', labelColor: c.amber, body: entry.prayerFocus),
-            const SizedBox(height: 14),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: c.surface2,
-                border: Border.all(color: c.line),
-                borderRadius: BorderRadius.circular(20),
-              ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(26, 6, 26, 0),
+            child: PgHeader(
+                eyebrow: DateFormat('MMMM d').format(today).toUpperCase(),
+                onBack: () => context.pop()),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(26, 0, 26, 40),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('REFLECTION QUESTION',
-                      style: PgText.sans(size: 12, weight: FontWeight.w700, color: c.dim, letterSpacing: 1)),
-                  const SizedBox(height: 10),
-                  Text(entry.question, style: PgText.serif(size: 18, height: 1.5)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Column(
+                      children: [
+                        Text('SCRIPTURE OF THE DAY',
+                            textAlign: TextAlign.center,
+                            style: PgText.serif(
+                                size: 11, letterSpacing: 3, color: c.teal)),
+                        const SizedBox(height: 20),
+                        libraryAsync.when(
+                          loading: () => const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 12),
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          error: (e, st) => Text(
+                              'Could not load scripture text.',
+                              style: TextStyle(color: c.danger)),
+                          data: (library) {
+                            final verses =
+                                library.versesFor(entry.book, entry.chapter);
+                            final text = verses.isEmpty
+                                ? ''
+                                : verses
+                                    .sublist(
+                                        entry.verseStart - 1, entry.verseEnd)
+                                    .join(' ');
+                            return Text(
+                              '"$text"',
+                              textAlign: TextAlign.center,
+                              style: PgText.serif(
+                                  size: 27,
+                                  weight: FontWeight.w500,
+                                  height: 1.5),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 18),
+                        Text('${entry.reference} · KJV',
+                            style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: c.amber)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  _Block(
+                      label: 'EXPLANATION',
+                      labelColor: c.teal,
+                      body: entry.explanation),
+                  const SizedBox(height: 14),
+                  _Block(
+                      label: 'PRAYER FOCUS',
+                      labelColor: c.amber,
+                      body: entry.prayerFocus),
+                  const SizedBox(height: 14),
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: c.surface2,
+                      border: Border.all(color: c.line),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('REFLECTION QUESTION',
+                            style: PgText.sans(
+                                size: 12,
+                                weight: FontWeight.w700,
+                                color: c.dim,
+                                letterSpacing: 1)),
+                        const SizedBox(height: 10),
+                        Text(entry.question,
+                            style: PgText.serif(size: 18, height: 1.5)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  PgButton(
+                      label: 'Pray on this',
+                      onPressed: () =>
+                          context.push('/timer?category=Scripture')),
                 ],
               ),
             ),
-            const SizedBox(height: 18),
-            PgButton(label: 'Pray on this', onPressed: () => context.push('/timer?category=Scripture')),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
 class _Block extends StatelessWidget {
-  const _Block({required this.label, required this.labelColor, required this.body});
+  const _Block(
+      {required this.label, required this.labelColor, required this.body});
 
   final String label;
   final Color labelColor;
@@ -107,9 +149,15 @@ class _Block extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: PgText.sans(size: 12, weight: FontWeight.w700, color: labelColor, letterSpacing: 1)),
+          Text(label,
+              style: PgText.sans(
+                  size: 12,
+                  weight: FontWeight.w700,
+                  color: labelColor,
+                  letterSpacing: 1)),
           const SizedBox(height: 10),
-          Text(body, style: TextStyle(fontSize: 15, height: 1.65, color: c.text)),
+          Text(body,
+              style: TextStyle(fontSize: 15, height: 1.65, color: c.text)),
         ],
       ),
     );

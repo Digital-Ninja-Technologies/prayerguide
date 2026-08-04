@@ -36,7 +36,9 @@ class _GroupNewScreenState extends ConsumerState<GroupNewScreen> {
     try {
       final group = await ref.read(groupsProvider.notifier).create(
             name: name,
-            meetingTime: _meetingTime.text.trim().isEmpty ? null : _meetingTime.text.trim(),
+            meetingTime: _meetingTime.text.trim().isEmpty
+                ? null
+                : _meetingTime.text.trim(),
           );
       if (mounted) setState(() => _createdCode = group.inviteCode);
     } catch (e) {
@@ -76,86 +78,129 @@ class _GroupNewScreenState extends ConsumerState<GroupNewScreen> {
     final c = context.colors;
 
     return Scaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(22, 6, 22, 40),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            PgHeader(title: 'New group', onBack: () => context.pop()),
-            if (_createdCode == null) ...[
-              const PgSectionLabel('Start a group'),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: PgTextField(controller: _name, hint: 'Group name', fontWeight: FontWeight.w600),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 14),
-                child: PgTextField(controller: _meetingTime, hint: 'Meeting time (optional) — e.g. Tuesdays · 7:00 PM'),
-              ),
-              PgButton(label: _creating ? 'Creating…' : 'Create group', onPressed: _creating ? null : _create),
-            ] else ...[
-              const PgSectionLabel('Your group is ready'),
-              Container(
-                padding: const EdgeInsets.fromLTRB(16, 14, 6, 14),
-                margin: const EdgeInsets.only(bottom: 14),
-                decoration: BoxDecoration(color: c.surface, border: Border.all(color: c.line), borderRadius: BorderRadius.circular(14)),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(_createdCode!,
-                          style: TextStyle(fontSize: 15, color: c.text, fontWeight: FontWeight.w700, fontFamily: 'monospace')),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(22, 6, 22, 0),
+            child: PgHeader(title: 'New group', onBack: () => context.pop()),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(22, 0, 22, 40),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (_createdCode == null) ...[
+                    const PgSectionLabel('Start a group'),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: PgTextField(
+                          controller: _name,
+                          hint: 'Group name',
+                          fontWeight: FontWeight.w600),
                     ),
-                    TextButton(
-                      onPressed: () {
-                        Clipboard.setData(ClipboardData(text: _createdCode!));
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invite code copied')));
-                      },
-                      style: TextButton.styleFrom(
-                        backgroundColor: c.teal,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 14),
+                      child: PgTextField(
+                          controller: _meetingTime,
+                          hint:
+                              'Meeting time (optional) — e.g. Tuesdays · 7:00 PM'),
+                    ),
+                    PgButton(
+                        label: _creating ? 'Creating…' : 'Create group',
+                        onPressed: _creating ? null : _create),
+                  ] else ...[
+                    const PgSectionLabel('Your group is ready'),
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(16, 14, 6, 14),
+                      margin: const EdgeInsets.only(bottom: 14),
+                      decoration: BoxDecoration(
+                          color: c.surface,
+                          border: Border.all(color: c.line),
+                          borderRadius: BorderRadius.circular(14)),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(_createdCode!,
+                                style: TextStyle(
+                                    fontSize: 15,
+                                    color: c.text,
+                                    fontWeight: FontWeight.w700,
+                                    fontFamily: 'monospace')),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Clipboard.setData(
+                                  ClipboardData(text: _createdCode!));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text('Invite code copied')));
+                            },
+                            style: TextButton.styleFrom(
+                              backgroundColor: c.teal,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 10),
+                            ),
+                            child: Text('Copy',
+                                style: TextStyle(
+                                    color: c.onTeal,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w800)),
+                          ),
+                        ],
                       ),
-                      child: Text('Copy', style: TextStyle(color: c.onTeal, fontSize: 13, fontWeight: FontWeight.w800)),
+                    ),
+                    Text('Share this code with anyone you want to join.',
+                        style: TextStyle(fontSize: 13, color: c.dim)),
+                    const SizedBox(height: 18),
+                    PgButton(label: 'Done', onPressed: () => context.pop()),
+                  ],
+                  if (_error != null) ...[
+                    const SizedBox(height: 10),
+                    Text(_error!,
+                        style: TextStyle(color: c.danger, fontSize: 12.5)),
+                  ],
+                  if (_createdCode == null) ...[
+                    const SizedBox(height: 26),
+                    const PgSectionLabel('Have a code from someone else?'),
+                    Row(
+                      children: [
+                        Expanded(
+                            child: PgTextField(
+                                controller: _joinCode,
+                                hint: 'Enter their group code')),
+                        const SizedBox(width: 10),
+                        Material(
+                          color: c.teal,
+                          borderRadius: BorderRadius.circular(14),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(14),
+                            onTap: _joining ? null : _join,
+                            child: Container(
+                              width: 48,
+                              height: 48,
+                              alignment: Alignment.center,
+                              child: _joining
+                                  ? SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2, color: c.onTeal))
+                                  : Icon(Icons.arrow_forward_rounded,
+                                      color: c.onTeal),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
-                ),
-              ),
-              Text('Share this code with anyone you want to join.', style: TextStyle(fontSize: 13, color: c.dim)),
-              const SizedBox(height: 18),
-              PgButton(label: 'Done', onPressed: () => context.pop()),
-            ],
-            if (_error != null) ...[
-              const SizedBox(height: 10),
-              Text(_error!, style: TextStyle(color: c.danger, fontSize: 12.5)),
-            ],
-            if (_createdCode == null) ...[
-              const SizedBox(height: 26),
-              const PgSectionLabel('Have a code from someone else?'),
-              Row(
-                children: [
-                  Expanded(child: PgTextField(controller: _joinCode, hint: 'Enter their group code')),
-                  const SizedBox(width: 10),
-                  Material(
-                    color: c.teal,
-                    borderRadius: BorderRadius.circular(14),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(14),
-                      onTap: _joining ? null : _join,
-                      child: Container(
-                        width: 48,
-                        height: 48,
-                        alignment: Alignment.center,
-                        child: _joining
-                            ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: c.onTeal))
-                            : Icon(Icons.arrow_forward_rounded, color: c.onTeal),
-                      ),
-                    ),
-                  ),
                 ],
               ),
-            ],
-          ],
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }
