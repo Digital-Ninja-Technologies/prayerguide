@@ -187,11 +187,28 @@ Supabase if RevenueCat isn't configured) and stays in sync afterwards via
 `RevenueCatService.customerInfoStream` — RevenueCat's live update
 listener, which fires on purchases, restores, renewals, and even
 purchases made on another device, without needing to re-fetch manually.
-Every purchase/restore/update is synced back to the `subscriptions` table.
 Test purchases against the Test Store need nothing extra; against real
 stores, use a sandbox tester (App Store Connect → Users and Access →
 Sandbox) or a Play Console license-test account — real cards are never
 charged in sandbox/test mode.
+
+**The `subscriptions` table is written server-side only**, by the
+`revenuecat-webhook` Edge Function (`supabase/functions/revenuecat-webhook`)
+— the client can only read its own row (see migration
+`0016_security_audit_fixes.sql`). `tier` is what `redeem_companion_invite()`
+and the app's own no-RevenueCat fallback trust as ground truth for Premium,
+so it can't be left client-writable. Deploy and wire it up once:
+
+```
+supabase functions deploy revenuecat-webhook --no-verify-jwt
+supabase secrets set REVENUECAT_WEBHOOK_AUTH=<a random string you generate>
+```
+
+Then in the RevenueCat dashboard → Project Settings → Integrations →
+Webhooks: set the URL to this function's endpoint and the "Authorization
+header value" to that same `REVENUECAT_WEBHOOK_AUTH` string — RevenueCat
+sends it back on every request, which is how the function tells a real
+RevenueCat event apart from anyone else POSTing to its URL.
 
 **Customer Center** (RevenueCat dashboard → Customer Center) lets
 subscribers self-serve cancel/manage their plan from inside the app —
