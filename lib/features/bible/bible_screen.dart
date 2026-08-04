@@ -6,19 +6,34 @@ import '../../core/router/app_router.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
 import '../../data/bible/bible_library.dart';
+import '../../data/bible/reading_plan_schedule.dart';
 import '../../data/models/bible_note.dart';
 import '../../state/bible_library_provider.dart';
 import '../../state/bible_notes_provider.dart';
+import '../../state/reading_plan_provider.dart';
+import '../../widgets/pg_button.dart';
 import '../../widgets/pg_pill.dart';
 import 'bible_picker_sheet.dart';
 
 class BibleScreen extends ConsumerStatefulWidget {
-  const BibleScreen({super.key, this.initialBook, this.initialChapter});
+  const BibleScreen({
+    super.key,
+    this.initialBook,
+    this.initialChapter,
+    this.planKey,
+    this.planDay,
+  });
 
   /// Optional deep-link target (e.g. from a Reading Plan's "Read Day N").
   /// When absent, the reader defaults to Genesis 1.
   final String? initialBook;
   final int? initialChapter;
+
+  /// When both are set (arrived here via a Reading Plan's "Read Day N"
+  /// button), a fixed "Mark Day N Done" button is shown above the bottom
+  /// nav bar so the day can be marked complete without leaving the reader.
+  final String? planKey;
+  final int? planDay;
 
   @override
   ConsumerState<BibleScreen> createState() => _BibleScreenState();
@@ -27,6 +42,9 @@ class BibleScreen extends ConsumerStatefulWidget {
 class _BibleScreenState extends ConsumerState<BibleScreen> {
   late String _book = widget.initialBook ?? 'Genesis';
   late int _chapter = widget.initialChapter ?? 1;
+  late String? _planKey = widget.planKey;
+  late int? _planDay = widget.planDay;
+  bool _marking = false;
 
   String get _chapterRef => '$_book $_chapter';
 
@@ -46,8 +64,41 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
         setState(() {
           _book = book;
           _chapter = chapter;
+          _planKey = widget.planKey;
+          _planDay = widget.planDay;
         });
       }
+    }
+  }
+
+  Future<void> _markPlanDayDone() async {
+    final planKey = _planKey;
+    if (planKey == null) return;
+    final def = readingPlanDefs[planKey];
+    if (def == null) return;
+    setState(() => _marking = true);
+    try {
+      await ref.read(readingPlanProvider.notifier).markDayComplete(
+            planKey: planKey,
+            totalDays: def.totalDays,
+          );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Day ${_planDay ?? ''} marked done'.trim())),
+        );
+        setState(() {
+          _planKey = null;
+          _planDay = null;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not update your progress: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _marking = false);
     }
   }
 
@@ -323,8 +374,8 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(_chapterRef,
-                          style: PgText.serif(
-                              size: 26, weight: FontWeight.w600)),
+                          style:
+                              PgText.serif(size: 26, weight: FontWeight.w600)),
                       const SizedBox(height: 4),
                       Text('King James Version',
                           style: TextStyle(
@@ -350,8 +401,7 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
                                 decoration: highlightedVerses.contains(i + 1)
                                     ? BoxDecoration(
                                         color: c.amberSoft,
-                                        borderRadius:
-                                            BorderRadius.circular(6))
+                                        borderRadius: BorderRadius.circular(6))
                                     : null,
                                 child: RichText(
                                   text: TextSpan(
@@ -386,6 +436,17 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
                 ),
               ),
             ),
+            if (_planKey != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(22, 10, 22, 10),
+                child: PgButton(
+                  label: _marking
+                      ? 'Updating…'
+                      : 'Mark Day ${_planDay ?? ''} Done'.replaceAll('  ', ' '),
+                  icon: const Icon(Icons.check_rounded, size: 18),
+                  onPressed: _marking ? null : _markPlanDayDone,
+                ),
+              ),
           ],
         );
       },
