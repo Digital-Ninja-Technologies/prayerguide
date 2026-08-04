@@ -10,6 +10,7 @@ import '../../core/theme/pg_text.dart';
 import '../../state/fasting_provider.dart';
 import '../../widgets/pg_back_button.dart';
 import '../../widgets/pg_button.dart';
+import '../../widgets/pg_error_state.dart';
 import '../../widgets/pg_pill.dart';
 
 class FastingScreen extends ConsumerStatefulWidget {
@@ -50,7 +51,10 @@ class _FastingScreenState extends ConsumerState<FastingScreen> {
           Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
-                gradient: RadialGradient(center: const Alignment(0, -0.6), radius: 1, colors: [c.amberSoft, Colors.transparent]),
+                gradient: RadialGradient(
+                    center: const Alignment(0, -0.6),
+                    radius: 1,
+                    colors: [c.amberSoft, Colors.transparent]),
               ),
             ),
           ),
@@ -63,20 +67,27 @@ class _FastingScreenState extends ConsumerState<FastingScreen> {
                     children: [
                       PgBackButton(onTap: () => context.pop()),
                       const SizedBox(width: 12),
-                      Text('FASTING', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: c.dim, letterSpacing: .5)),
+                      Text('FASTING',
+                          style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: c.dim,
+                              letterSpacing: .5)),
                     ],
                   ),
                 ),
                 Expanded(
                   child: fastingAsync.when(
-                    loading: () => const Center(child: CircularProgressIndicator()),
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
                     error: (e, st) => Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Text('Could not load your fast.\n$e', textAlign: TextAlign.center, style: TextStyle(color: c.danger)),
-                      ),
+                      child: PgErrorState(
+                          error: e,
+                          onRetry: () => ref.invalidate(fastingProvider)),
                     ),
-                    data: (fasting) => fasting.session == null ? _buildStart(c) : _buildActive(c, fasting),
+                    data: (fasting) => fasting.session == null
+                        ? _buildStart(c)
+                        : _buildActive(c, fasting),
                   ),
                 ),
               ],
@@ -97,11 +108,13 @@ class _FastingScreenState extends ConsumerState<FastingScreen> {
             Container(
               width: 78,
               height: 78,
-              decoration: BoxDecoration(color: c.amberSoft, borderRadius: BorderRadius.circular(24)),
+              decoration: BoxDecoration(
+                  color: c.amberSoft, borderRadius: BorderRadius.circular(24)),
               child: Icon(Icons.wb_twilight_outlined, size: 36, color: c.amber),
             ),
             const SizedBox(height: 18),
-            Text('Begin a fast', style: PgText.serif(size: 22, weight: FontWeight.w600)),
+            Text('Begin a fast',
+                style: PgText.serif(size: 22, weight: FontWeight.w600)),
             const SizedBox(height: 8),
             Text(
               "Pair fasting with prayer and reflection. We'll track your time and what you pray and journal along the way.",
@@ -128,7 +141,8 @@ class _FastingScreenState extends ConsumerState<FastingScreen> {
             PgButton(
               label: 'Begin fast',
               variant: PgButtonVariant.secondaryAmber,
-              onPressed: () => ref.read(fastingProvider.notifier).start(_selectedHours),
+              onPressed: () =>
+                  ref.read(fastingProvider.notifier).start(_selectedHours),
             ),
           ],
         ),
@@ -139,9 +153,11 @@ class _FastingScreenState extends ConsumerState<FastingScreen> {
   Widget _buildActive(PgColors c, FastingState fasting) {
     final session = fasting.session!;
     final elapsed = DateTime.now().difference(session.startedAt);
-    final targetDuration = Duration(minutes: (session.targetHours * 60).round());
+    final targetDuration =
+        Duration(minutes: (session.targetHours * 60).round());
     final remaining = targetDuration - elapsed;
-    final progress = (elapsed.inSeconds / targetDuration.inSeconds).clamp(0.0, 1.0);
+    final progress =
+        (elapsed.inSeconds / targetDuration.inSeconds).clamp(0.0, 1.0);
     final done = remaining.inSeconds <= 0;
 
     return Column(
@@ -153,7 +169,11 @@ class _FastingScreenState extends ConsumerState<FastingScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text('${session.targetHours.toInt()}-HOUR FAST',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: c.amber, letterSpacing: 1)),
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: c.amber,
+                        letterSpacing: 1)),
                 const SizedBox(height: 6),
                 SizedBox(
                   width: 250,
@@ -163,16 +183,24 @@ class _FastingScreenState extends ConsumerState<FastingScreen> {
                     children: [
                       CustomPaint(
                         size: const Size(250, 250),
-                        painter: _RingPainter(progress: progress, track: c.line2, color: c.amber),
+                        painter: _RingPainter(
+                            progress: progress, track: c.line2, color: c.amber),
                       ),
                       Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(_fmt(elapsed), style: const TextStyle(fontSize: 44, fontWeight: FontWeight.w300)),
+                          Text(_fmt(elapsed),
+                              style: const TextStyle(
+                                  fontSize: 44, fontWeight: FontWeight.w300)),
                           const SizedBox(height: 4),
                           Text(
-                            done ? 'Goal reached' : 'of ${session.targetHours.toInt()}h · ${_fmt(remaining)} left',
-                            style: TextStyle(fontSize: 12.5, color: c.dim, fontWeight: FontWeight.w700),
+                            done
+                                ? 'Goal reached'
+                                : 'of ${session.targetHours.toInt()}h · ${_fmt(remaining)} left',
+                            style: TextStyle(
+                                fontSize: 12.5,
+                                color: c.dim,
+                                fontWeight: FontWeight.w700),
                           ),
                         ],
                       ),
@@ -189,9 +217,15 @@ class _FastingScreenState extends ConsumerState<FastingScreen> {
             children: [
               Row(
                 children: [
-                  Expanded(child: _StatBox(value: '${fasting.prayerSessionCount}', label: 'Prayer sessions')),
+                  Expanded(
+                      child: _StatBox(
+                          value: '${fasting.prayerSessionCount}',
+                          label: 'Prayer sessions')),
                   const SizedBox(width: 12),
-                  Expanded(child: _StatBox(value: '${fasting.journalNoteCount}', label: 'Journal notes')),
+                  Expanded(
+                      child: _StatBox(
+                          value: '${fasting.journalNoteCount}',
+                          label: 'Journal notes')),
                 ],
               ),
               const SizedBox(height: 12),
@@ -202,9 +236,14 @@ class _FastingScreenState extends ConsumerState<FastingScreen> {
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: c.line2),
                     padding: const EdgeInsets.all(15),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
                   ),
-                  child: Text('End fast', style: TextStyle(color: c.dim, fontSize: 15, fontWeight: FontWeight.w700)),
+                  child: Text('End fast',
+                      style: TextStyle(
+                          color: c.dim,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700)),
                 ),
               ),
             ],
@@ -232,10 +271,15 @@ class _StatBox extends StatelessWidget {
     final c = context.colors;
     return Container(
       padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(color: c.surface, border: Border.all(color: c.line), borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+          color: c.surface,
+          border: Border.all(color: c.line),
+          borderRadius: BorderRadius.circular(16)),
       child: Column(
         children: [
-          Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+          Text(value,
+              style:
+                  const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
           Text(label, style: TextStyle(fontSize: 11.5, color: c.dim)),
         ],
       ),
@@ -244,7 +288,8 @@ class _StatBox extends StatelessWidget {
 }
 
 class _RingPainter extends CustomPainter {
-  _RingPainter({required this.progress, required this.track, required this.color});
+  _RingPainter(
+      {required this.progress, required this.track, required this.color});
   final double progress;
   final Color track;
   final Color color;
@@ -263,9 +308,11 @@ class _RingPainter extends CustomPainter {
       ..strokeWidth = 6
       ..strokeCap = StrokeCap.round;
     canvas.drawCircle(center, radius, trackPaint);
-    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), -math.pi / 2, 2 * math.pi * progress, false, fgPaint);
+    canvas.drawArc(Rect.fromCircle(center: center, radius: radius),
+        -math.pi / 2, 2 * math.pi * progress, false, fgPaint);
   }
 
   @override
-  bool shouldRepaint(covariant _RingPainter oldDelegate) => oldDelegate.progress != progress;
+  bool shouldRepaint(covariant _RingPainter oldDelegate) =>
+      oldDelegate.progress != progress;
 }

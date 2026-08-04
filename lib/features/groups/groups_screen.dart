@@ -10,6 +10,7 @@ import '../../state/groups_provider.dart';
 import '../../widgets/pg_back_button.dart';
 import '../../widgets/pg_button.dart';
 import '../../widgets/pg_card.dart';
+import '../../widgets/pg_error_state.dart';
 import '../../widgets/pg_icon_badge.dart';
 
 class GroupsScreen extends ConsumerWidget {
@@ -38,7 +39,8 @@ class GroupsScreen extends ConsumerWidget {
                         PgBackButton(onTap: () => context.pop()),
                         const SizedBox(width: 12),
                         Text('Groups',
-                            style: PgText.serif(size: 26, weight: FontWeight.w600)),
+                            style: PgText.serif(
+                                size: 26, weight: FontWeight.w600)),
                       ],
                     ),
                     Row(
@@ -79,11 +81,8 @@ class GroupsScreen extends ConsumerWidget {
                   padding: EdgeInsets.symmetric(vertical: 60),
                   child: Center(child: CircularProgressIndicator()),
                 ),
-                error: (e, st) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 40),
-                  child: Text('Could not load groups.\n$e',
-                      style: TextStyle(color: c.danger)),
-                ),
+                error: (e, st) => PgErrorState(
+                    error: e, onRetry: () => ref.invalidate(groupsProvider)),
                 data: (groups) {
                   if (groups.isEmpty) {
                     return _EmptyState(

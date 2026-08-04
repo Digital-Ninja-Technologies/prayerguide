@@ -6,6 +6,7 @@ import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
 import '../../data/models/bible_note.dart';
 import '../../state/bible_notes_provider.dart';
+import '../../widgets/pg_error_state.dart';
 import '../../widgets/pg_header.dart';
 import '../../widgets/pg_pill.dart';
 
@@ -84,12 +85,9 @@ class _BibleNotesScreenState extends ConsumerState<BibleNotesScreen> {
               child: notesAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (e, st) => Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Text('Could not load your notes.\n$e',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: c.danger)),
-                  ),
+                  child: PgErrorState(
+                      error: e,
+                      onRetry: () => ref.invalidate(bibleNotesProvider)),
                 ),
                 data: (notes) {
                   final filtered = notes.where((n) => n.kind == _kind).toList();

@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/supabase/supabase_config.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
+import '../../core/errors/friendly_error.dart';
 import '../../data/models/companion.dart';
 import '../../state/companion_provider.dart';
 import '../../state/profile_provider.dart';
@@ -26,7 +27,7 @@ class TogetherScreen extends ConsumerWidget {
       body: detailAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, st) => _NoCompanionState(
-          message: 'Could not load this companion.\n$e',
+          message: friendlyErrorMessage(e),
           onClose: () => context.pop(),
         ),
         data: (state) =>

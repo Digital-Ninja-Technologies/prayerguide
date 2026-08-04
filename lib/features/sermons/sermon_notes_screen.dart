@@ -9,6 +9,7 @@ import '../../data/models/sermon_note.dart';
 import '../../state/sermon_notes_provider.dart';
 import '../../widgets/pg_button.dart';
 import '../../widgets/pg_card.dart';
+import '../../widgets/pg_error_state.dart';
 
 class SermonNotesScreen extends ConsumerStatefulWidget {
   const SermonNotesScreen({super.key});
@@ -42,7 +43,8 @@ class _SermonNotesScreenState extends ConsumerState<SermonNotesScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Sermon Notes', style: PgText.serif(size: 26, weight: FontWeight.w600)),
+                Text('Sermon Notes',
+                    style: PgText.serif(size: 26, weight: FontWeight.w600)),
                 PgButton(
                   label: 'New',
                   expand: false,
@@ -58,11 +60,14 @@ class _SermonNotesScreenState extends ConsumerState<SermonNotesScreen> {
             child: notesAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, st) => Center(
-                child: Text('Could not load your sermon notes.\n$e',
-                    textAlign: TextAlign.center, style: TextStyle(color: c.danger)),
+                child: PgErrorState(
+                    error: e,
+                    onRetry: () => ref.invalidate(sermonNotesProvider)),
               ),
               data: (notes) {
-                if (notes.isEmpty) return Center(child: _EmptyState(onNew: _createNote));
+                if (notes.isEmpty) {
+                  return Center(child: _EmptyState(onNew: _createNote));
+                }
                 return SingleChildScrollView(
                   padding: const EdgeInsets.only(bottom: 40),
                   child: Column(
@@ -98,7 +103,9 @@ class _NoteCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: Text(note.title, style: PgText.serif(size: 17, weight: FontWeight.w600), overflow: TextOverflow.ellipsis),
+                  child: Text(note.title,
+                      style: PgText.serif(size: 17, weight: FontWeight.w600),
+                      overflow: TextOverflow.ellipsis),
                 ),
                 if (note.hasAudio) ...[
                   const SizedBox(width: 8),
@@ -109,12 +116,20 @@ class _NoteCard extends StatelessWidget {
             const SizedBox(height: 6),
             Row(
               children: [
-                Text(_friendlyDate(note.createdAt), style: TextStyle(fontSize: 12, color: c.faint, fontWeight: FontWeight.w600)),
+                Text(_friendlyDate(note.createdAt),
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: c.faint,
+                        fontWeight: FontWeight.w600)),
                 if (note.speaker != null && note.speaker!.isNotEmpty) ...[
                   Text(' · ', style: TextStyle(fontSize: 12, color: c.faint)),
                   Expanded(
                     child: Text(note.speaker!,
-                        style: TextStyle(fontSize: 12, color: c.faint, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis),
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: c.faint,
+                            fontWeight: FontWeight.w600),
+                        overflow: TextOverflow.ellipsis),
                   ),
                 ],
               ],
@@ -123,15 +138,22 @@ class _NoteCard extends StatelessWidget {
               const SizedBox(height: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-                decoration: BoxDecoration(color: c.tealSoft, borderRadius: BorderRadius.circular(100)),
+                decoration: BoxDecoration(
+                    color: c.tealSoft,
+                    borderRadius: BorderRadius.circular(100)),
                 child: Text(note.scriptureRef!,
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: c.teal)),
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: c.teal)),
               ),
             ],
             if (note.notes.isNotEmpty) ...[
               const SizedBox(height: 9),
               Text(
-                note.notes.length > 140 ? '${note.notes.substring(0, 140)}…' : note.notes,
+                note.notes.length > 140
+                    ? '${note.notes.substring(0, 140)}…'
+                    : note.notes,
                 style: TextStyle(fontSize: 13.5, height: 1.55, color: c.dim),
               ),
             ],
@@ -165,11 +187,13 @@ class _EmptyState extends StatelessWidget {
           Container(
             width: 78,
             height: 78,
-            decoration: BoxDecoration(color: c.tealSoft, borderRadius: BorderRadius.circular(24)),
+            decoration: BoxDecoration(
+                color: c.tealSoft, borderRadius: BorderRadius.circular(24)),
             child: Icon(Icons.mic_none_rounded, size: 36, color: c.teal),
           ),
           const SizedBox(height: 16),
-          Text('No sermon notes yet', style: PgText.serif(size: 21, weight: FontWeight.w600)),
+          Text('No sermon notes yet',
+              style: PgText.serif(size: 21, weight: FontWeight.w600)),
           const SizedBox(height: 8),
           SizedBox(
             width: 260,
@@ -180,7 +204,8 @@ class _EmptyState extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          PgButton(label: 'Take your first note', expand: false, onPressed: onNew),
+          PgButton(
+              label: 'Take your first note', expand: false, onPressed: onNew),
         ],
       ),
     );

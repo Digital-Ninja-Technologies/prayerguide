@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/errors/friendly_error.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
 import '../../data/bible/reading_plan_schedule.dart';
 import '../../state/bible_library_provider.dart';
 import '../../state/reading_plan_provider.dart';
 import '../../widgets/pg_button.dart';
+import '../../widgets/pg_error_state.dart';
 import '../../widgets/pg_header.dart';
 
 class PlanDetailScreen extends ConsumerStatefulWidget {
@@ -31,7 +33,7 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not update your progress: $e')),
+          SnackBar(content: Text(friendlyErrorMessage(e))),
         );
       }
     } finally {
@@ -70,8 +72,10 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
                       padding: EdgeInsets.symmetric(vertical: 40),
                       child: Center(child: CircularProgressIndicator()),
                     ),
-                    error: (e, st) => Text('Could not load the Bible text.\n$e',
-                        style: TextStyle(color: c.danger)),
+                    error: (e, st) => PgErrorState(
+                        error: e,
+                        onRetry: () => ref.invalidate(bibleLibraryProvider),
+                        compact: true),
                     data: (library) {
                       final schedule = ReadingPlanSchedule.build(def, library);
                       var daysCompleted = 0;

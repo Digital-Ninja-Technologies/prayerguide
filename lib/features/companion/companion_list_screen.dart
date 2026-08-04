@@ -7,6 +7,7 @@ import '../../core/theme/pg_text.dart';
 import '../../data/models/companion.dart';
 import '../../state/companion_provider.dart';
 import '../../widgets/pg_button.dart';
+import '../../widgets/pg_error_state.dart';
 import '../../widgets/pg_header.dart';
 
 class CompanionListScreen extends ConsumerWidget {
@@ -55,11 +56,9 @@ class CompanionListScreen extends ConsumerWidget {
                       padding: EdgeInsets.symmetric(vertical: 60),
                       child: Center(child: CircularProgressIndicator()),
                     ),
-                    error: (e, st) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 40),
-                      child: Text('Could not load your companions.\n$e',
-                          style: TextStyle(color: c.danger)),
-                    ),
+                    error: (e, st) => PgErrorState(
+                        error: e,
+                        onRetry: () => ref.invalidate(companionsProvider)),
                     data: (companions) {
                       if (companions.isEmpty) {
                         return _EmptyState(

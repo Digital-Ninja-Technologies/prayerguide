@@ -9,6 +9,7 @@ import '../../data/models/prayer_request.dart';
 import '../../state/requests_provider.dart';
 import '../../widgets/pg_button.dart';
 import '../../widgets/pg_card.dart';
+import '../../widgets/pg_error_state.dart';
 import '../../widgets/pg_header.dart';
 import '../../widgets/pg_icon_badge.dart';
 import '../../widgets/pg_pill.dart';
@@ -59,11 +60,9 @@ class _RequestsScreenState extends ConsumerState<RequestsScreen> {
                       padding: EdgeInsets.symmetric(vertical: 60),
                       child: Center(child: CircularProgressIndicator()),
                     ),
-                    error: (e, st) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 40),
-                      child: Text('Could not load requests.\n$e',
-                          style: TextStyle(color: c.danger)),
-                    ),
+                    error: (e, st) => PgErrorState(
+                        error: e,
+                        onRetry: () => ref.invalidate(requestsProvider)),
                     data: (reqs) {
                       if (reqs.isEmpty) {
                         return _EmptyState(

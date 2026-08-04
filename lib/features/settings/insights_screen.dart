@@ -6,6 +6,7 @@ import '../../core/theme/pg_colors.dart';
 import '../../data/models/insights_summary.dart';
 import '../../state/insights_provider.dart';
 import '../../state/profile_provider.dart';
+import '../../widgets/pg_error_state.dart';
 import '../../widgets/pg_header.dart';
 
 const _dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -15,7 +16,6 @@ class InsightsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.colors;
     final streak = ref.watch(profileProvider).valueOrNull?.streakCount ?? 0;
     final insightsAsync = ref.watch(insightsProvider);
 
@@ -37,11 +37,9 @@ class InsightsScreen extends ConsumerWidget {
                       padding: EdgeInsets.symmetric(vertical: 60),
                       child: Center(child: CircularProgressIndicator()),
                     ),
-                    error: (e, st) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 40),
-                      child: Text('Could not load your growth data.\n$e',
-                          style: TextStyle(color: c.danger)),
-                    ),
+                    error: (e, st) => PgErrorState(
+                        error: e,
+                        onRetry: () => ref.invalidate(insightsProvider)),
                     data: (insights) =>
                         _Content(insights: insights, streak: streak),
                   ),

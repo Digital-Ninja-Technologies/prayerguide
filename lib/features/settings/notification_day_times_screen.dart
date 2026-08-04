@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../data/models/notification_prefs.dart';
 import '../../state/notifications_provider.dart';
+import '../../widgets/pg_error_state.dart';
 import '../../widgets/pg_header.dart';
 
 /// Lets a user set a different morning or evening prayer reminder time for
@@ -37,11 +38,9 @@ class NotificationDayTimesScreen extends ConsumerWidget {
             child: prefsAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, st) => Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text('Could not load your settings.\n$e',
-                      style: TextStyle(color: c.danger)),
-                ),
+                child: PgErrorState(
+                    error: e,
+                    onRetry: () => ref.invalidate(notificationsProvider)),
               ),
               data: (prefs) => SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(22, 0, 22, 40),

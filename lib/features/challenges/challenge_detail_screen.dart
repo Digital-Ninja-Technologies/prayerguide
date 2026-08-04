@@ -7,6 +7,7 @@ import '../../core/theme/pg_text.dart';
 import '../../data/static/pg_content.dart';
 import '../../state/challenge_provider.dart';
 import '../../widgets/pg_button.dart';
+import '../../widgets/pg_error_state.dart';
 import '../../widgets/pg_header.dart';
 
 class ChallengeDetailScreen extends ConsumerWidget {
@@ -35,11 +36,8 @@ class ChallengeDetailScreen extends ConsumerWidget {
                   padding: EdgeInsets.symmetric(vertical: 60),
                   child: Center(child: CircularProgressIndicator()),
                 ),
-                error: (e, st) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 40),
-                  child: Text('Could not load this challenge.\n$e',
-                      style: TextStyle(color: c.danger)),
-                ),
+                error: (e, st) => PgErrorState(
+                    error: e, onRetry: () => ref.invalidate(challengeProvider)),
                 data: (_) {
                   final progress =
                       ref.read(challengeProvider.notifier).forKey(challengeKey);

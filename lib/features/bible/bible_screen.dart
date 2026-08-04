@@ -12,6 +12,7 @@ import '../../state/bible_library_provider.dart';
 import '../../state/bible_notes_provider.dart';
 import '../../state/reading_plan_provider.dart';
 import '../../widgets/pg_button.dart';
+import '../../widgets/pg_error_state.dart';
 import '../../widgets/pg_pill.dart';
 import 'bible_picker_sheet.dart';
 
@@ -267,11 +268,8 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
     return libraryAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, st) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text('Could not load the Bible text.\n$e',
-              textAlign: TextAlign.center, style: TextStyle(color: c.danger)),
-        ),
+        child: PgErrorState(
+            error: e, onRetry: () => ref.invalidate(bibleLibraryProvider)),
       ),
       data: (library) {
         final verses = library.versesFor(_book, _chapter);

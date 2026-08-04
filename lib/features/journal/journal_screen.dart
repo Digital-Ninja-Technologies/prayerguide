@@ -12,6 +12,7 @@ import '../../state/repo_providers.dart';
 import '../../widgets/pg_button.dart';
 import '../../widgets/pg_card.dart';
 import '../../widgets/pg_cloud_restore.dart';
+import '../../widgets/pg_error_state.dart';
 import '../../widgets/pg_pill.dart';
 
 const _types = ['All', 'Gratitude', 'Request', 'Testimony', 'Reflection'];
@@ -102,9 +103,9 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                       ),
                     )
                   : Center(
-                      child: Text('Could not load your journal.\n$e',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: c.danger)),
+                      child: PgErrorState(
+                          error: e,
+                          onRetry: () => ref.invalidate(journalProvider)),
                     ),
               data: (entries) {
                 if (entries.isEmpty) {

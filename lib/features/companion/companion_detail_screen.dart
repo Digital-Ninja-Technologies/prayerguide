@@ -8,6 +8,7 @@ import '../../core/theme/pg_colors.dart';
 import '../../data/models/companion.dart';
 import '../../state/companion_provider.dart';
 import '../../state/profile_provider.dart';
+import '../../widgets/pg_error_state.dart';
 import '../../widgets/pg_header.dart';
 import '../../widgets/pg_section_label.dart';
 
@@ -94,11 +95,10 @@ class CompanionDetailScreen extends ConsumerWidget {
                       padding: EdgeInsets.symmetric(vertical: 60),
                       child: Center(child: CircularProgressIndicator()),
                     ),
-                    error: (e, st) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 40),
-                      child: Text('Could not load this companion.\n$e',
-                          style: TextStyle(color: c.danger)),
-                    ),
+                    error: (e, st) => PgErrorState(
+                        error: e,
+                        onRetry: () => ref.invalidate(
+                            companionDetailProvider(companionRowId))),
                     data: (state) => _CompanionContent(
                         state: state, companionRowId: companionRowId),
                   ),
@@ -583,8 +583,8 @@ class _SharedRequestCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                   child: Padding(
                     padding: const EdgeInsets.all(4),
-                    child: Icon(Icons.link_off_rounded,
-                        size: 17, color: c.faint),
+                    child:
+                        Icon(Icons.link_off_rounded, size: 17, color: c.faint),
                   ),
                 ),
             ],

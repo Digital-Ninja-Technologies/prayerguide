@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../data/models/notification_prefs.dart';
 import '../../state/notifications_provider.dart';
+import '../../widgets/pg_error_state.dart';
 import '../../widgets/pg_header.dart';
 import '../../widgets/pg_section_label.dart';
 import '../../widgets/pg_toggle.dart';
@@ -14,7 +15,6 @@ class NotificationsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.colors;
     final prefsAsync = ref.watch(notificationsProvider);
 
     return Scaffold(
@@ -36,11 +36,9 @@ class NotificationsScreen extends ConsumerWidget {
                       padding: EdgeInsets.symmetric(vertical: 60),
                       child: Center(child: CircularProgressIndicator()),
                     ),
-                    error: (e, st) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 40),
-                      child: Text('Could not load notification settings.\n$e',
-                          style: TextStyle(color: c.danger)),
-                    ),
+                    error: (e, st) => PgErrorState(
+                        error: e,
+                        onRetry: () => ref.invalidate(notificationsProvider)),
                     data: (prefs) => _NotificationsContent(prefs: prefs),
                   ),
                 ],
