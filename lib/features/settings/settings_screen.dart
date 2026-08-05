@@ -13,6 +13,31 @@ import '../../state/subscription_provider.dart';
 import '../../state/theme_provider.dart';
 import '../../widgets/pg_toggle.dart';
 
+Future<void> _confirmSignOut(BuildContext context, WidgetRef ref) async {
+  final c = context.colors;
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      backgroundColor: c.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      title: const Text('Sign out?'),
+      content: const Text("You'll need to sign back in to continue."),
+      actions: [
+        TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel')),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: Text('Sign out', style: TextStyle(color: c.danger)),
+        ),
+      ],
+    ),
+  );
+  if (confirmed == true) {
+    await ref.read(authRepositoryProvider).signOut();
+  }
+}
+
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -173,7 +198,7 @@ class SettingsScreen extends ConsumerWidget {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
-              onPressed: () => ref.read(authRepositoryProvider).signOut(),
+              onPressed: () => _confirmSignOut(context, ref),
               style: OutlinedButton.styleFrom(
                 side: BorderSide(color: c.line2),
                 padding: const EdgeInsets.symmetric(vertical: 14),

@@ -42,10 +42,27 @@ class NotificationScheduler {
       _challengeIdBase + (challengeProgressId.hashCode.abs() % 1000000);
 
   final _plugin = FlutterLocalNotificationsPlugin();
-  bool _ready = false;
 
-  Future<void> init() async {
-    if (_ready) return;
+  /// The in-flight initialization, if any — [NotificationsNotifier] and
+  /// [ChallengeNotifier] (among others) each call [init] independently
+  /// around login time, and without this, two concurrent callers could
+  /// both see initialization as not-yet-started and race to request the
+  /// Android notification permission at the same time, which Android
+  /// rejects with `PlatformException(permissionRequestInProgress, ...)`.
+  /// Every caller now awaits the same underlying Future instead. Cleared on
+  /// failure so a transient error doesn't permanently wedge this for the
+  /// rest of the session.
+  Future<void>? _initFuture;
+
+  Future<void> init() {
+    return _initFuture ??=
+        _doInit().catchError((Object error, StackTrace stack) {
+      _initFuture = null;
+      Error.throwWithStackTrace(error, stack);
+    });
+  }
+
+  Future<void> _doInit() async {
     tz_data.initializeTimeZones();
     try {
       final info = await FlutterTimezone.getLocalTimezone();
@@ -70,8 +87,6 @@ class NotificationScheduler {
     final ios = _plugin.resolvePlatformSpecificImplementation<
         IOSFlutterLocalNotificationsPlugin>();
     await ios?.requestPermissions(alert: true, badge: true, sound: true);
-
-    _ready = true;
   }
 
   Future<void> _scheduleDaily({

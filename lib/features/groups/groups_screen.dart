@@ -223,7 +223,31 @@ class GroupsScreen extends ConsumerWidget {
                 label: 'Leave group',
                 variant: PgButtonVariant.outline,
                 onPressed: () async {
-                  Navigator.of(sheetContext).pop();
+                  final confirmed = await showDialog<bool>(
+                    context: sheetContext,
+                    builder: (dialogContext) => AlertDialog(
+                      backgroundColor: c.surface,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18)),
+                      title: Text('Leave ${group.name}?'),
+                      content: const Text(
+                          "You'll need a new invite code to rejoin later."),
+                      actions: [
+                        TextButton(
+                            onPressed: () =>
+                                Navigator.of(dialogContext).pop(false),
+                            child: const Text('Cancel')),
+                        TextButton(
+                          onPressed: () =>
+                              Navigator.of(dialogContext).pop(true),
+                          child: Text('Leave group',
+                              style: TextStyle(color: c.danger)),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirmed != true) return;
+                  if (sheetContext.mounted) Navigator.of(sheetContext).pop();
                   await ref.read(groupsProvider.notifier).leave(group.id);
                 },
               ),
