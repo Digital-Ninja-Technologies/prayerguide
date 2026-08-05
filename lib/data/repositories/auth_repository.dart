@@ -97,4 +97,15 @@ class AuthRepository {
   }
 
   Future<void> signOut() => _auth.signOut();
+
+  /// Permanently deletes the current user's account and all associated
+  /// data via the `delete_own_account` RPC (see migration
+  /// 0019_delete_own_account.sql) — irreversible. The server-side row is
+  /// gone after the RPC returns, but the local session object doesn't know
+  /// that on its own, so sign out explicitly to clear it rather than
+  /// leaving the app looking signed-in to an account that no longer exists.
+  Future<void> deleteAccount() async {
+    await supa.rpc('delete_own_account');
+    await _auth.signOut();
+  }
 }

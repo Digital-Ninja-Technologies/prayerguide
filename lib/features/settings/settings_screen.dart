@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/errors/friendly_error.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
 import '../../data/models/subscription_status.dart';
@@ -80,7 +81,9 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 22),
-          _PremiumCard(onTap: () => context.push('/upgrade'), sub: ref.watch(subscriptionProvider).valueOrNull),
+          _PremiumCard(
+              onTap: () => context.push('/upgrade'),
+              sub: ref.watch(subscriptionProvider).valueOrNull),
           const SizedBox(height: 22),
           Text('NOTIFICATIONS',
               style: PgText.sans(
@@ -184,6 +187,8 @@ class SettingsScreen extends ConsumerWidget {
                       fontWeight: FontWeight.w700)),
             ),
           ),
+          const SizedBox(height: 18),
+          const Center(child: _DeleteAccountLink()),
           const SizedBox(height: 16),
           Center(
               child: Text('Prayer Guide · v1.0.0',
@@ -203,7 +208,9 @@ class _PremiumCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.colors;
     final active = sub?.isActive ?? false;
-    final title = active ? (sub!.isTrial ? 'Trial active' : 'Premium active') : 'Go Premium';
+    final title = active
+        ? (sub!.isTrial ? 'Trial active' : 'Premium active')
+        : 'Go Premium';
     final subtitle = active && sub!.isTrial && sub!.renewsAt != null
         ? 'Until ${DateFormat('MMM d').format(sub!.renewsAt!)} · Audio Bible, growth insights, unlimited companions'
         : 'Audio Bible, growth insights, unlimited companions';
@@ -234,7 +241,10 @@ class _PremiumCard extends StatelessWidget {
                       end: Alignment.bottomRight),
                   borderRadius: BorderRadius.circular(13),
                 ),
-                child: Icon(active ? Icons.check_rounded : Icons.workspace_premium_outlined,
+                child: Icon(
+                    active
+                        ? Icons.check_rounded
+                        : Icons.workspace_premium_outlined,
                     color: const Color(0xFF2A1A05)),
               ),
               const SizedBox(width: 14),
@@ -242,8 +252,11 @@ class _PremiumCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
-                    Text(subtitle, style: TextStyle(fontSize: 12.5, color: c.dim)),
+                    Text(title,
+                        style: const TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w800)),
+                    Text(subtitle,
+                        style: TextStyle(fontSize: 12.5, color: c.dim)),
                   ],
                 ),
               ),
@@ -396,6 +409,75 @@ class _LinkRow extends StatelessWidget {
             Icon(Icons.chevron_right_rounded, size: 17, color: c.faint),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Deliberately understated — a small plain-text link, not a bordered
+/// button like Sign out — since this is a rarely-needed, one-way action
+/// that shouldn't visually compete with everyday settings. Apple App Store
+/// Review Guideline 5.1.1(v) requires apps with account creation to offer
+/// in-app deletion, not just an "email us" path.
+class _DeleteAccountLink extends ConsumerStatefulWidget {
+  const _DeleteAccountLink();
+
+  @override
+  ConsumerState<_DeleteAccountLink> createState() => _DeleteAccountLinkState();
+}
+
+class _DeleteAccountLinkState extends ConsumerState<_DeleteAccountLink> {
+  bool _deleting = false;
+
+  Future<void> _confirmAndDelete() async {
+    final c = context.colors;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: c.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: const Text('Delete your account?'),
+        content: const Text(
+            "This permanently deletes your account and everything in it — journal, prayer requests, streak, companion pairing. This can't be undone."),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text('Delete my account', style: TextStyle(color: c.danger)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _deleting = true);
+    try {
+      await ref.read(authRepositoryProvider).deleteAccount();
+      // No further navigation needed — deleteAccount() signs out, and the
+      // router's own redirect takes it from there once currentUser is null.
+    } catch (e) {
+      if (mounted) {
+        setState(() => _deleting = false);
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(friendlyErrorMessage(e))));
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return TextButton(
+      onPressed: _deleting ? null : _confirmAndDelete,
+      style: TextButton.styleFrom(
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+      child: Text(
+        _deleting ? 'Deleting…' : 'Delete account',
+        style: TextStyle(
+            fontSize: 12, color: c.faint, fontWeight: FontWeight.w500),
       ),
     );
   }
