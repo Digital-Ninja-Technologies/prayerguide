@@ -2,6 +2,11 @@
     <!-- Lets flutter_local_notifications reschedule daily prayer/scripture
          reminders after a device reboot. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <!-- Required on Android 13+ (API 33) for any app that shows notifications
+         (prayer/scripture/challenge reminders) — without this, the runtime
+         permission prompt never fires and every scheduled notification
+         silently fails to show on newer devices. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <!-- Audio Prayer Room (LiveKit voice) -->
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
