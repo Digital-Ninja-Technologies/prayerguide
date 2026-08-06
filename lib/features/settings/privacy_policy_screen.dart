@@ -6,7 +6,7 @@ import '../../core/theme/pg_text.dart';
 import '../../widgets/pg_header.dart';
 import 'about_help_screen.dart' show kSupportEmail;
 
-const _kEffectiveDate = 'July 2026';
+const _kEffectiveDate = 'August 2026';
 
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({super.key});
@@ -90,8 +90,9 @@ class PrivacyPolicyScreen extends StatelessWidget {
                     body:
                         "You can edit or delete journal entries and prayer requests at any time from "
                         "within the app. You can turn cloud backup on or off whenever you like. To "
-                        "delete your account and all associated data, email us at $kSupportEmail — we'll "
-                        "take care of it.",
+                        "delete your account and all associated data, go to Settings > Delete account — "
+                        "it takes effect immediately and can't be undone. You can also email us at "
+                        "$kSupportEmail if you'd rather we do it for you.",
                   ),
                   const _LegalSection(
                     title: '6. Children',

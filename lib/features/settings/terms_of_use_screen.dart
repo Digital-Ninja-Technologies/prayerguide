@@ -6,7 +6,7 @@ import '../../core/theme/pg_text.dart';
 import '../../widgets/pg_header.dart';
 import 'about_help_screen.dart' show kSupportEmail;
 
-const _kEffectiveDate = 'July 2026';
+const _kEffectiveDate = 'August 2026';
 
 class TermsOfUseScreen extends StatelessWidget {
   const TermsOfUseScreen({super.key});
@@ -89,9 +89,9 @@ class TermsOfUseScreen extends StatelessWidget {
                   const _LegalSection(
                     title: '7. Termination',
                     body:
-                        "You can stop using Prayer Guide and delete your account at any time by "
-                        "emailing $kSupportEmail. We may suspend or terminate access for accounts that "
-                        "violate these terms.",
+                        "You can stop using Prayer Guide and delete your account at any time from "
+                        "Settings > Delete account, or by emailing $kSupportEmail. We may suspend or "
+                        "terminate access for accounts that violate these terms.",
                   ),
                   const _LegalSection(
                     title: '8. Disclaimer & limitation of liability',
