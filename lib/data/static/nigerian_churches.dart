@@ -118,4 +118,34 @@ const kNigerianChurches = <NigerianChurch>[
     city: 'Lagos',
     youtubeUrl: 'https://www.youtube.com/channel/UCBUgX2vAE337fWGu_o6lY1w',
   ),
+  NigerianChurch(
+    name: 'The Redeemed Evangelical Mission (TREM)',
+    leader: 'Bishop Mike Okonkwo',
+    city: 'Lagos',
+    youtubeUrl: 'https://www.youtube.com/user/TREMHEADQUARTERS',
+  ),
+  NigerianChurch(
+    name: 'Champions Royal Assembly',
+    leader: 'Apostle Joshua Iginla',
+    city: 'Kubwa, Abuja',
+    youtubeUrl: 'https://www.youtube.com/@ChampionsRoyalAssembly',
+  ),
+  NigerianChurch(
+    name: 'Guiding Light Assembly',
+    leader: 'Pastor Wale Adefarasin',
+    city: 'Lagos',
+    youtubeUrl: 'https://www.youtube.com/channel/UCjwROWum8jztBmNY1fsKJGQ',
+  ),
+  NigerianChurch(
+    name: 'Global Impact Church',
+    leader: 'Pastor Yemi Davids',
+    city: 'Ogudu, Lagos',
+    youtubeUrl: 'https://www.youtube.com/@GlobalImpactChurchTV',
+  ),
+  NigerianChurch(
+    name: 'Christ Apostolic Church (CAC Worldwide)',
+    leader: 'Pastor S.O. Oladele (President)',
+    city: 'Ibadan',
+    youtubeUrl: 'https://www.youtube.com/cacworldwide',
+  ),
 ];
