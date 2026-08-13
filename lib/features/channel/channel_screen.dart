@@ -1,30 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
 import '../../data/static/nigerian_churches.dart';
+import '../../state/favorite_channels_provider.dart';
 import '../../widgets/pg_card.dart';
 import '../../widgets/pg_icon_badge.dart';
 
 /// Directory of church YouTube channels — a fixed search bar up top filters
 /// a curated list of major Nigerian churches (see `nigerian_churches.dart`)
 /// so a user can find one without scrolling through all of them. Tapping an
-/// entry opens `ChannelWebviewScreen` with that church's real channel.
+/// entry opens `ChannelWebviewScreen` with that church's real channel; the
+/// heart on each row saves it to `favoriteChannelsProvider` (real Supabase
+/// row, not local-only) so it shows up in the "Favorites" section here on
+/// any device.
 ///
 /// If `CHURCH_YOUTUBE_CHANNEL_URL` is set in `.env` (see SETUP.md), that
 /// channel is pinned above the directory as "Your church" — this repo's
 /// existing single-channel config still works, it just now sits alongside
 /// the built-in directory instead of replacing it.
-class ChannelScreen extends StatefulWidget {
+class ChannelScreen extends ConsumerStatefulWidget {
   const ChannelScreen({super.key});
 
   @override
-  State<ChannelScreen> createState() => _ChannelScreenState();
+  ConsumerState<ChannelScreen> createState() => _ChannelScreenState();
 }
 
-class _ChannelScreenState extends State<ChannelScreen> {
+class _ChannelScreenState extends ConsumerState<ChannelScreen> {
   final _searchCtrl = TextEditingController();
   String _query = '';
 
@@ -50,11 +55,26 @@ class _ChannelScreenState extends State<ChannelScreen> {
         '/channel/view?name=${Uri.encodeComponent(name)}&url=${Uri.encodeComponent(url)}');
   }
 
+  Future<void> _toggleFavorite({required String name, required String url}) async {
+    try {
+      await ref
+          .read(favoriteChannelsProvider.notifier)
+          .toggle(name: name, url: url);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Couldn't update favorites — $e")));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
     final customUrl = _customChannelUrl;
     final results = _filtered;
+    final favorites = ref.watch(favoriteChannelsProvider).valueOrNull ?? [];
+    final favoriteUrls = favorites.map((f) => f.url).toSet();
+    final showFavorites = favorites.isNotEmpty && _query.trim().isEmpty;
 
     return SafeArea(
       bottom: false,
@@ -102,11 +122,35 @@ class _ChannelScreenState extends State<ChannelScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(22, 0, 22, 40),
               children: [
+                if (showFavorites) ...[
+                  Text('FAVORITES',
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1,
+                          color: c.dim)),
+                  const SizedBox(height: 10),
+                  for (final f in favorites) ...[
+                    _ChurchTile(
+                      name: f.name,
+                      subtitle: 'Favorited',
+                      isFavorite: true,
+                      onTap: () => _open(context, name: f.name, url: f.url),
+                      onToggleFavorite: () =>
+                          _toggleFavorite(name: f.name, url: f.url),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                  const SizedBox(height: 8),
+                ],
                 if (customUrl != null && _query.trim().isEmpty) ...[
                   _ChurchTile(
                     name: 'Your church',
                     subtitle: 'From this app\'s configuration',
+                    isFavorite: favoriteUrls.contains(customUrl),
                     onTap: () => _open(context, name: 'Your church', url: customUrl),
+                    onToggleFavorite: () =>
+                        _toggleFavorite(name: 'Your church', url: customUrl),
                   ),
                   const SizedBox(height: 18),
                   Text('TOP CHURCHES IN NIGERIA',
@@ -130,7 +174,10 @@ class _ChannelScreenState extends State<ChannelScreen> {
                     _ChurchTile(
                       name: ch.name,
                       subtitle: '${ch.leader} · ${ch.city}',
+                      isFavorite: favoriteUrls.contains(ch.youtubeUrl),
                       onTap: () => _open(context, name: ch.name, url: ch.youtubeUrl),
+                      onToggleFavorite: () =>
+                          _toggleFavorite(name: ch.name, url: ch.youtubeUrl),
                     ),
                     const SizedBox(height: 10),
                   ],
@@ -144,18 +191,26 @@ class _ChannelScreenState extends State<ChannelScreen> {
 }
 
 class _ChurchTile extends StatelessWidget {
-  const _ChurchTile({required this.name, required this.subtitle, required this.onTap});
+  const _ChurchTile({
+    required this.name,
+    required this.subtitle,
+    required this.isFavorite,
+    required this.onTap,
+    required this.onToggleFavorite,
+  });
 
   final String name;
   final String subtitle;
+  final bool isFavorite;
   final VoidCallback onTap;
+  final VoidCallback onToggleFavorite;
 
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
     return PgCard(
       radius: 16,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.fromLTRB(14, 14, 6, 14),
       onTap: onTap,
       child: Row(
         children: [
@@ -178,8 +233,15 @@ class _ChurchTile extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          Icon(Icons.chevron_right_rounded, color: c.faint),
+          IconButton(
+            onPressed: onToggleFavorite,
+            tooltip: isFavorite ? 'Remove from favorites' : 'Add to favorites',
+            icon: Icon(
+              isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+              color: isFavorite ? c.danger : c.faint,
+              size: 20,
+            ),
+          ),
         ],
       ),
     );

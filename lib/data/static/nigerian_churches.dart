@@ -94,4 +94,22 @@ const kNigerianChurches = <NigerianChurch>[
     city: 'Port Harcourt',
     youtubeUrl: 'https://www.youtube.com/channel/UCH7KHtVTI91GcN6yuwvaFvQ',
   ),
+  NigerianChurch(
+    name: 'Celebration Church International',
+    leader: 'Pastor Kingsley Okonkwo',
+    city: 'Lagos',
+    youtubeUrl: 'https://www.youtube.com/@KingsleyOkonkwo',
+  ),
+  NigerianChurch(
+    name: 'The Fountain of Life Church',
+    leader: 'Pastor Jimmy Odukoya',
+    city: 'Ilupeju, Lagos',
+    youtubeUrl: 'https://www.youtube.com/jimmyodukoyaofficial',
+  ),
+  NigerianChurch(
+    name: 'Citadel Global Community Church (formerly Latter Rain Assembly)',
+    leader: 'Pastor Tunde Bakare',
+    city: 'Lagos',
+    youtubeUrl: 'https://www.youtube.com/channel/UCBUgX2vAE337fWGu_o6lY1w',
+  ),
 ];

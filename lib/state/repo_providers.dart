@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/supabase/supabase_config.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/bible_notes_repository.dart';
+import '../data/repositories/favorite_channels_repository.dart';
 import '../data/repositories/insights_repository.dart';
 import '../data/repositories/journal_repository.dart';
 import '../data/repositories/profile_repository.dart';
@@ -15,6 +16,8 @@ final requestsRepositoryProvider = Provider((ref) => RequestsRepository());
 final profileRepositoryProvider = Provider((ref) => ProfileRepository());
 final bibleNotesRepositoryProvider = Provider((ref) => BibleNotesRepository());
 final insightsRepositoryProvider = Provider((ref) => InsightsRepository());
+final favoriteChannelsRepositoryProvider =
+    Provider((ref) => FavoriteChannelsRepository());
 
 /// Emits whenever Supabase auth state changes (sign in / out / token refresh).
 final authStateChangesProvider = StreamProvider<AuthState>((ref) {
