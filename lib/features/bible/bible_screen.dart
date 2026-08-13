@@ -159,24 +159,34 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
   void didUpdateWidget(covariant BibleScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     // The Bible tab stays mounted across navigations (StatefulShellRoute), so
-    // a fresh deep link (different book/chapter query params) won't remount
-    // this state — apply it explicitly instead.
+    // a fresh deep link (different book/chapter/planKey/planDay query params)
+    // won't remount this state — apply it explicitly instead.
     final book = widget.initialBook;
     final chapter = widget.initialChapter;
-    if (book != null &&
+    final isFreshLink = book != oldWidget.initialBook ||
+        chapter != oldWidget.initialChapter ||
+        widget.planKey != oldWidget.planKey ||
+        widget.planDay != oldWidget.planDay;
+    if (!isFreshLink) return;
+
+    // Only jump the reader (and interrupt read-aloud) if the target chapter
+    // actually differs from what's already showing — e.g. a reading plan's
+    // "Read Day N" can legitimately point at the same book/chapter the
+    // reader already has open (its Day 1 is often Genesis 1, the default).
+    // planKey/planDay must still sync in that case — otherwise "Mark Day N
+    // Done" silently never appears, since it was never applied here.
+    final movesChapter = book != null &&
         chapter != null &&
-        (book != _book || chapter != _chapter)) {
-      if (book != oldWidget.initialBook ||
-          chapter != oldWidget.initialChapter) {
-        _stopReading();
-        setState(() {
-          _book = book;
-          _chapter = chapter;
-          _planKey = widget.planKey;
-          _planDay = widget.planDay;
-        });
+        (book != _book || chapter != _chapter);
+    if (movesChapter) _stopReading();
+    setState(() {
+      if (movesChapter) {
+        _book = book;
+        _chapter = chapter;
       }
-    }
+      _planKey = widget.planKey;
+      _planDay = widget.planDay;
+    });
   }
 
   Future<void> _markPlanDayDone() async {
