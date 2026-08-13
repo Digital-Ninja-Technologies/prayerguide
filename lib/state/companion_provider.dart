@@ -2,7 +2,6 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../core/purchases/premium_gate.dart';
 import '../core/supabase/supabase_config.dart';
 import '../data/models/companion.dart';
 import '../data/repositories/companion_repository.dart';
@@ -95,22 +94,7 @@ final companionDetailProvider = AsyncNotifierProvider.family<
   CompanionDetailNotifier.new,
 );
 
-/// Navigates to the invite screen — first presenting the Premium paywall if
-/// the user already has a companion and isn't on Premium, since the free
-/// plan includes one companion and Premium unlocks unlimited.
-Future<void> pushInviteCompanion(BuildContext context, WidgetRef ref) async {
-  final companions = await ref.read(companionsProvider.future);
-  if (!context.mounted) return;
-  if (companions.isNotEmpty) {
-    final granted = await requirePremium(
-      context,
-      ref,
-      feature: 'Multiple Prayer Companions',
-      description:
-          'The free plan includes one prayer companion. Upgrade to pair with '
-          'unlimited companions.',
-    );
-    if (!granted) return;
-  }
-  if (context.mounted) context.push('/companion/invite');
+/// Navigates to the invite screen.
+void pushInviteCompanion(BuildContext context) {
+  context.push('/companion/invite');
 }

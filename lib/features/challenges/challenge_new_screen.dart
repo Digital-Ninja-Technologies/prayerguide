@@ -177,7 +177,7 @@ class _ChallengeNewScreenState extends ConsumerState<ChallengeNewScreen> {
                       color: Colors.transparent,
                       child: InkWell(
                         borderRadius: BorderRadius.circular(16),
-                        onTap: () => pushInviteCompanion(context, ref),
+                        onTap: () => pushInviteCompanion(context),
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(

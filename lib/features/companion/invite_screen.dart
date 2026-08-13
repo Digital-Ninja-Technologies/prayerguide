@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-import '../../core/purchases/premium_gate.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../state/companion_provider.dart';
 import '../../widgets/pg_header.dart';
@@ -42,21 +41,6 @@ class _InviteScreenState extends ConsumerState<InviteScreen> {
   Future<void> _redeem() async {
     final code = _redeemController.text.trim();
     if (code.isEmpty) return;
-
-    final companions = await ref.read(companionsProvider.future);
-    if (!mounted) return;
-    if (companions.isNotEmpty) {
-      final granted = await requirePremium(
-        context,
-        ref,
-        feature: 'Multiple Prayer Companions',
-        description:
-            'The free plan includes one prayer companion. Upgrade to pair with '
-            'unlimited companions.',
-      );
-      if (!granted) return;
-    }
-    if (!mounted) return;
 
     setState(() {
       _redeeming = true;

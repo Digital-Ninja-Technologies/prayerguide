@@ -125,104 +125,7 @@ silently. iOS's iCloud backup needs none of this — it uses
 `flutter_secure_storage`'s `synchronizable` Keychain option, which just
 needs the user's device to have iCloud Keychain turned on.
 
-## 3b. RevenueCat (Premium subscriptions, real billing)
-
-The Upgrade screen (`lib/features/settings/upgrade_screen.dart`) uses
-[RevenueCat](https://www.revenuecat.com) (`purchases_flutter` +
-`purchases_ui_flutter`) to sell real Monthly/Annual subscriptions through
-the App Store and Play Store, gated behind an entitlement named
-`PrayerGuide`. Without API keys configured, the screen shows a "not
-configured" notice and preview pricing instead of failing — same pattern
-as Google Drive backup above.
-
-**Right now this app is wired to a RevenueCat Test Store** (`.env`'s
-`REVENUECAT_API_KEY`, a `test_...` key) — it exercises the full
-purchase/restore/entitlement flow without needing a real Apple/Google
-developer account, but purchases aren't real money and won't survive a
-switch to production keys. To go live:
-
-1. **Apple Developer Program** ($99/yr) and **Google Play Console** ($25
-   one-time) accounts — required before either store will let you create
-   in-app purchase products. Both have identity/business verification that
-   can take a few days, so start these first if you don't have them yet.
-2. **Create the subscription products** in each store:
-   - App Store Connect → your app → Subscriptions → create a subscription
-     group with **Monthly** and **Annual** auto-renewable subscriptions.
-   - Google Play Console → your app → Monetize → Subscriptions → same two
-     products.
-   - Product IDs just need to be consistent between the store and
-     RevenueCat's dashboard — e.g. `pg_premium_monthly` / `pg_premium_annual`.
-   - Price the **Annual** product **15% below Monthly × 12** (e.g. Monthly
-     $4.99 → Annual $50.90) — the Upgrade screen's "SAVE X%" badge computes
-     its percentage live from whatever the two products actually cost, so
-     pricing them any other way will just show a different (but still
-     correct) percentage rather than break anything.
-3. **Create a [RevenueCat](https://app.revenuecat.com) project** (or reuse
-   the existing Test Store one), add both the iOS and Android apps, and
-   connect each to its store (App Store Connect requires an
-   App-Specific Shared Secret; Play Console requires a service-account
-   JSON with access to your app — RevenueCat's dashboard walks through
-   generating both).
-4. **Create an Entitlement** named exactly `PrayerGuide` (must match
-   `kPremiumEntitlementId` in `lib/core/purchases/revenue_cat_service.dart`)
-   and attach both products to it.
-5. **Create an Offering** (e.g. `default`) with two Packages — one
-   `$rc_monthly`, one `$rc_annual` — pointing at the two products.
-   `upgrade_screen.dart` looks up packages by `PackageType.monthly` /
-   `PackageType.annual`, so the packages must use RevenueCat's standard
-   monthly/annual package types.
-6. Premium-only features are gated at the point of use by `requirePremium()`
-   (`lib/core/purchases/premium_gate.dart`): it checks live entitlement
-   status via `subscriptionProvider` and, if the user isn't on Premium (or
-   an active trial), shows an in-app popup naming the feature and its
-   benefit with an "Upgrade to Premium" button that pushes `/upgrade` (the
-   app's own Upgrade screen, not RevenueCat's hosted Paywall UI). Currently
-   wired to Focus Mode (`timer_screen.dart`) and multiple companions
-   (`companion_provider.dart`'s `pushInviteCompanion`,
-   `invite_screen.dart`'s redeem flow) — call `requirePremium(context, ref,
-   feature: ..., description: ...)` before unlocking any other premium
-   feature the same way.
-7. **Copy the real per-platform public SDK keys** (RevenueCat dashboard →
-   Project Settings → API Keys — the public SDK keys, not the secret key)
-   into `.env` as `REVENUECAT_IOS_API_KEY` / `REVENUECAT_ANDROID_API_KEY`,
-   and clear `REVENUECAT_API_KEY` — the app prefers that Test Store key
-   over the platform-specific ones whenever it's set.
-
-Once configured, `SubscriptionRepository.fetch()` reads live entitlement
-status from RevenueCat (falling back to a cached `subscriptions` row in
-Supabase if RevenueCat isn't configured) and stays in sync afterwards via
-`RevenueCatService.customerInfoStream` — RevenueCat's live update
-listener, which fires on purchases, restores, renewals, and even
-purchases made on another device, without needing to re-fetch manually.
-Test purchases against the Test Store need nothing extra; against real
-stores, use a sandbox tester (App Store Connect → Users and Access →
-Sandbox) or a Play Console license-test account — real cards are never
-charged in sandbox/test mode.
-
-**The `subscriptions` table is written server-side only**, by the
-`revenuecat-webhook` Edge Function (`supabase/functions/revenuecat-webhook`)
-— the client can only read its own row (see migration
-`0016_security_audit_fixes.sql`). `tier` is what `redeem_companion_invite()`
-and the app's own no-RevenueCat fallback trust as ground truth for Premium,
-so it can't be left client-writable. Deploy and wire it up once:
-
-```
-supabase functions deploy revenuecat-webhook --no-verify-jwt
-supabase secrets set REVENUECAT_WEBHOOK_AUTH=<a random string you generate>
-```
-
-Then in the RevenueCat dashboard → Project Settings → Integrations →
-Webhooks: set the URL to this function's endpoint and the "Authorization
-header value" to that same `REVENUECAT_WEBHOOK_AUTH` string — RevenueCat
-sends it back on every request, which is how the function tells a real
-RevenueCat event apart from anyone else POSTing to its URL.
-
-**Customer Center** (RevenueCat dashboard → Customer Center) lets
-subscribers self-serve cancel/manage their plan from inside the app —
-configure it in the dashboard and it's already wired up as a "Manage
-subscription" button on the Upgrade screen once a subscription is active.
-
-## 3c. LiveKit (Audio Prayer Room voice)
+## 3b. LiveKit (Audio Prayer Room voice)
 
 Audio Prayer Room (Groups → a room's "Join live room") already has real,
 live member presence via Supabase Realtime (`lib/features/room/room_screen.dart`)
@@ -409,17 +312,13 @@ title, your actual active-challenge day count, your real companion's
 name, real time-of-day) instead of hardcoded placeholders.
 
 **Audio Prayer Room is real, including voice, once LiveKit is
-configured** (see §3c): joining a room (reachable from a group's "Join
+configured** (see §3b): joining a room (reachable from a group's "Join
 live room" button in Groups) opens a Supabase Realtime Presence channel
 keyed to that group (`lib/features/room/room_screen.dart`, same technique
 as Prayer Together) — the member grid, count, host badge, and raised
 hands are all real and synced live. With `LIVEKIT_URL` set, it also joins
 real LiveKit voice with a mic mute/unmute button. Without it, rooms fall
 back to presence-only rather than failing.
-
-**Subscriptions are real, real billing included** (see §3b): the Upgrade
-screen sells actual Monthly/Annual subscriptions through RevenueCat, with
-live entitlement status, purchase/restore, and Customer Center management.
 
 **Sermon Note Taker is real** (`lib/features/sermons/`, its own bottom nav
 tab): record audio while typing notes at the same time — the two aren't

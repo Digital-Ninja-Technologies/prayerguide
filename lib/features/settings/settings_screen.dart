@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../../core/errors/friendly_error.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
-import '../../data/models/subscription_status.dart';
 import '../../state/profile_provider.dart';
 import '../../state/repo_providers.dart';
-import '../../state/subscription_provider.dart';
 import '../../state/theme_provider.dart';
 import '../../widgets/pg_toggle.dart';
 
@@ -105,10 +102,6 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: 22),
-          _PremiumCard(
-              onTap: () => context.push('/upgrade'),
-              sub: ref.watch(subscriptionProvider).valueOrNull),
           const SizedBox(height: 22),
           Text('NOTIFICATIONS',
               style: PgText.sans(
@@ -219,76 +212,6 @@ class SettingsScreen extends ConsumerWidget {
               child: Text('Prayer Guide · v1.0.0',
                   style: TextStyle(fontSize: 11.5, color: c.faint))),
         ],
-      ),
-    );
-  }
-}
-
-class _PremiumCard extends StatelessWidget {
-  const _PremiumCard({required this.onTap, required this.sub});
-  final VoidCallback onTap;
-  final SubscriptionStatus? sub;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.colors;
-    final active = sub?.isActive ?? false;
-    final title = active
-        ? (sub!.isTrial ? 'Trial active' : 'Premium active')
-        : 'Go Premium';
-    final subtitle = active && sub!.isTrial && sub!.renewsAt != null
-        ? 'Until ${DateFormat('MMM d').format(sub!.renewsAt!)} · Audio Bible, growth insights, unlimited companions'
-        : 'Audio Bible, growth insights, unlimited companions';
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(17),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-                colors: [c.amberSoft, c.surface],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight),
-            border: Border.all(color: c.amber),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                      colors: [c.amber, const Color(0xFF8A5A1A)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight),
-                  borderRadius: BorderRadius.circular(13),
-                ),
-                child: Icon(
-                    active
-                        ? Icons.check_rounded
-                        : Icons.workspace_premium_outlined,
-                    color: const Color(0xFF2A1A05)),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title,
-                        style: const TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.w800)),
-                    Text(subtitle,
-                        style: TextStyle(fontSize: 12.5, color: c.dim)),
-                  ],
-                ),
-              ),
-              Icon(Icons.chevron_right_rounded, color: c.amber),
-            ],
-          ),
-        ),
       ),
     );
   }

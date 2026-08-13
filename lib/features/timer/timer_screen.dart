@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/purchases/premium_gate.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
 import '../../state/profile_provider.dart';
@@ -407,17 +406,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
                         variant: PgButtonVariant.outline,
                         icon:
                             Icon(Icons.timer_outlined, size: 17, color: c.teal),
-                        onPressed: () async {
-                          final granted = await requirePremium(
-                            context,
-                            ref,
-                            feature: 'Focus Mode',
-                            description:
-                                'Silence distractions during prayer with a gentle, '
-                                'distraction-free session timer and app-blocking.',
-                          );
-                          if (granted && context.mounted) context.push('/focus/setup');
-                        },
+                        onPressed: () => context.push('/focus/setup'),
                       ),
                     ],
                   ),

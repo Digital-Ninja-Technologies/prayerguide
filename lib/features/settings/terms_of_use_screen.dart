@@ -79,22 +79,14 @@ class TermsOfUseScreen extends StatelessWidget {
                         "that violate this.",
                   ),
                   const _LegalSection(
-                    title: '6. Premium subscriptions',
-                    body:
-                        "Prayer Guide offers an optional Premium tier with additional features. "
-                        "Subscription billing, when enabled, is handled entirely through the App Store "
-                        "or Google Play — refunds, cancellations, and billing disputes are subject to "
-                        "their respective policies, not ours.",
-                  ),
-                  const _LegalSection(
-                    title: '7. Termination',
+                    title: '6. Termination',
                     body:
                         "You can stop using Prayer Guide and delete your account at any time from "
                         "Settings > Delete account, or by emailing $kSupportEmail. We may suspend or "
                         "terminate access for accounts that violate these terms.",
                   ),
                   const _LegalSection(
-                    title: '8. Disclaimer & limitation of liability',
+                    title: '7. Disclaimer & limitation of liability',
                     body:
                         "Prayer Guide is provided \"as is,\" without warranties of any kind. We work "
                         "hard to keep it reliable and your data safe, but we can't guarantee "
@@ -103,13 +95,13 @@ class TermsOfUseScreen extends StatelessWidget {
                         "consequential damages arising from your use of the app.",
                   ),
                   const _LegalSection(
-                    title: '9. Changes to these terms',
+                    title: '8. Changes to these terms',
                     body:
                         "We may update these terms as the app evolves. If we make a material change, "
                         "we'll update the effective date above and let you know in the app.",
                   ),
                   const _LegalSection(
-                    title: '10. Contact',
+                    title: '9. Contact',
                     body:
                         "Questions about these terms? Email us at $kSupportEmail.",
                   ),

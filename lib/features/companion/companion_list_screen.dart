@@ -27,7 +27,7 @@ class CompanionListScreen extends ConsumerWidget {
               title: 'Companions',
               onBack: () => context.pop(),
               trailing: TextButton.icon(
-                onPressed: () => pushInviteCompanion(context, ref),
+                onPressed: () => pushInviteCompanion(context),
                 style: TextButton.styleFrom(
                   backgroundColor: c.surface,
                   side: BorderSide(color: c.line),
@@ -62,7 +62,7 @@ class CompanionListScreen extends ConsumerWidget {
                     data: (companions) {
                       if (companions.isEmpty) {
                         return _EmptyState(
-                            onInvite: () => pushInviteCompanion(context, ref));
+                            onInvite: () => pushInviteCompanion(context));
                       }
                       return Column(
                         children: [

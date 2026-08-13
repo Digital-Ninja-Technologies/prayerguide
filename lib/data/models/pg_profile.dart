@@ -9,7 +9,6 @@ class PgProfile {
     required this.streakFreezesAvailable,
     required this.hideStreakCount,
     required this.themePreference,
-    required this.premium,
     required this.appOpenStreakCount,
     required this.appOpenLongestStreak,
     required this.lastOpenedOn,
@@ -26,7 +25,6 @@ class PgProfile {
   final int streakFreezesAvailable;
   final bool hideStreakCount;
   final String themePreference;
-  final bool premium;
 
   /// Consecutive days the app was opened, whether or not the user prayed —
   /// a separate, distinct streak from [streakCount].
@@ -47,7 +45,6 @@ class PgProfile {
             (m['streak_freezes_available'] as num?)?.toInt() ?? 0,
         hideStreakCount: (m['hide_streak_count'] as bool?) ?? false,
         themePreference: (m['theme_preference'] as String?) ?? 'dark',
-        premium: (m['premium'] as bool?) ?? false,
         appOpenStreakCount: (m['app_open_streak_count'] as num?)?.toInt() ?? 0,
         appOpenLongestStreak:
             (m['app_open_longest_streak'] as num?)?.toInt() ?? 0,
@@ -66,7 +63,6 @@ class PgProfile {
         streakFreezesAvailable: 1,
         hideStreakCount: false,
         themePreference: 'dark',
-        premium: false,
         appOpenStreakCount: 0,
         appOpenLongestStreak: 0,
         lastOpenedOn: null,

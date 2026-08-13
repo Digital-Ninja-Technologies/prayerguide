@@ -71,9 +71,8 @@ class _FocusSetupScreenState extends ConsumerState<FocusSetupScreen> {
                         _ModeRow(
                           title: 'Full block',
                           subtitle: 'OS-enforced app shield for the session',
-                          trailing: 'Premium',
-                          trailingBg: c.amberSoft,
-                          trailingColor: c.amber,
+                          trailing: 'Free',
+                          trailingColor: c.teal,
                           active: !_gentle,
                           onTap: () => setState(() => _gentle = false),
                         ),
@@ -152,7 +151,6 @@ class _ModeRow extends StatelessWidget {
     required this.subtitle,
     required this.trailing,
     required this.trailingColor,
-    this.trailingBg,
     required this.active,
     required this.onTap,
   });
@@ -161,7 +159,6 @@ class _ModeRow extends StatelessWidget {
   final String subtitle;
   final String trailing;
   final Color trailingColor;
-  final Color? trailingBg;
   final bool active;
   final VoidCallback onTap;
 
@@ -206,25 +203,11 @@ class _ModeRow extends StatelessWidget {
                   ],
                 ),
               ),
-              if (trailingBg != null)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                  decoration: BoxDecoration(
-                      color: trailingBg,
-                      borderRadius: BorderRadius.circular(100)),
-                  child: Text(trailing,
-                      style: TextStyle(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w800,
-                          color: trailingColor)),
-                )
-              else
-                Text(trailing,
-                    style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: trailingColor)),
+              Text(trailing,
+                  style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: trailingColor)),
             ],
           ),
         ),

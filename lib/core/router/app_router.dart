@@ -44,7 +44,6 @@ import '../../features/settings/privacy_policy_screen.dart';
 import '../../features/settings/privacy_screen.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/settings/terms_of_use_screen.dart';
-import '../../features/settings/upgrade_screen.dart';
 import '../../features/shell/app_shell.dart';
 import '../../features/splash/splash_screen.dart';
 import '../../features/streak/streak_screen.dart';
@@ -163,7 +162,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
           path: '/terms-of-use', builder: (c, s) => const TermsOfUseScreen()),
       GoRoute(path: '/about', builder: (c, s) => const AboutHelpScreen()),
-      GoRoute(path: '/upgrade', builder: (c, s) => const UpgradeScreen()),
       GoRoute(path: '/insights', builder: (c, s) => const InsightsScreen()),
       GoRoute(
           path: '/focus/setup', builder: (c, s) => const FocusSetupScreen()),
