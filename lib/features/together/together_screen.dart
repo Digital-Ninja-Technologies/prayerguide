@@ -11,12 +11,19 @@ import '../../core/theme/pg_text.dart';
 import '../../core/errors/friendly_error.dart';
 import '../../data/models/companion.dart';
 import '../../state/companion_provider.dart';
+import '../../state/prayer_invite_provider.dart';
 import '../../state/profile_provider.dart';
 import '../../widgets/pg_back_button.dart';
 
 class TogetherScreen extends ConsumerWidget {
-  const TogetherScreen({super.key, required this.companionRowId});
+  const TogetherScreen({super.key, required this.companionRowId, this.inviteId});
   final String companionRowId;
+
+  /// Set only when this screen was reached by tapping "Pray live" — lets
+  /// the requester's session watch that specific invite for a decline,
+  /// which Realtime Presence alone can't express (it can only ever say
+  /// "not here yet", not "said no").
+  final String? inviteId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -30,8 +37,11 @@ class TogetherScreen extends ConsumerWidget {
           message: friendlyErrorMessage(e),
           onClose: () => context.pop(),
         ),
-        data: (state) =>
-            _TogetherSession(companion: state.companion, myName: myName),
+        data: (state) => _TogetherSession(
+          companion: state.companion,
+          myName: myName,
+          inviteId: inviteId,
+        ),
       ),
     );
   }
@@ -66,9 +76,10 @@ class _NoCompanionState extends StatelessWidget {
 }
 
 class _TogetherSession extends ConsumerStatefulWidget {
-  const _TogetherSession({required this.companion, required this.myName});
+  const _TogetherSession({required this.companion, required this.myName, this.inviteId});
   final Companion companion;
   final String myName;
+  final String? inviteId;
 
   @override
   ConsumerState<_TogetherSession> createState() => _TogetherSessionState();
@@ -77,10 +88,12 @@ class _TogetherSession extends ConsumerStatefulWidget {
 class _TogetherSessionState extends ConsumerState<_TogetherSession> {
   late final String _myUid = supa.auth.currentUser!.id;
   late final RealtimeChannel _channel;
+  StreamSubscription<String?>? _inviteSub;
   Timer? _ticker;
   DateTime? _myJoinedAt;
   DateTime? _theirJoinedAt;
   Duration _elapsed = Duration.zero;
+  bool _declined = false;
 
   bool get _bothPresent => _myJoinedAt != null && _theirJoinedAt != null;
 
@@ -102,6 +115,16 @@ class _TogetherSessionState extends ConsumerState<_TogetherSession> {
         });
       }
     });
+
+    final inviteId = widget.inviteId;
+    if (inviteId != null) {
+      _inviteSub = ref
+          .read(prayerInviteRepositoryProvider)
+          .watchStatus(inviteId)
+          .listen((status) {
+        if (mounted && status == 'declined') setState(() => _declined = true);
+      });
+    }
   }
 
   void _handleSync() {
@@ -151,6 +174,7 @@ class _TogetherSessionState extends ConsumerState<_TogetherSession> {
   @override
   void dispose() {
     _ticker?.cancel();
+    _inviteSub?.cancel();
     _channel.untrack();
     supa.removeChannel(_channel);
     super.dispose();
@@ -246,17 +270,27 @@ class _TogetherSessionState extends ConsumerState<_TogetherSession> {
                         ),
                       ),
                       const SizedBox(height: 26),
-                      _bothPresent
-                          ? Text(_label,
-                              style: const TextStyle(
-                                  fontSize: 52, fontWeight: FontWeight.w300))
-                          : Text(
-                              'Waiting for ${widget.companion.otherName}…',
-                              style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                  color: c.dim),
-                            ),
+                      if (_bothPresent)
+                        Text(_label,
+                            style: const TextStyle(
+                                fontSize: 52, fontWeight: FontWeight.w300))
+                      else if (_declined)
+                        Text(
+                          "${widget.companion.otherName} can't pray right now",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: c.dim),
+                        )
+                      else
+                        Text(
+                          'Waiting for ${widget.companion.otherName}…',
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: c.dim),
+                        ),
                       const SizedBox(height: 26),
                       Container(
                         padding: const EdgeInsets.all(18),

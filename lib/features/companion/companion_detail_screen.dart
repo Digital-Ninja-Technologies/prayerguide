@@ -7,6 +7,7 @@ import '../../core/supabase/supabase_config.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../data/models/companion.dart';
 import '../../state/companion_provider.dart';
+import '../../state/prayer_invite_provider.dart';
 import '../../state/profile_provider.dart';
 import '../../widgets/pg_error_state.dart';
 import '../../widgets/pg_header.dart';
@@ -191,7 +192,26 @@ class _CompanionContent extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(14),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(14),
-                  onTap: () => context.push('/together/$companionRowId'),
+                  onTap: () async {
+                    // Best-effort: push-notify the companion so they find
+                    // out even if they're not already in the app — the
+                    // Together screen's own Realtime presence covers the
+                    // case where they already are. Never blocks getting
+                    // into the live session either way.
+                    String? inviteId;
+                    try {
+                      inviteId = await ref
+                          .read(prayerInviteRepositoryProvider)
+                          .sendInvite(companionRowId);
+                    } catch (_) {
+                      inviteId = null;
+                    }
+                    if (context.mounted) {
+                      context.push(inviteId == null
+                          ? '/together/$companionRowId'
+                          : '/together/$companionRowId?inviteId=$inviteId');
+                    }
+                  },
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 12, vertical: 10),

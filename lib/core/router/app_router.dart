@@ -52,6 +52,13 @@ import '../../features/timer/timer_screen.dart';
 import '../../features/together/together_screen.dart';
 import '../supabase/supabase_config.dart';
 
+/// The root navigator, exposed so code outside the widget tree (the push
+/// notification foreground/tap handlers in
+/// lib/core/notifications/push_service.dart) can show a dialog or navigate
+/// — e.g. a "so-and-so wants to pray with you" pop-up arriving while the
+/// app is already open, with no BuildContext of its own to work from.
+final rootNavigatorKey = GlobalKey<NavigatorState>();
+
 final routerProvider = Provider<GoRouter>((ref) {
   // Set when Supabase reports a password-recovery session (the user clicked
   // the link in a reset-password email) — consumed once by `redirect` below
@@ -66,6 +73,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   ref.onDispose(authSub.cancel);
 
   return GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/splash',
     refreshListenable: GoRouterRefreshStream(supa.auth.onAuthStateChange),
     redirect: (context, state) {
@@ -205,8 +213,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/fasting', builder: (c, s) => const FastingScreen()),
       GoRoute(
         path: '/together/:id',
-        builder: (c, s) =>
-            TogetherScreen(companionRowId: s.pathParameters['id']!),
+        builder: (c, s) => TogetherScreen(
+          companionRowId: s.pathParameters['id']!,
+          inviteId: s.uri.queryParameters['inviteId'],
+        ),
       ),
       GoRoute(path: '/groups', builder: (c, s) => const GroupsScreen()),
       GoRoute(path: '/groups/new', builder: (c, s) => const GroupNewScreen()),

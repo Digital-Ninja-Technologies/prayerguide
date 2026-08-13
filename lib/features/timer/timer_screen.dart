@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/live_activity/live_activity_service.dart';
 import '../../core/rating/rating_prompt.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
@@ -156,9 +157,22 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
     if (_running) {
       _timer?.cancel();
       setState(() => _running = false);
+      LiveActivityService.instance.updatePaused(
+        isPaused: true,
+        remainingSeconds: _remaining,
+        endDate: DateTime.now().add(Duration(seconds: _remaining)),
+      );
       return;
     }
+    final firstStart = _remaining == _preset * 60;
     setState(() => _running = true);
+    final endDate = DateTime.now().add(Duration(seconds: _remaining));
+    if (firstStart) {
+      LiveActivityService.instance.start(category: _category, endDate: endDate);
+    } else {
+      LiveActivityService.instance
+          .updatePaused(isPaused: false, remainingSeconds: _remaining, endDate: endDate);
+    }
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
       setState(() {
         if (_remaining <= 1) {
@@ -175,6 +189,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
 
   Future<void> _finish() async {
     final duration = _preset * 60;
+    await LiveActivityService.instance.end();
     await ref.read(profileProvider.notifier).completeSession(
           durationSeconds: duration,
           category: _category,
@@ -190,6 +205,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
   void dispose() {
     _timer?.cancel();
     _ambiencePlayer.dispose();
+    LiveActivityService.instance.end();
     super.dispose();
   }
 

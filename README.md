@@ -56,6 +56,14 @@ Not every screen is backed by live data yet — see
   since the platform WebView's cookie jar is durable by default.
 - **flutter_tts** — real text-to-speech "read aloud" on the Bible screen;
   taps the volume icon to read the current chapter, tap again to stop.
+- **firebase_messaging** — push notifications for "Pray live" companion
+  invites (`supabase/functions/send-companion-invite-push`; see SETUP.md
+  §3d) — needs a real Firebase project (`flutterfire configure`); until
+  then it no-ops and "Pray live" behaves as it always has, presence-only.
+- **ActivityKit** (iOS, native) — a real Lock Screen/Dynamic Island Live
+  Activity while a Prayer Timer session runs
+  (`lib/core/live_activity/live_activity_service.dart`); needs the
+  `PrayerTimerWidget` extension target added in Xcode (SETUP.md §3e).
 - **record / audioplayers** — Sermon Note Taker: real mono-AAC recording
   (`lib/core/audio/sermon_recorder.dart`) uploaded to a private Supabase
   Storage bucket, played back from a signed URL. Web builds fall back to
@@ -149,6 +157,12 @@ support pull-to-refresh. The Channel tab plays the church's real YouTube
 channel in-app once `CHURCH_YOUTUBE_CHANNEL_URL` is set, and a one-time
 rating pop-up (after a 3-day streak, plus a "Rate Prayer Guide" button in
 About & help any time) links out to the App Store/Play Store.
+
+Companion "Pray live" invites can push-notify the other side and a Prayer
+Timer session can drive a real iOS Dynamic Island — both fully coded, both
+needing one-time setup outside this repo (a Firebase project for the
+former, an Xcode Widget Extension target for the latter) before they do
+anything. See SETUP.md §3d/§3e.
 
 See **[SETUP.md](SETUP.md)** for the full, maintained breakdown of what's
 real vs. not, and why.

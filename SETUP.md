@@ -170,6 +170,110 @@ persistent by default; nothing clears it. Not available on web builds
 (`webview_flutter` doesn't support web here) — that target only exists for
 internal build verification, not shipping.
 
+## 3d. Push notifications (Companion prayer invites)
+
+Tapping "Pray live" on a companion's detail screen already drops you into a
+real live session (`lib/features/together/together_screen.dart`, Supabase
+Realtime Presence) — but until now the other side only found out if they
+happened to already be in the app. This adds a real push notification, an
+in-app accept/decline pop-up, and lets the requester see if it was
+declined.
+
+**What's already wired, with nothing to configure:**
+`supabase/migrations/0021_companion_prayer_invites.sql` (the
+`companion_prayer_invites` + `device_push_tokens` tables, RLS, and the
+`respond_to_prayer_invite` RPC) and the client side
+(`lib/state/prayer_invite_provider.dart`,
+`lib/core/notifications/push_service.dart`). What's left needs a real
+Firebase project — until then, `PushService.isConfigured` is false and
+[init] no-ops, same "leave it blank to disable" pattern as every other
+optional integration in this app.
+
+1. **Create a [Firebase project](https://console.firebase.google.com)**
+   (or reuse one), then add both an iOS app (bundle id
+   `com.prayerguide.prayerGuide`) and an Android app (package
+   `com.prayerguide.prayer_guide`) to it.
+2. **iOS also needs an APNs key** uploaded to the Firebase project (Project
+   Settings → Cloud Messaging → Apple app configuration) — generate one at
+   [developer.apple.com](https://developer.apple.com/account/resources/authkeys/list)
+   (Keys → + → enable Apple Push Notifications service).
+3. **Run the FlutterFire CLI** from the repo root:
+   ```
+   dart pub global activate flutterfire_cli
+   flutterfire configure
+   ```
+   Select the Firebase project and both platforms. This overwrites
+   `lib/firebase_options.dart` (currently a placeholder — see the comment
+   at its top) with your project's real values, which is what flips
+   `PushService.isConfigured` to true.
+4. **In Xcode** (`ios/Runner.xcworkspace`), select the Runner target →
+   Signing & Capabilities → **+ Capability → Push Notifications**. This
+   creates/updates `Runner.entitlements` — commit it.
+5. **Deploy the Edge Function** and give it a Firebase service account:
+   - Firebase Console → Project Settings → Service Accounts → Generate new
+     private key (downloads a JSON file).
+   - ```
+     supabase functions deploy send-companion-invite-push
+     supabase secrets set FIREBASE_SERVICE_ACCOUNT="$(cat path/to/the-downloaded-file.json)"
+     ```
+   (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` are
+   provided automatically, same as every other Edge Function here.)
+
+Once all of the above is done, "Pray live" pushes the other side a
+notification even if they're not in the app; tapping it (or the in-app
+pop-up if they already are) joins them into the same live session, and
+declining tells the requester "so-and-so can't pray right now" instead of
+leaving them waiting indefinitely. Without it, "Pray live" still works
+exactly as it always has — presence-only, for whoever's already there.
+
+## 3e. Dynamic Island (Prayer Timer Live Activity)
+
+A live countdown on the Lock Screen and, on supported iPhones, the Dynamic
+Island — while a Prayer Timer session (`lib/features/timer/timer_screen.dart`)
+is running, similar to a live sports score. iOS-only (there's no Android
+equivalent of Live Activities) and needs iOS 16.1+.
+
+**Already written, nothing left to configure in code:**
+`lib/core/live_activity/live_activity_service.dart` (the Dart side, wired
+into `timer_screen.dart`'s start/pause/resume/finish already) and
+`ios/Runner/LiveActivityChannel.swift` (the native method-channel handler,
+registered from `AppDelegate.swift`). **What's missing is the Xcode Widget
+Extension target itself** — this repo intentionally doesn't hand-edit
+`project.pbxproj` to add one; that kind of raw Xcode project surgery is
+easy to get subtly wrong and impossible to verify without Xcode itself.
+Add it the normal way:
+
+1. **In Xcode** (`ios/Runner.xcworkspace`): File → New → Target → **Widget
+   Extension**. Name it `PrayerTimerWidget`, and check **"Include Live
+   Activity"**. Xcode scaffolds a new `ios/PrayerTimerWidget/` group with
+   starter files — the ones already in this repo's `ios/PrayerTimerWidget/`
+   folder on disk replace them:
+   - Delete Xcode's generated `PrayerTimerWidget.swift` (or
+     `PrayerTimerWidgetLiveActivity.swift`, whatever it names the
+     Live Activity file) and `PrayerTimerWidgetBundle.swift`.
+   - Add the existing `PrayerTimerAttributes.swift`,
+     `PrayerTimerLiveActivity.swift`, and `PrayerTimerWidgetBundle.swift`
+     from `ios/PrayerTimerWidget/` to the new target (drag them into the
+     group in Xcode, making sure **"PrayerTimerWidget"** is checked under
+     Target Membership).
+2. **Add `PrayerTimerAttributes.swift` to the Runner target too** (select
+   it in Xcode, check **"Runner"** as well as "PrayerTimerWidget" under
+   Target Membership) — `LiveActivityChannel.swift` in the main app needs
+   the same type the widget renders.
+3. **Set the extension's deployment target to iOS 16.1+** (its own target
+   → General → Minimum Deployments) — Live Activities don't exist before
+   that, even though the main app's deployment target stays at 13.0 for
+   everything else.
+4. Build and run on a **physical device** — Live Activities and the
+   Dynamic Island don't render in the iOS Simulator except on some
+   simulated hardware/OS combinations; a real iPhone 14 Pro or newer shows
+   the actual Dynamic Island, older iPhones still get the Lock Screen
+   banner.
+
+Without the extension target added, `LiveActivityService` still runs
+without crashing — `Activity.request()` just has nothing to render, so
+starting a Prayer Timer session behaves exactly as before.
+
 ## 4. What's real vs. prototype-visual
 
 **Wired to Supabase (real CRUD, survives app restart):**
@@ -265,6 +369,10 @@ Companion/Invite are also real** now:
   a companion's device had no way to decrypt anything. The Companion
   screen shows a "Shared requests" section (category + title, attributed
   to whoever shared it) above the existing real check-in history.
+  **"Pray live" can also push-notify the companion now** (migration `0021`
+  + `send-companion-invite-push`) so they find out even if they're not
+  already in the app — needs Firebase configured (§3d); until then it
+  behaves exactly as before, presence-only.
 
 **Guide Library, Notifications, Groups, and Prayer Together are also real**
 now:
@@ -312,7 +420,11 @@ instead of just toggling a pill with no sound. Tapping a pill starts that
 track on loop and shows a small pulsing dot next to "AMBIENCE" while
 audio is playing; tapping the same pill again stops it. To swap or add a
 track, drop a file in `assets/audio/` and update the `_fileFor` map in
-`ambience_player.dart` plus the pill list in `timer_screen.dart`.
+`ambience_player.dart` plus the pill list in `timer_screen.dart`. On iOS,
+a running session also drives a real Lock Screen/Dynamic Island Live
+Activity (`lib/core/live_activity/live_activity_service.dart`) once the
+`PrayerTimerWidget` extension target is added in Xcode (§3e) — without it,
+the timer works exactly as before, just without the lock-screen countdown.
 
 **Scripture of the Day is real**: both the Home screen card and the full
 `/scripture` screen pull from a 14-entry library
