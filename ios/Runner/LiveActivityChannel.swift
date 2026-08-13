@@ -16,10 +16,10 @@ import Foundation
 enum LiveActivityChannel {
   private static var currentActivity: Activity<PrayerTimerAttributes>?
 
-  static func register(with controller: FlutterViewController) {
+  static func register(with messenger: FlutterBinaryMessenger) {
     let channel = FlutterMethodChannel(
       name: "com.prayerguide.prayer_guide/live_activity",
-      binaryMessenger: controller.binaryMessenger
+      binaryMessenger: messenger
     )
     channel.setMethodCallHandler { call, result in
       switch call.method {
