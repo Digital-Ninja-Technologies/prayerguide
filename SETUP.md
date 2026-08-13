@@ -156,6 +156,20 @@ voice automatically alongside presence — with a mic mute/unmute button.
 Leave it blank to disable — rooms stay presence-only (today's behavior)
 rather than failing.
 
+## 3c. Church YouTube channel (Channel tab)
+
+The Channel tab (`lib/features/channel/channel_screen.dart`) embeds the
+church's YouTube channel in a real WebView (`webview_flutter`) — not just a
+link out. Set `CHURCH_YOUTUBE_CHANNEL_URL` in `.env` to the channel's URL
+(e.g. `https://www.youtube.com/@yourchurch`). Leave it blank to show a "not
+configured" message instead of a broken viewer.
+
+Signing into a Google/YouTube account inside the tab stays signed in across
+app restarts with no extra code — the platform WebView's cookie storage is
+persistent by default; nothing clears it. Not available on web builds
+(`webview_flutter` doesn't support web here) — that target only exists for
+internal build verification, not shipping.
+
 ## 4. What's real vs. prototype-visual
 
 **Wired to Supabase (real CRUD, survives app restart):**

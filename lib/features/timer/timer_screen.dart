@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/rating/rating_prompt.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
 import '../../state/profile_provider.dart';
@@ -178,6 +179,10 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
           durationSeconds: duration,
           category: _category,
         );
+    final streakCount = ref.read(profileProvider).valueOrNull?.streakCount ?? 0;
+    if (mounted) {
+      await maybeShowRatingPrompt(context, streakCount: streakCount);
+    }
     if (mounted) context.go('/home');
   }
 

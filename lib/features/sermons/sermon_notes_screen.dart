@@ -68,10 +68,14 @@ class _SermonNotesScreenState extends ConsumerState<SermonNotesScreen> {
                 if (notes.isEmpty) {
                   return Center(child: _EmptyState(onNew: _createNote));
                 }
-                return SingleChildScrollView(
-                  padding: const EdgeInsets.only(bottom: 40),
-                  child: Column(
-                    children: [for (final n in notes) _NoteCard(note: n)],
+                return RefreshIndicator(
+                  onRefresh: () => ref.refresh(sermonNotesProvider.future),
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.only(bottom: 40),
+                    child: Column(
+                      children: [for (final n in notes) _NoteCard(note: n)],
+                    ),
                   ),
                 );
               },

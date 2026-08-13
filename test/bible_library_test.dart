@@ -34,4 +34,44 @@ void main() {
     );
     expect(totalVerses, 31102);
   });
+
+  test('parseReference handles plain, multi-word, and numbered books', () async {
+    final library = await BibleLibrary.load();
+
+    final john316 = library.parseReference('John 3:16');
+    expect(john316?.book, 'John');
+    expect(john316?.chapter, 3);
+    expect(john316?.verse, 16);
+
+    final genesis1 = library.parseReference('Genesis 1');
+    expect(genesis1?.book, 'Genesis');
+    expect(genesis1?.chapter, 1);
+    expect(genesis1?.verse, isNull);
+
+    final firstCorinthians = library.parseReference('1 Corinthians 13');
+    expect(firstCorinthians?.book, '1 Corinthians');
+    expect(firstCorinthians?.chapter, 13);
+
+    final songOfSolomon = library.parseReference('Song of Solomon 2:3');
+    expect(songOfSolomon?.book, 'Song of Solomon');
+    expect(songOfSolomon?.chapter, 2);
+    expect(songOfSolomon?.verse, 3);
+
+    expect(library.parseReference('Not a real book 1'), isNull);
+    expect(library.parseReference('John 999'), isNull);
+    expect(library.parseReference(''), isNull);
+  });
+
+  test('searchText finds verses containing the query, case-insensitively', () async {
+    final library = await BibleLibrary.load();
+
+    final hits = library.searchText('for God so loved the world');
+    expect(hits, isNotEmpty);
+    expect(hits.first.book, 'John');
+    expect(hits.first.chapter, 3);
+    expect(hits.first.verse, 16);
+
+    expect(library.searchText('ab'), isEmpty); // below the 3-char minimum
+    expect(library.searchText('zzzznotarealwordzzzz'), isEmpty);
+  });
 }

@@ -148,211 +148,225 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ),
         Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(22, 0, 22, 34),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                PgCard(
-                  radius: 24,
-                  padding: const EdgeInsets.fromLTRB(22, 22, 22, 24),
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [c.surface2, c.surface],
-                  ),
-                  onTap: () => context.push('/scripture'),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('SCRIPTURE OF THE DAY',
-                              style: PgText.sans(
-                                  size: 11,
-                                  weight: FontWeight.w700,
-                                  color: c.teal,
-                                  letterSpacing: 1)),
-                          Icon(Icons.chevron_right_rounded, color: c.dim),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-                      libraryAsync.when(
-                        loading: () => const SizedBox(
-                            height: 22,
-                            width: 22,
-                            child: CircularProgressIndicator(strokeWidth: 2)),
-                        error: (e, st) => Text('Could not load scripture text.',
-                            style: TextStyle(color: c.danger)),
-                        data: (library) {
-                          final verses = library.versesFor(
-                              scriptureEntry.book, scriptureEntry.chapter);
-                          final text = verses.isEmpty
-                              ? ''
-                              : verses
-                                  .sublist(scriptureEntry.verseStart - 1,
-                                      scriptureEntry.verseEnd)
-                                  .join(' ');
-                          return Text('"$text"',
-                              style: PgText.serif(
-                                  size: 22,
-                                  weight: FontWeight.w500,
-                                  height: 1.4));
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      Text(scriptureEntry.reference,
-                          style: TextStyle(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w600,
-                              color: c.amber)),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 18),
-                PgCard(
-                  radius: 22,
-                  color: c.teal,
-                  borderColor: c.teal,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
-                  onTap: () => context.push('/guide'),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 52,
-                        height: 52,
-                        decoration: BoxDecoration(
-                          color: c.onTeal.withValues(alpha: .14),
-                          borderRadius: BorderRadius.circular(16),
+          child: RefreshIndicator(
+            onRefresh: () => Future.wait([
+              ref.refresh(profileProvider.future),
+              ref.refresh(companionsProvider.future),
+              ref.refresh(groupsProvider.future),
+              ref.refresh(challengeProvider.future),
+            ]),
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(22, 0, 22, 34),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  PgCard(
+                    radius: 24,
+                    padding: const EdgeInsets.fromLTRB(22, 22, 22, 24),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [c.surface2, c.surface],
+                    ),
+                    onTap: () => context.push('/scripture'),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('SCRIPTURE OF THE DAY',
+                                style: PgText.sans(
+                                    size: 11,
+                                    weight: FontWeight.w700,
+                                    color: c.teal,
+                                    letterSpacing: 1)),
+                            Icon(Icons.chevron_right_rounded, color: c.dim),
+                          ],
                         ),
-                        child: Icon(Icons.play_arrow_rounded,
-                            size: 27, color: c.onTeal),
-                      ),
-                      const SizedBox(width: 16),
+                        const SizedBox(height: 14),
+                        libraryAsync.when(
+                          loading: () => const SizedBox(
+                              height: 22,
+                              width: 22,
+                              child: CircularProgressIndicator(strokeWidth: 2)),
+                          error: (e, st) => Text(
+                              'Could not load scripture text.',
+                              style: TextStyle(color: c.danger)),
+                          data: (library) {
+                            final verses = library.versesFor(
+                                scriptureEntry.book, scriptureEntry.chapter);
+                            final text = verses.isEmpty
+                                ? ''
+                                : verses
+                                    .sublist(scriptureEntry.verseStart - 1,
+                                        scriptureEntry.verseEnd)
+                                    .join(' ');
+                            return Text('"$text"',
+                                style: PgText.serif(
+                                    size: 22,
+                                    weight: FontWeight.w500,
+                                    height: 1.4));
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        Text(scriptureEntry.reference,
+                            style: TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w600,
+                                color: c.amber)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  PgCard(
+                    radius: 22,
+                    color: c.teal,
+                    borderColor: c.teal,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 22, vertical: 20),
+                    onTap: () => context.push('/guide'),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 52,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            color: c.onTeal.withValues(alpha: .14),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Icon(Icons.play_arrow_rounded,
+                              size: 27, color: c.onTeal),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("Start today's prayer",
+                                  style: TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w800,
+                                      color: c.onTeal)),
+                              const SizedBox(height: 3),
+                              Text(
+                                  '$timeOfDay · ${guideCategories.first.name} · ${guideCategories.first.duration}',
+                                  style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: c.onTeal.withValues(alpha: .72))),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Row(
+                    children: [
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text("Start today's prayer",
-                                style: TextStyle(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w800,
-                                    color: c.onTeal)),
-                            const SizedBox(height: 3),
-                            Text(
-                                '$timeOfDay · ${guideCategories.first.name} · ${guideCategories.first.duration}',
-                                style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: c.onTeal.withValues(alpha: .72))),
-                          ],
+                        child: PgCard(
+                          radius: 20,
+                          padding: const EdgeInsets.all(17),
+                          onTap: () => context.go('/journal'),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(Icons.edit_note_rounded,
+                                  color: c.teal, size: 24),
+                              const SizedBox(height: 12),
+                              const Text('Journal',
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700)),
+                              const SizedBox(height: 2),
+                              Text('Private entries',
+                                  style:
+                                      TextStyle(fontSize: 12.5, color: c.dim)),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: PgCard(
+                          radius: 20,
+                          padding: const EdgeInsets.all(17),
+                          onTap: () => context.push('/requests'),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(Icons.favorite_border_rounded,
+                                  color: c.amber, size: 24),
+                              const SizedBox(height: 12),
+                              const Text('Requests',
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700)),
+                              const SizedBox(height: 2),
+                              Text('Track & pray',
+                                  style:
+                                      TextStyle(fontSize: 12.5, color: c.dim)),
+                            ],
+                          ),
                         ),
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 18),
-                Row(
-                  children: [
-                    Expanded(
-                      child: PgCard(
-                        radius: 20,
-                        padding: const EdgeInsets.all(17),
-                        onTap: () => context.go('/journal'),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(Icons.edit_note_rounded,
-                                color: c.teal, size: 24),
-                            const SizedBox(height: 12),
-                            const Text('Journal',
-                                style: TextStyle(
-                                    fontSize: 15, fontWeight: FontWeight.w700)),
-                            const SizedBox(height: 2),
-                            Text('Private entries',
-                                style: TextStyle(fontSize: 12.5, color: c.dim)),
-                          ],
-                        ),
+                  const SizedBox(height: 20),
+                  const PgSectionLabel('More ways to pray',
+                      padding: EdgeInsets.only(bottom: 12)),
+                  GridView.count(
+                    crossAxisCount: 2,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    childAspectRatio: 1.55,
+                    children: [
+                      _MiniTile(
+                        icon: Icons.menu_book_outlined,
+                        color: c.amber,
+                        title: 'Devotional',
+                        subtitle: 'Today · ${devotionalEntry.title}',
+                        onTap: () => context.push('/devotional'),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: PgCard(
-                        radius: 20,
-                        padding: const EdgeInsets.all(17),
-                        onTap: () => context.push('/requests'),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(Icons.favorite_border_rounded,
-                                color: c.amber, size: 24),
-                            const SizedBox(height: 12),
-                            const Text('Requests',
-                                style: TextStyle(
-                                    fontSize: 15, fontWeight: FontWeight.w700)),
-                            const SizedBox(height: 2),
-                            Text('Track & pray',
-                                style: TextStyle(fontSize: 12.5, color: c.dim)),
-                          ],
-                        ),
+                      _MiniTile(
+                        icon: Icons.emoji_events_outlined,
+                        color: c.teal,
+                        title: 'Challenges',
+                        subtitle: activeChallenge == null
+                            ? 'Start a challenge'
+                            : '${activeChallenge.totalDays} Days · Day ${activeChallenge.currentDay + 1}',
+                        onTap: () => context.push('/challenges'),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                const PgSectionLabel('More ways to pray',
-                    padding: EdgeInsets.only(bottom: 12)),
-                GridView.count(
-                  crossAxisCount: 2,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 10,
-                  childAspectRatio: 1.55,
-                  children: [
-                    _MiniTile(
-                      icon: Icons.menu_book_outlined,
-                      color: c.amber,
-                      title: 'Devotional',
-                      subtitle: 'Today · ${devotionalEntry.title}',
-                      onTap: () => context.push('/devotional'),
-                    ),
-                    _MiniTile(
-                      icon: Icons.emoji_events_outlined,
-                      color: c.teal,
-                      title: 'Challenges',
-                      subtitle: activeChallenge == null
-                          ? 'Start a challenge'
-                          : '${activeChallenge.totalDays} Days · Day ${activeChallenge.currentDay + 1}',
-                      onTap: () => context.push('/challenges'),
-                    ),
-                    _MiniTile(
-                      icon: Icons.diversity_1_outlined,
-                      color: c.teal,
-                      title: 'Companion',
-                      subtitle: companions.isEmpty
-                          ? 'Invite a companion'
-                          : companions.length == 1
-                              ? 'Pray with ${companions.first.otherName}'
-                              : '${companions.length} companions',
-                      onTap: () => context.push('/companion'),
-                    ),
-                    _MiniTile(
-                      icon: Icons.groups_outlined,
-                      color: c.amber,
-                      title: 'Groups',
-                      subtitle: groups.isEmpty
-                          ? 'Join a group'
-                          : groups.length == 1
-                              ? groups.first.name
-                              : '${groups.length} groups',
-                      onTap: () => context.push('/groups'),
-                    ),
-                  ],
-                ),
-              ],
+                      _MiniTile(
+                        icon: Icons.diversity_1_outlined,
+                        color: c.teal,
+                        title: 'Companion',
+                        subtitle: companions.isEmpty
+                            ? 'Invite a companion'
+                            : companions.length == 1
+                                ? 'Pray with ${companions.first.otherName}'
+                                : '${companions.length} companions',
+                        onTap: () => context.push('/companion'),
+                      ),
+                      _MiniTile(
+                        icon: Icons.groups_outlined,
+                        color: c.amber,
+                        title: 'Groups',
+                        subtitle: groups.isEmpty
+                            ? 'Join a group'
+                            : groups.length == 1
+                                ? groups.first.name
+                                : '${groups.length} groups',
+                        onTap: () => context.push('/groups'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),

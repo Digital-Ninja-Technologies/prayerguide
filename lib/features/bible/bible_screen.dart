@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/router/app_router.dart';
@@ -47,7 +48,110 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
   late int? _planDay = widget.planDay;
   bool _marking = false;
 
+  bool _searching = false;
+  final _searchController = TextEditingController();
+  final _searchFocus = FocusNode();
+  List<BibleSearchHit> _searchResults = const [];
+  bool _searchedNoMatch = false;
+  int? _pendingScrollToVerse;
+  final _verseKeys = <int, GlobalKey>{};
+
+  final _tts = FlutterTts();
+  bool _speaking = false;
+
   String get _chapterRef => '$_book $_chapter';
+
+  @override
+  void initState() {
+    super.initState();
+    _tts.setCompletionHandler(() {
+      if (mounted) setState(() => _speaking = false);
+    });
+    _tts.setCancelHandler(() {
+      if (mounted) setState(() => _speaking = false);
+    });
+    _tts.setErrorHandler((_) {
+      if (mounted) setState(() => _speaking = false);
+    });
+  }
+
+  Future<void> _toggleReadAloud(List<String> verses) async {
+    if (_speaking) {
+      await _tts.stop();
+      if (mounted) setState(() => _speaking = false);
+      return;
+    }
+    if (verses.isEmpty) return;
+    final text =
+        [for (var i = 0; i < verses.length; i++) '${i + 1}. ${verses[i]}'].join(' ');
+    setState(() => _speaking = true);
+    await _tts.setLanguage('en-US');
+    await _tts.setSpeechRate(0.42);
+    await _tts.speak(text);
+  }
+
+  void _toggleSearch() {
+    setState(() {
+      _searching = !_searching;
+      if (!_searching) {
+        _searchController.clear();
+        _searchResults = const [];
+        _searchedNoMatch = false;
+      }
+    });
+    if (_searching) _searchFocus.requestFocus();
+  }
+
+  void _runSearch(BibleLibrary library) {
+    final query = _searchController.text;
+    final ref = library.parseReference(query);
+    if (ref != null) {
+      _jumpTo(ref.book, ref.chapter, verse: ref.verse);
+      return;
+    }
+    final hits = library.searchText(query);
+    setState(() {
+      _searchResults = hits;
+      _searchedNoMatch = hits.isEmpty;
+    });
+  }
+
+  void _jumpTo(String book, int chapter, {int? verse}) {
+    _stopReading();
+    setState(() {
+      _book = book;
+      _chapter = chapter;
+      _searching = false;
+      _searchResults = const [];
+      _searchedNoMatch = false;
+      _searchController.clear();
+      _pendingScrollToVerse = verse;
+    });
+    _searchFocus.unfocus();
+    if (verse != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToPendingVerse());
+    }
+  }
+
+  void _scrollToPendingVerse() {
+    final verse = _pendingScrollToVerse;
+    if (verse == null) return;
+    final key = _verseKeys[verse];
+    final ctx = key?.currentContext;
+    if (ctx != null) {
+      Scrollable.ensureVisible(ctx,
+          duration: const Duration(milliseconds: 350), alignment: 0.15);
+    }
+    _pendingScrollToVerse = null;
+  }
+
+  @override
+  void dispose() {
+    _tts.stop();
+    _searchController.dispose();
+    _searchFocus.dispose();
+    super.dispose();
+  }
 
   @override
   void didUpdateWidget(covariant BibleScreen oldWidget) {
@@ -62,6 +166,7 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
         (book != _book || chapter != _chapter)) {
       if (book != oldWidget.initialBook ||
           chapter != oldWidget.initialChapter) {
+        _stopReading();
         setState(() {
           _book = book;
           _chapter = chapter;
@@ -103,10 +208,18 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
     }
   }
 
+  Future<void> _stopReading() async {
+    if (_speaking) {
+      await _tts.stop();
+      if (mounted) setState(() => _speaking = false);
+    }
+  }
+
   Future<void> _openPicker(BibleLibrary library) async {
     final result = await showBiblePickerSheet(context,
         library: library, initialBook: _book);
     if (result != null) {
+      await _stopReading();
       setState(() {
         _book = result.$1;
         _chapter = result.$2;
@@ -115,6 +228,7 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
   }
 
   void _shiftChapter(int delta, BibleLibrary library) {
+    _stopReading();
     var bookIndex = library.books.indexWhere((b) => b.name == _book);
     if (bookIndex == -1) return;
     var chapter = _chapter + delta;
@@ -346,6 +460,20 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
                   Row(
                     children: [
                       _RoundIcon(
+                        icon: _speaking
+                            ? Icons.stop_circle_rounded
+                            : Icons.volume_up_rounded,
+                        color: _speaking ? c.teal : null,
+                        onTap: () => _toggleReadAloud(verses),
+                      ),
+                      const SizedBox(width: 6),
+                      _RoundIcon(
+                        icon: _searching ? Icons.close_rounded : Icons.search_rounded,
+                        color: _searching ? c.teal : null,
+                        onTap: _toggleSearch,
+                      ),
+                      const SizedBox(width: 6),
+                      _RoundIcon(
                         icon: isBookmarked
                             ? Icons.bookmark_rounded
                             : Icons.bookmark_border_rounded,
@@ -362,6 +490,84 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
                 ],
               ),
             ),
+            if (_searching)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(22, 10, 22, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextField(
+                      controller: _searchController,
+                      focusNode: _searchFocus,
+                      textInputAction: TextInputAction.search,
+                      onSubmitted: (_) => _runSearch(library),
+                      decoration: InputDecoration(
+                        hintText: 'Search a verse, passage, or reference…',
+                        prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.arrow_forward_rounded, size: 20),
+                          onPressed: () => _runSearch(library),
+                        ),
+                        filled: true,
+                        fillColor: c.surface,
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: c.line),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: c.line),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: c.teal),
+                        ),
+                      ),
+                    ),
+                    if (_searchResults.isNotEmpty)
+                      Container(
+                        margin: const EdgeInsets.only(top: 8),
+                        constraints: const BoxConstraints(maxHeight: 220),
+                        decoration: BoxDecoration(
+                          color: c.surface,
+                          border: Border.all(color: c.line),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: ListView.separated(
+                          shrinkWrap: true,
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          itemCount: _searchResults.length,
+                          separatorBuilder: (_, __) => Divider(height: 1, color: c.line),
+                          itemBuilder: (context, i) {
+                            final hit = _searchResults[i];
+                            return ListTile(
+                              dense: true,
+                              title: Text('${hit.book} ${hit.chapter}:${hit.verse}',
+                                  style: TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: c.teal)),
+                              subtitle: Text(hit.text,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontSize: 13, color: c.dim)),
+                              onTap: () =>
+                                  _jumpTo(hit.book, hit.chapter, verse: hit.verse),
+                            );
+                          },
+                        ),
+                      )
+                    else if (_searchedNoMatch)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Text('No matches found.',
+                            style: TextStyle(fontSize: 13, color: c.dim)),
+                      ),
+                  ],
+                ),
+              ),
             const SizedBox(height: 10),
             Expanded(
               child: SingleChildScrollView(
@@ -387,6 +593,7 @@ class _BibleScreenState extends ConsumerState<BibleScreen> {
                       else
                         for (var i = 0; i < verses.length; i++)
                           Padding(
+                            key: _verseKeys.putIfAbsent(i + 1, () => GlobalKey()),
                             padding: const EdgeInsets.only(bottom: 14),
                             child: GestureDetector(
                               onTap: () =>

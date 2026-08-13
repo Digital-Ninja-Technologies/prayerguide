@@ -29,7 +29,8 @@ The app covers all four phases of the product spec
 
 Beyond the original 4-phase PRD, there's also a **Sermon Note Taker**
 (its own bottom nav tab) — record audio and type notes at the same time,
-optimized for taking notes live during a sermon.
+optimized for taking notes live during a sermon — and a **Channel** tab
+that plays the church's YouTube channel in-app.
 
 There is no AI Prayer Assistant — it was removed (see `git log` for
 `Add custom app icon, remove unwired Prayer Assistant feature`) since it
@@ -45,8 +46,16 @@ Not every screen is backed by live data yet — see
 - **Flutter / Dart** — single codebase for iOS + Android.
 - **flutter_riverpod** — app state (auth, profile, journal, requests).
 - **go_router** — declarative routing; `StatefulShellRoute` drives the
-  persistent bottom nav (Home / Bible / Journal / Sermons / Streak /
-  Profile).
+  persistent bottom nav (Home / Bible / Journal / Sermons / Channel /
+  Profile) — a floating, frosted "liquid glass" pill (`PgBottomNav`):
+  blurred translucent background, icon-only, with an animated highlight
+  behind the active tab.
+- **webview_flutter** — the Channel tab embeds the church's YouTube channel
+  in a real WebView (`CHURCH_YOUTUBE_CHANNEL_URL` in `.env`; see SETUP.md
+  §3c), not just a link out — signed-in sessions persist across restarts
+  since the platform WebView's cookie jar is durable by default.
+- **flutter_tts** — real text-to-speech "read aloud" on the Bible screen;
+  taps the volume icon to read the current chapter, tap again to stop.
 - **record / audioplayers** — Sermon Note Taker: real mono-AAC recording
   (`lib/core/audio/sermon_recorder.dart`) uploaded to a private Supabase
   Storage bucket, played back from a signed URL. Web builds fall back to
@@ -131,6 +140,15 @@ badge, raised hands, all live) rather than failing. Focus Mode's session
 (iOS Screen Time, Android Accessibility Service — both common
 store-rejection causes) beyond this codebase, and the Offline Audio Bible
 still needs a real audio content source.
+
+The Bible reader also has a real, fixed search bar (jump straight to a
+reference like "John 3:16", or run an offline full-text search across all
+31,102 KJV verses) and a real "read aloud" text-to-speech button, and most
+list screens (Companions, Groups, Journal, Requests, Sermon Notes, Home)
+support pull-to-refresh. The Channel tab plays the church's real YouTube
+channel in-app once `CHURCH_YOUTUBE_CHANNEL_URL` is set, and a one-time
+rating pop-up (after a 3-day streak, plus a "Rate Prayer Guide" button in
+About & help any time) links out to the App Store/Play Store.
 
 See **[SETUP.md](SETUP.md)** for the full, maintained breakdown of what's
 real vs. not, and why.

@@ -46,40 +46,44 @@ class CompanionListScreen extends ConsumerWidget {
             ),
           ),
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(22, 0, 22, 40),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  companionsAsync.when(
-                    loading: () => const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 60),
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
-                    error: (e, st) => PgErrorState(
-                        error: e,
-                        onRetry: () => ref.invalidate(companionsProvider)),
-                    data: (companions) {
-                      if (companions.isEmpty) {
-                        return _EmptyState(
-                            onInvite: () => pushInviteCompanion(context));
-                      }
-                      return Column(
-                        children: [
-                          for (final companion in companions)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: _CompanionTile(
-                                companion: companion,
-                                onTap: () => context.push(
-                                    '/companion/${companion.companionRowId}'),
+            child: RefreshIndicator(
+              onRefresh: () => ref.refresh(companionsProvider.future),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(22, 0, 22, 40),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    companionsAsync.when(
+                      loading: () => const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 60),
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                      error: (e, st) => PgErrorState(
+                          error: e,
+                          onRetry: () => ref.invalidate(companionsProvider)),
+                      data: (companions) {
+                        if (companions.isEmpty) {
+                          return _EmptyState(
+                              onInvite: () => pushInviteCompanion(context));
+                        }
+                        return Column(
+                          children: [
+                            for (final companion in companions)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: _CompanionTile(
+                                  companion: companion,
+                                  onTap: () => context.push(
+                                      '/companion/${companion.companionRowId}'),
+                                ),
                               ),
-                            ),
-                        ],
-                      );
-                    },
-                  ),
-                ],
+                          ],
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

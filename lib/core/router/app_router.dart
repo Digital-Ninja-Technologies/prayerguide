@@ -10,6 +10,7 @@ import '../../features/bible/bible_screen.dart';
 import '../../features/challenges/challenge_detail_screen.dart';
 import '../../features/challenges/challenge_new_screen.dart';
 import '../../features/challenges/challenges_screen.dart';
+import '../../features/channel/channel_screen.dart';
 import '../../features/companion/companion_detail_screen.dart';
 import '../../features/companion/companion_list_screen.dart';
 import '../../features/companion/invite_screen.dart';
@@ -112,6 +113,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(routes: [
             GoRoute(
                 path: '/sermons', builder: (c, s) => const SermonNotesScreen()),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+                path: '/channel', builder: (c, s) => const ChannelScreen()),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(

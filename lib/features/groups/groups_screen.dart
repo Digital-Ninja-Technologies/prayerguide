@@ -24,117 +24,121 @@ class GroupsScreen extends ConsumerWidget {
     return Scaffold(
       body: SafeArea(
         bottom: false,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(22, 6, 22, 40),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        PgBackButton(onTap: () => context.pop()),
-                        const SizedBox(width: 12),
-                        Text('Groups',
-                            style: PgText.serif(
-                                size: 26, weight: FontWeight.w600)),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        TextButton(
-                          onPressed: () => context.push('/companion'),
-                          style: TextButton.styleFrom(
-                            backgroundColor: c.surface,
-                            side: BorderSide(color: c.line),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12)),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 13, vertical: 9),
-                          ),
-                          child: Text('Pray together',
-                              style: TextStyle(
-                                  color: c.dim,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700)),
-                        ),
-                        const SizedBox(width: 8),
-                        PgButton(
-                          label: 'New',
-                          expand: false,
-                          dense: true,
-                          icon: Icon(Icons.add_rounded,
-                              color: c.onTeal, size: 16),
-                          onPressed: () => context.push('/groups/new'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-              groupsAsync.when(
-                loading: () => const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 60),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-                error: (e, st) => PgErrorState(
-                    error: e, onRetry: () => ref.invalidate(groupsProvider)),
-                data: (groups) {
-                  if (groups.isEmpty) {
-                    return _EmptyState(
-                        onNew: () => context.push('/groups/new'));
-                  }
-                  return Column(
+        child: RefreshIndicator(
+          onRefresh: () => ref.refresh(groupsProvider.future),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(22, 6, 22, 40),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      for (final g in groups)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: PgCard(
-                            radius: 18,
-                            padding: const EdgeInsets.all(16),
-                            onTap: () => _showGroupSheet(context, ref, g),
-                            child: Row(
-                              children: [
-                                PgIconBadge(
-                                    icon: Icons.diversity_1_outlined,
-                                    color: c.teal,
-                                    background: c.tealSoft),
-                                const SizedBox(width: 14),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(g.name,
-                                          style: const TextStyle(
-                                              fontSize: 15.5,
-                                              fontWeight: FontWeight.w700)),
-                                      Text(
-                                          '${g.memberCount} member${g.memberCount == 1 ? '' : 's'}',
-                                          style: TextStyle(
-                                              fontSize: 12.5, color: c.dim)),
-                                    ],
+                      Row(
+                        children: [
+                          PgBackButton(onTap: () => context.pop()),
+                          const SizedBox(width: 12),
+                          Text('Groups',
+                              style: PgText.serif(
+                                  size: 26, weight: FontWeight.w600)),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          TextButton(
+                            onPressed: () => context.push('/companion'),
+                            style: TextButton.styleFrom(
+                              backgroundColor: c.surface,
+                              side: BorderSide(color: c.line),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 13, vertical: 9),
+                            ),
+                            child: Text('Pray together',
+                                style: TextStyle(
+                                    color: c.dim,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700)),
+                          ),
+                          const SizedBox(width: 8),
+                          PgButton(
+                            label: 'New',
+                            expand: false,
+                            dense: true,
+                            icon: Icon(Icons.add_rounded,
+                                color: c.onTeal, size: 16),
+                            onPressed: () => context.push('/groups/new'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                groupsAsync.when(
+                  loading: () => const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 60),
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                  error: (e, st) => PgErrorState(
+                      error: e, onRetry: () => ref.invalidate(groupsProvider)),
+                  data: (groups) {
+                    if (groups.isEmpty) {
+                      return _EmptyState(
+                          onNew: () => context.push('/groups/new'));
+                    }
+                    return Column(
+                      children: [
+                        for (final g in groups)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: PgCard(
+                              radius: 18,
+                              padding: const EdgeInsets.all(16),
+                              onTap: () => _showGroupSheet(context, ref, g),
+                              child: Row(
+                                children: [
+                                  PgIconBadge(
+                                      icon: Icons.diversity_1_outlined,
+                                      color: c.teal,
+                                      background: c.tealSoft),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(g.name,
+                                            style: const TextStyle(
+                                                fontSize: 15.5,
+                                                fontWeight: FontWeight.w700)),
+                                        Text(
+                                            '${g.memberCount} member${g.memberCount == 1 ? '' : 's'}',
+                                            style: TextStyle(
+                                                fontSize: 12.5, color: c.dim)),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                if (g.meetingTime != null)
-                                  Text(g.meetingTime!,
-                                      style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w700,
-                                          color: c.faint)),
-                              ],
+                                  if (g.meetingTime != null)
+                                    Text(g.meetingTime!,
+                                        style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w700,
+                                            color: c.faint)),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                    ],
-                  );
-                },
-              ),
-            ],
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),

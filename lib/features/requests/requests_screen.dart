@@ -49,74 +49,79 @@ class _RequestsScreenState extends ConsumerState<RequestsScreen> {
             ),
           ),
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(22, 0, 22, 40),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 10),
-                  reqsAsync.when(
-                    loading: () => const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 60),
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
-                    error: (e, st) => PgErrorState(
-                        error: e,
-                        onRetry: () => ref.invalidate(requestsProvider)),
-                    data: (reqs) {
-                      if (reqs.isEmpty) {
-                        return _EmptyState(
-                            onAdd: () => context.push('/requests/new'));
-                      }
+            child: RefreshIndicator(
+              onRefresh: () => ref.refresh(requestsProvider.future),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(22, 0, 22, 40),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 10),
+                    reqsAsync.when(
+                      loading: () => const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 60),
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                      error: (e, st) => PgErrorState(
+                          error: e,
+                          onRetry: () => ref.invalidate(requestsProvider)),
+                      data: (reqs) {
+                        if (reqs.isEmpty) {
+                          return _EmptyState(
+                              onAdd: () => context.push('/requests/new'));
+                        }
 
-                      final byStatus = <String, List<PrayerRequest>>{};
-                      for (final r in reqs) {
-                        (byStatus[r.status] ??= []).add(r);
-                      }
-                      final filtered = byStatus[_tab] ?? const [];
-                      final notifier = ref.read(requestsProvider.notifier);
+                        final byStatus = <String, List<PrayerRequest>>{};
+                        for (final r in reqs) {
+                          (byStatus[r.status] ??= []).add(r);
+                        }
+                        final filtered = byStatus[_tab] ?? const [];
+                        final notifier = ref.read(requestsProvider.notifier);
 
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              for (final t in const [
-                                ('active', 'Active'),
-                                ('answered', 'Answered'),
-                                ('archived', 'Archived')
-                              ])
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 8),
-                                  child: PgPill(
-                                    label:
-                                        '${t.$2} · ${byStatus[t.$1]?.length ?? 0}',
-                                    active: _tab == t.$1,
-                                    onTap: () => setState(() => _tab = t.$1),
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                for (final t in const [
+                                  ('active', 'Active'),
+                                  ('answered', 'Answered'),
+                                  ('archived', 'Archived')
+                                ])
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 8),
+                                    child: PgPill(
+                                      label:
+                                          '${t.$2} · ${byStatus[t.$1]?.length ?? 0}',
+                                      active: _tab == t.$1,
+                                      onTap: () => setState(() => _tab = t.$1),
+                                    ),
                                   ),
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: 18),
-                          if (filtered.isEmpty)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 40),
-                              child: Center(
-                                  child: Text('Nothing here yet.',
-                                      style: TextStyle(
-                                          color: c.faint, fontSize: 14))),
-                            )
-                          else
-                            for (final r in filtered)
-                              _RequestCard(
-                                  key: ValueKey(r.id),
-                                  request: r,
-                                  notifier: notifier),
-                        ],
-                      );
-                    },
-                  ),
-                ],
+                              ],
+                            ),
+                            const SizedBox(height: 18),
+                            if (filtered.isEmpty)
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 40),
+                                child: Center(
+                                    child: Text('Nothing here yet.',
+                                        style: TextStyle(
+                                            color: c.faint, fontSize: 14))),
+                              )
+                            else
+                              for (final r in filtered)
+                                _RequestCard(
+                                    key: ValueKey(r.id),
+                                    request: r,
+                                    notifier: notifier),
+                          ],
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

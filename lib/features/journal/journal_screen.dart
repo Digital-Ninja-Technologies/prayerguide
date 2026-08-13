@@ -114,36 +114,40 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                 final filtered = _filter == 'All'
                     ? entries
                     : entries.where((e) => e.type == _filter).toList();
-                return SingleChildScrollView(
-                  padding: const EdgeInsets.only(bottom: 40),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        height: 40,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: [
-                            for (final t in _types)
-                              Padding(
-                                padding: const EdgeInsets.only(right: 8),
-                                child: PgPill(
-                                    label: t,
-                                    active: _filter == t,
-                                    onTap: () => setState(() => _filter = t)),
-                              ),
-                          ],
+                return RefreshIndicator(
+                  onRefresh: () => ref.refresh(journalProvider.future),
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.only(bottom: 40),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          height: 40,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            children: [
+                              for (final t in _types)
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: PgPill(
+                                      label: t,
+                                      active: _filter == t,
+                                      onTap: () => setState(() => _filter = t)),
+                                ),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 18),
-                      for (final e in filtered)
-                        _EntryCard(
-                          entry: e,
-                          tagColor: _tagColor(e.type, c),
-                          tagBg: _tagBg(e.type, c),
-                          onTap: () => context.push('/journal/${e.id}'),
-                        ),
-                    ],
+                        const SizedBox(height: 18),
+                        for (final e in filtered)
+                          _EntryCard(
+                            entry: e,
+                            tagColor: _tagColor(e.type, c),
+                            tagBg: _tagBg(e.type, c),
+                            onTap: () => context.push('/journal/${e.id}'),
+                          ),
+                      ],
+                    ),
                   ),
                 );
               },
