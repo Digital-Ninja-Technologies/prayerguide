@@ -265,7 +265,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   Widget _buildEmailSignIn(PgColors c) {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(30, 26, 30, 30),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -306,7 +306,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             const SizedBox(height: 12),
             Text(_info!, style: TextStyle(color: c.teal, fontSize: 13)),
           ],
-          const Spacer(),
+          const SizedBox(height: 28),
           PgButton(
             label: _loading ? 'Signing in…' : 'Sign in',
             onPressed: _loading
@@ -340,7 +340,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   Widget _buildReset(PgColors c) {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(30, 26, 30, 30),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -370,7 +370,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               hint: 'you@email.com',
               keyboardType: TextInputType.emailAddress),
           PgFormError(_error, topSpacing: 12),
-          const Spacer(),
+          const SizedBox(height: 28),
           PgButton(
             label: _loading ? 'Sending…' : 'Send reset link',
             onPressed: _loading
@@ -393,7 +393,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   Widget _buildCreate(PgColors c) {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(30, 26, 30, 30),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -451,7 +451,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             const SizedBox(height: 12),
             Text(_info!, style: TextStyle(color: c.teal, fontSize: 13)),
           ],
-          const Spacer(),
+          const SizedBox(height: 28),
           PgButton(
             label: _loading ? 'Creating…' : 'Create account',
             onPressed: _loading
