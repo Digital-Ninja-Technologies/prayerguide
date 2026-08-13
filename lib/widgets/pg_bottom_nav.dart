@@ -23,9 +23,9 @@ const pgNavItems = [
 /// Bottom tab bar: Home / Bible / Journal / Sermons / Channel / Profile.
 ///
 /// A floating, frosted-glass pill — blurred translucent background, rounded
-/// stadium shape, icon-only with an animated highlight pill behind the
+/// stadium shape, icon + label with an animated highlight pill behind the
 /// active tab — in the style of Instagram/iOS's "liquid glass" tab bars,
-/// rather than the old opaque, full-width, labelled bar.
+/// rather than the old opaque, full-width bar.
 class PgBottomNav extends StatelessWidget {
   const PgBottomNav({super.key, required this.currentRoute, required this.onTap});
 
@@ -88,20 +88,27 @@ class _NavButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.colors;
     final color = active ? c.teal : c.faint;
-    return Tooltip(
-      message: item.label,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeOutCubic,
-          padding: EdgeInsets.symmetric(horizontal: active ? 16 : 11, vertical: 10),
-          decoration: BoxDecoration(
-            color: active ? c.teal.withValues(alpha: 0.16) : Colors.transparent,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Icon(item.icon, size: 22, color: color),
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
+        decoration: BoxDecoration(
+          color: active ? c.teal.withValues(alpha: 0.16) : Colors.transparent,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(item.icon, size: 21, color: color),
+            const SizedBox(height: 3),
+            Text(
+              item.label,
+              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: color),
+            ),
+          ],
         ),
       ),
     );
