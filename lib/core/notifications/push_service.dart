@@ -61,7 +61,17 @@ class PushService {
   Future<void> _registerToken() async {
     final uid = supa.auth.currentUser?.id;
     if (uid == null) return;
-    final token = await FirebaseMessaging.instance.getToken();
+    String? token;
+    try {
+      token = await FirebaseMessaging.instance.getToken();
+    } catch (e) {
+      // Expected until the APNs token is available (e.g. the Push
+      // Notifications capability isn't added yet, or on most simulators) —
+      // same "no push, not a crash" fallback as everywhere else in this
+      // file.
+      debugPrint('PushService: getToken failed — $e');
+      return;
+    }
     if (token == null) return;
     await supa.from('device_push_tokens').upsert({
       'user_id': uid,
