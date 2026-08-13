@@ -1,19 +1,29 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../core/theme/pg_colors.dart';
+import '../../state/favorite_videos_provider.dart';
 import '../../widgets/pg_button.dart';
 import '../../widgets/pg_header.dart';
 
 /// In-app viewer for a single church's YouTube channel, reached by tapping
-/// an entry on the Channel tab's directory. Backed by a real WebView (not
-/// just a link out) so a signed-in Google/YouTube session persists across
-/// app restarts — the platform WebView's cookie jar is durable by default.
+/// an entry on the Channel tab's directory — or a favorited video, reached
+/// by tapping an entry in the "Favorite videos" section, since this screen
+/// just needs a name + url either way. Backed by a real WebView (not just a
+/// link out) so a signed-in Google/YouTube session persists across app
+/// restarts — the platform WebView's cookie jar is durable by default.
 /// Not available on web builds (`webview_flutter` is mobile-only here).
-class ChannelWebviewScreen extends StatefulWidget {
+///
+/// The heart in the header favorites whatever page is *currently loaded* —
+/// tap a video from the channel's own listing to navigate to it inside this
+/// same WebView, then favorite it; it'll show up in "Favorite videos" back
+/// on the Channel tab. Title comes from `getTitle()` (the page's own
+/// `document.title`, e.g. "Sunday Service | Church Name - YouTube").
+class ChannelWebviewScreen extends ConsumerStatefulWidget {
   const ChannelWebviewScreen({
     super.key,
     required this.channelName,
@@ -24,17 +34,19 @@ class ChannelWebviewScreen extends StatefulWidget {
   final String channelUrl;
 
   @override
-  State<ChannelWebviewScreen> createState() => _ChannelWebviewScreenState();
+  ConsumerState<ChannelWebviewScreen> createState() => _ChannelWebviewScreenState();
 }
 
-class _ChannelWebviewScreenState extends State<ChannelWebviewScreen> {
+class _ChannelWebviewScreenState extends ConsumerState<ChannelWebviewScreen> {
   WebViewController? _controller;
   bool _loading = true;
   String? _error;
+  String? _currentUrl;
 
   @override
   void initState() {
     super.initState();
+    _currentUrl = widget.channelUrl;
     if (!kIsWeb) {
       _controller = WebViewController()
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -42,8 +54,13 @@ class _ChannelWebviewScreenState extends State<ChannelWebviewScreen> {
           onPageStarted: (_) {
             if (mounted) setState(() => _loading = true);
           },
-          onPageFinished: (_) {
-            if (mounted) setState(() => _loading = false);
+          onPageFinished: (url) {
+            if (mounted) {
+              setState(() {
+                _loading = false;
+                _currentUrl = url;
+              });
+            }
           },
           onWebResourceError: (e) {
             if (mounted) {
@@ -66,9 +83,28 @@ class _ChannelWebviewScreenState extends State<ChannelWebviewScreen> {
     _controller?.reload();
   }
 
+  Future<void> _toggleFavoriteVideo() async {
+    final controller = _controller;
+    if (controller == null) return;
+    final url = await controller.currentUrl() ?? _currentUrl;
+    if (url == null) return;
+    final title = await controller.getTitle() ?? widget.channelName;
+    if (!mounted) return;
+    try {
+      await ref.read(favoriteVideosProvider.notifier).toggle(title: title, url: url);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Couldn't update favorites — $e")));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
+    final isFavoriteVideo = _currentUrl != null &&
+        ref.watch(favoriteVideosProvider).valueOrNull?.any((f) => f.url == _currentUrl) ==
+            true;
     return Scaffold(
       body: Column(
         children: [
@@ -78,10 +114,27 @@ class _ChannelWebviewScreenState extends State<ChannelWebviewScreen> {
               title: widget.channelName,
               onBack: () => context.pop(),
               trailing: _controller != null
-                  ? IconButton(
-                      onPressed: _refresh,
-                      icon: Icon(Icons.refresh_rounded, color: c.dim),
-                      tooltip: 'Refresh',
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          onPressed: _toggleFavoriteVideo,
+                          tooltip: isFavoriteVideo
+                              ? 'Remove this video from favorites'
+                              : 'Favorite this video',
+                          icon: Icon(
+                            isFavoriteVideo
+                                ? Icons.favorite_rounded
+                                : Icons.favorite_border_rounded,
+                            color: isFavoriteVideo ? c.danger : c.dim,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: _refresh,
+                          icon: Icon(Icons.refresh_rounded, color: c.dim),
+                          tooltip: 'Refresh',
+                        ),
+                      ],
                     )
                   : null,
             ),

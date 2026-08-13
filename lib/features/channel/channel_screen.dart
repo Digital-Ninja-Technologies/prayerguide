@@ -7,6 +7,7 @@ import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
 import '../../data/static/nigerian_churches.dart';
 import '../../state/favorite_channels_provider.dart';
+import '../../state/favorite_videos_provider.dart';
 import '../../widgets/pg_card.dart';
 import '../../widgets/pg_icon_badge.dart';
 
@@ -15,8 +16,9 @@ import '../../widgets/pg_icon_badge.dart';
 /// so a user can find one without scrolling through all of them. Tapping an
 /// entry opens `ChannelWebviewScreen` with that church's real channel; the
 /// heart on each row saves it to `favoriteChannelsProvider` (real Supabase
-/// row, not local-only) so it shows up in the "Favorites" section here on
-/// any device.
+/// row, not local-only) so it shows up in the "Favorite channels" section
+/// here on any device. Individual videos favorited from inside that WebView
+/// (`ChannelWebviewScreen`'s own heart) show up in "Favorite videos" above it.
 ///
 /// If `CHURCH_YOUTUBE_CHANNEL_URL` is set in `.env` (see SETUP.md), that
 /// channel is pinned above the directory as "Your church" — this repo's
@@ -67,6 +69,16 @@ class _ChannelScreenState extends ConsumerState<ChannelScreen> {
     }
   }
 
+  Future<void> _toggleFavoriteVideo({required String title, required String url}) async {
+    try {
+      await ref.read(favoriteVideosProvider.notifier).toggle(title: title, url: url);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Couldn't update favorite videos — $e")));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
@@ -75,6 +87,8 @@ class _ChannelScreenState extends ConsumerState<ChannelScreen> {
     final favorites = ref.watch(favoriteChannelsProvider).valueOrNull ?? [];
     final favoriteUrls = favorites.map((f) => f.url).toSet();
     final showFavorites = favorites.isNotEmpty && _query.trim().isEmpty;
+    final favoriteVideos = ref.watch(favoriteVideosProvider).valueOrNull ?? [];
+    final showFavoriteVideos = favoriteVideos.isNotEmpty && _query.trim().isEmpty;
 
     return SafeArea(
       bottom: false,
@@ -122,8 +136,30 @@ class _ChannelScreenState extends ConsumerState<ChannelScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(22, 0, 22, 40),
               children: [
+                if (showFavoriteVideos) ...[
+                  Text('FAVORITE VIDEOS',
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1,
+                          color: c.dim)),
+                  const SizedBox(height: 10),
+                  for (final v in favoriteVideos) ...[
+                    _ChurchTile(
+                      name: v.title,
+                      subtitle: 'Favorited video',
+                      icon: Icons.play_circle_fill_rounded,
+                      isFavorite: true,
+                      onTap: () => _open(context, name: v.title, url: v.url),
+                      onToggleFavorite: () =>
+                          _toggleFavoriteVideo(title: v.title, url: v.url),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                  const SizedBox(height: 8),
+                ],
                 if (showFavorites) ...[
-                  Text('FAVORITES',
+                  Text('FAVORITE CHANNELS',
                       style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
@@ -197,6 +233,7 @@ class _ChurchTile extends StatelessWidget {
     required this.isFavorite,
     required this.onTap,
     required this.onToggleFavorite,
+    this.icon = Icons.smart_display_rounded,
   });
 
   final String name;
@@ -204,6 +241,7 @@ class _ChurchTile extends StatelessWidget {
   final bool isFavorite;
   final VoidCallback onTap;
   final VoidCallback onToggleFavorite;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
@@ -214,8 +252,7 @@ class _ChurchTile extends StatelessWidget {
       onTap: onTap,
       child: Row(
         children: [
-          PgIconBadge(
-              icon: Icons.smart_display_rounded, color: c.teal, background: c.tealSoft),
+          PgIconBadge(icon: icon, color: c.teal, background: c.tealSoft),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
