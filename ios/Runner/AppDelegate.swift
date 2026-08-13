@@ -9,7 +9,7 @@ import UIKit
   ) -> Bool {
     let result = super.application(application, didFinishLaunchingWithOptions: launchOptions)
     if let controller = window?.rootViewController as? FlutterViewController {
-      if #available(iOS 16.1, *) {
+      if #available(iOS 16.2, *) {
         LiveActivityChannel.register(with: controller)
       }
     }

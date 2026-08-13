@@ -12,7 +12,7 @@ import ActivityKit
 import Flutter
 import Foundation
 
-@available(iOS 16.1, *)
+@available(iOS 16.2, *)
 enum LiveActivityChannel {
   private static var currentActivity: Activity<PrayerTimerAttributes>?
 

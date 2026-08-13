@@ -10,12 +10,14 @@
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
 		154D65BFB99A8CD11404A350 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8E8E181569BC0D84CB733608 /* Pods_RunnerTests.framework */; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
+		3612FD0DB3D34C3A0A0C2F14 /* PrayerTimerAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5306AD61251861E447EBB83 /* PrayerTimerAttributes.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
+		B9DEF61D87F5746E8ED9D573 /* LiveActivityChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FA6144035E9E486AE7A565 /* LiveActivityChannel.swift */; };
 		F1DF1D5952374FE78AE4A0E8 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6F4C5846BBA38C07A435FF30 /* Pods_Runner.framework */; };
 /* End PBXBuildFile section */
 
@@ -66,7 +68,9 @@
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C11B9D63F9295766E4A34E34 /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
 		C3A926C8780C78D5EDB5DF7C /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
+		C5306AD61251861E447EBB83 /* PrayerTimerAttributes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PrayerTimerAttributes.swift; path = PrayerTimerWidget/PrayerTimerAttributes.swift; sourceTree = "<group>"; };
 		C96F27777DA6C2C0FE288567 /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
+		D3FA6144035E9E486AE7A565 /* LiveActivityChannel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LiveActivityChannel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -90,6 +94,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		009929DA086DC7F10889DAD9 /* PrayerTimerWidget */ = {
+			isa = PBXGroup;
+			children = (
+				C5306AD61251861E447EBB83 /* PrayerTimerAttributes.swift */,
+			);
+			name = PrayerTimerWidget;
+			sourceTree = "<group>";
+		};
 		1609ED89DDED98515136A7BB /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -141,6 +153,7 @@
 				331C8082294A63A400263BE5 /* RunnerTests */,
 				2436634D7DF0167282468461 /* Pods */,
 				1609ED89DDED98515136A7BB /* Frameworks */,
+				009929DA086DC7F10889DAD9 /* PrayerTimerWidget */,
 			);
 			sourceTree = "<group>";
 		};
@@ -164,6 +177,7 @@
 				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
+				D3FA6144035E9E486AE7A565 /* LiveActivityChannel.swift */,
 			);
 			path = Runner;
 			sourceTree = "<group>";
@@ -388,6 +402,8 @@
 			files = (
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
+				B9DEF61D87F5746E8ED9D573 /* LiveActivityChannel.swift in Sources */,
+				3612FD0DB3D34C3A0A0C2F14 /* PrayerTimerAttributes.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

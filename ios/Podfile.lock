@@ -1,5 +1,7 @@
 PODS:
   - Flutter (1.0.0)
+  - flutter_tts (0.0.1):
+    - Flutter
   - flutter_webrtc (1.4.0):
     - Flutter
     - WebRTC-SDK (= 144.7559.01)
@@ -7,59 +9,33 @@ PODS:
     - Flutter
     - flutter_webrtc
     - WebRTC-SDK (= 144.7559.01)
-  - purchases_flutter (8.11.0):
-    - Flutter
-    - PurchasesHybridCommon (= 14.3.0)
-  - purchases_ui_flutter (8.11.0):
-    - Flutter
-    - PurchasesHybridCommonUI (= 14.3.0)
-  - PurchasesHybridCommon (14.3.0):
-    - RevenueCat (= 5.32.0)
-  - PurchasesHybridCommonUI (14.3.0):
-    - PurchasesHybridCommon (= 14.3.0)
-    - RevenueCatUI (= 5.32.0)
-  - RevenueCat (5.32.0)
-  - RevenueCatUI (5.32.0):
-    - RevenueCat (= 5.32.0)
   - WebRTC-SDK (144.7559.01)
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
+  - flutter_tts (from `.symlinks/plugins/flutter_tts/ios`)
   - flutter_webrtc (from `.symlinks/plugins/flutter_webrtc/ios`)
   - livekit_client (from `.symlinks/plugins/livekit_client/ios`)
-  - purchases_flutter (from `.symlinks/plugins/purchases_flutter/ios`)
-  - purchases_ui_flutter (from `.symlinks/plugins/purchases_ui_flutter/ios`)
 
 SPEC REPOS:
   trunk:
-    - PurchasesHybridCommon
-    - PurchasesHybridCommonUI
-    - RevenueCat
-    - RevenueCatUI
     - WebRTC-SDK
 
 EXTERNAL SOURCES:
   Flutter:
     :path: Flutter
+  flutter_tts:
+    :path: ".symlinks/plugins/flutter_tts/ios"
   flutter_webrtc:
     :path: ".symlinks/plugins/flutter_webrtc/ios"
   livekit_client:
     :path: ".symlinks/plugins/livekit_client/ios"
-  purchases_flutter:
-    :path: ".symlinks/plugins/purchases_flutter/ios"
-  purchases_ui_flutter:
-    :path: ".symlinks/plugins/purchases_ui_flutter/ios"
 
 SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  flutter_tts: 91ad1884033cd95ef6e9338754adad54f01f090f
   flutter_webrtc: 5aa37bfb8b834bff989a03182d1c4266a4f93377
   livekit_client: 88462cc0b8d19febb57679476bae8696961cfca2
-  purchases_flutter: c1245d908efb42739b626d03905302c003d26811
-  purchases_ui_flutter: 6d910d07f4bcadbfd7bf3ff356278943d76cd34f
-  PurchasesHybridCommon: 7f0944cc5411bdcd1ea5d69affa6a6f9aaf87b13
-  PurchasesHybridCommonUI: 8149f983d0d5fcc6d2536900c934d3dfb7cbed45
-  RevenueCat: 7e1d0768fb287c9983173c9b28e39ccbeeb828a9
-  RevenueCatUI: 61ddba6f94803f9b79c470ffe1e8b81d807c11ce
   WebRTC-SDK: ab9b5319e458c2bfebdc92b3600740da35d5630d
 
 PODFILE CHECKSUM: 3c63482e143d1b91d2d2560aee9fb04ecc74ac7e
