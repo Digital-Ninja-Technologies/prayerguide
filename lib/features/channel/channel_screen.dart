@@ -1,21 +1,22 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
-import '../../widgets/pg_button.dart';
+import '../../data/static/nigerian_churches.dart';
+import '../../widgets/pg_card.dart';
+import '../../widgets/pg_icon_badge.dart';
 
-/// In-app viewer for the church's YouTube channel. Backed by a real WebView
-/// (not just a link out) so a signed-in Google/YouTube session persists
-/// across app restarts — the platform WebView's cookie jar is durable by
-/// default, so nothing extra is needed to "stay signed in".
+/// Directory of church YouTube channels — a fixed search bar up top filters
+/// a curated list of major Nigerian churches (see `nigerian_churches.dart`)
+/// so a user can find one without scrolling through all of them. Tapping an
+/// entry opens `ChannelWebviewScreen` with that church's real channel.
 ///
-/// Configured via `CHURCH_YOUTUBE_CHANNEL_URL` in `.env` — see SETUP.md.
-/// Not available on web builds (`webview_flutter` is mobile-only here);
-/// that build target only exists for internal verification, not shipping.
+/// If `CHURCH_YOUTUBE_CHANNEL_URL` is set in `.env` (see SETUP.md), that
+/// channel is pinned above the directory as "Your church" — this repo's
+/// existing single-channel config still works, it just now sits alongside
+/// the built-in directory instead of replacing it.
 class ChannelScreen extends StatefulWidget {
   const ChannelScreen({super.key});
 
@@ -24,54 +25,36 @@ class ChannelScreen extends StatefulWidget {
 }
 
 class _ChannelScreenState extends State<ChannelScreen> {
-  WebViewController? _controller;
-  bool _loading = true;
-  String? _error;
+  final _searchCtrl = TextEditingController();
+  String _query = '';
 
-  String? get _channelUrl {
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  String? get _customChannelUrl {
     final url = dotenv.env['CHURCH_YOUTUBE_CHANNEL_URL']?.trim();
     return (url == null || url.isEmpty) ? null : url;
   }
 
-  @override
-  void initState() {
-    super.initState();
-    final url = _channelUrl;
-    if (!kIsWeb && url != null) {
-      _controller = WebViewController()
-        ..setJavaScriptMode(JavaScriptMode.unrestricted)
-        ..setNavigationDelegate(NavigationDelegate(
-          onPageStarted: (_) {
-            if (mounted) setState(() => _loading = true);
-          },
-          onPageFinished: (_) {
-            if (mounted) setState(() => _loading = false);
-          },
-          onWebResourceError: (e) {
-            if (mounted) {
-              setState(() {
-                _loading = false;
-                _error = e.description;
-              });
-            }
-          },
-        ))
-        ..loadRequest(Uri.parse(url));
-    }
+  List<NigerianChurch> get _filtered {
+    final q = _query.trim().toLowerCase();
+    if (q.isEmpty) return kNigerianChurches;
+    return kNigerianChurches.where((ch) => ch.searchText.contains(q)).toList();
   }
 
-  void _refresh() {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    _controller?.reload();
+  void _open(BuildContext context, {required String name, required String url}) {
+    context.push(
+        '/channel/view?name=${Uri.encodeComponent(name)}&url=${Uri.encodeComponent(url)}');
   }
 
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    final url = _channelUrl;
+    final customUrl = _customChannelUrl;
+    final results = _filtered;
 
     return SafeArea(
       bottom: false,
@@ -79,53 +62,80 @@ class _ChannelScreenState extends State<ChannelScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(22, 6, 14, 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Channel', style: PgText.serif(size: 26, weight: FontWeight.w600)),
-                if (_controller != null)
-                  IconButton(
-                    onPressed: _refresh,
-                    icon: Icon(Icons.refresh_rounded, color: c.dim),
-                    tooltip: 'Refresh',
-                  ),
-              ],
+            padding: const EdgeInsets.fromLTRB(22, 6, 22, 12),
+            child: Text('Channel', style: PgText.serif(size: 26, weight: FontWeight.w600)),
+          ),
+          // Fixed search panel — stays put while the list below scrolls.
+          Padding(
+            padding: const EdgeInsets.fromLTRB(22, 0, 22, 14),
+            child: Container(
+              decoration: BoxDecoration(
+                color: c.surface2,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: c.line),
+              ),
+              child: TextField(
+                controller: _searchCtrl,
+                onChanged: (v) => setState(() => _query = v),
+                style: TextStyle(fontSize: 14.5, color: c.text),
+                decoration: InputDecoration(
+                  hintText: 'Search for a church…',
+                  hintStyle: TextStyle(color: c.faint, fontSize: 14.5),
+                  prefixIcon: Icon(Icons.search_rounded, color: c.faint, size: 20),
+                  suffixIcon: _query.isEmpty
+                      ? null
+                      : IconButton(
+                          icon: Icon(Icons.close_rounded, color: c.faint, size: 18),
+                          onPressed: () => setState(() {
+                            _searchCtrl.clear();
+                            _query = '';
+                          }),
+                        ),
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+              ),
             ),
           ),
           Expanded(
-            child: url == null
-                ? const _ChannelMessage(
-                    icon: Icons.smart_display_outlined,
-                    title: 'Channel not configured',
-                    body:
-                        "Set CHURCH_YOUTUBE_CHANNEL_URL in .env to show the church's "
-                        "YouTube channel here — see SETUP.md.",
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(22, 0, 22, 40),
+              children: [
+                if (customUrl != null && _query.trim().isEmpty) ...[
+                  _ChurchTile(
+                    name: 'Your church',
+                    subtitle: 'From this app\'s configuration',
+                    onTap: () => _open(context, name: 'Your church', url: customUrl),
+                  ),
+                  const SizedBox(height: 18),
+                  Text('TOP CHURCHES IN NIGERIA',
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1,
+                          color: c.dim)),
+                  const SizedBox(height: 10),
+                ],
+                if (results.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 40),
+                    child: Center(
+                      child: Text('No churches match "${_query.trim()}"',
+                          style: TextStyle(color: c.dim, fontSize: 13.5)),
+                    ),
                   )
-                : kIsWeb
-                    ? _ChannelMessage(
-                        icon: Icons.smart_display_outlined,
-                        title: 'Open the channel',
-                        body: "The in-app channel viewer isn't available on web builds.",
-                        actionLabel: 'Open in browser',
-                        onAction: () =>
-                            launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
-                      )
-                    : Stack(
-                        children: [
-                          WebViewWidget(controller: _controller!),
-                          if (_loading)
-                            const Center(child: CircularProgressIndicator()),
-                          if (_error != null)
-                            _ChannelMessage(
-                              icon: Icons.wifi_off_rounded,
-                              title: "Couldn't load the channel",
-                              body: _error!,
-                              actionLabel: 'Try again',
-                              onAction: _refresh,
-                            ),
-                        ],
-                      ),
+                else
+                  for (final ch in results) ...[
+                    _ChurchTile(
+                      name: ch.name,
+                      subtitle: '${ch.leader} · ${ch.city}',
+                      onTap: () => _open(context, name: ch.name, url: ch.youtubeUrl),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+              ],
+            ),
           ),
         ],
       ),
@@ -133,51 +143,44 @@ class _ChannelScreenState extends State<ChannelScreen> {
   }
 }
 
-class _ChannelMessage extends StatelessWidget {
-  const _ChannelMessage({
-    required this.icon,
-    required this.title,
-    required this.body,
-    this.actionLabel,
-    this.onAction,
-  });
+class _ChurchTile extends StatelessWidget {
+  const _ChurchTile({required this.name, required this.subtitle, required this.onTap});
 
-  final IconData icon;
-  final String title;
-  final String body;
-  final String? actionLabel;
-  final VoidCallback? onAction;
+  final String name;
+  final String subtitle;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 30),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration:
-                  BoxDecoration(color: c.tealSoft, borderRadius: BorderRadius.circular(20)),
-              child: Icon(icon, size: 30, color: c.teal),
+    return PgCard(
+      radius: 16,
+      padding: const EdgeInsets.all(14),
+      onTap: onTap,
+      child: Row(
+        children: [
+          PgIconBadge(
+              icon: Icons.smart_display_rounded, color: c.teal, background: c.tealSoft),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 2),
+                Text(subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12.5, color: c.dim)),
+              ],
             ),
-            const SizedBox(height: 16),
-            Text(title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 8),
-            Text(body,
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13.5, color: c.dim, height: 1.5)),
-            if (actionLabel != null && onAction != null) ...[
-              const SizedBox(height: 18),
-              PgButton(label: actionLabel!, expand: false, onPressed: onAction),
-            ],
-          ],
-        ),
+          ),
+          const SizedBox(width: 8),
+          Icon(Icons.chevron_right_rounded, color: c.faint),
+        ],
       ),
     );
   }

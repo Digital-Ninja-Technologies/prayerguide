@@ -11,6 +11,7 @@ import '../../features/challenges/challenge_detail_screen.dart';
 import '../../features/challenges/challenge_new_screen.dart';
 import '../../features/challenges/challenges_screen.dart';
 import '../../features/channel/channel_screen.dart';
+import '../../features/channel/channel_webview_screen.dart';
 import '../../features/companion/companion_detail_screen.dart';
 import '../../features/companion/companion_list_screen.dart';
 import '../../features/companion/invite_screen.dart';
@@ -131,6 +132,13 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: '/settings', builder: (c, s) => const SettingsScreen()),
           ]),
         ],
+      ),
+      GoRoute(
+        path: '/channel/view',
+        builder: (c, s) => ChannelWebviewScreen(
+          channelName: s.uri.queryParameters['name'] ?? 'Channel',
+          channelUrl: s.uri.queryParameters['url'] ?? '',
+        ),
       ),
       GoRoute(
         path: '/guide',
