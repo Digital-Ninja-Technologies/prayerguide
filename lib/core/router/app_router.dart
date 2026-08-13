@@ -12,6 +12,7 @@ import '../../features/challenges/challenge_new_screen.dart';
 import '../../features/challenges/challenges_screen.dart';
 import '../../features/channel/channel_screen.dart';
 import '../../features/channel/channel_webview_screen.dart';
+import '../../features/channel/favorite_videos_screen.dart';
 import '../../features/companion/companion_detail_screen.dart';
 import '../../features/companion/companion_list_screen.dart';
 import '../../features/companion/invite_screen.dart';
@@ -124,8 +125,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: '/sermons', builder: (c, s) => const SermonNotesScreen()),
           ]),
           StatefulShellBranch(routes: [
-            GoRoute(
-                path: '/channel', builder: (c, s) => const ChannelScreen()),
+            GoRoute(path: '/channel', builder: (c, s) => const ChannelScreen()),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(
@@ -139,6 +139,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           channelName: s.uri.queryParameters['name'] ?? 'Channel',
           channelUrl: s.uri.queryParameters['url'] ?? '',
         ),
+      ),
+      GoRoute(
+        path: '/channel/favorites',
+        builder: (c, s) => const FavoriteVideosScreen(),
       ),
       GoRoute(
         path: '/guide',

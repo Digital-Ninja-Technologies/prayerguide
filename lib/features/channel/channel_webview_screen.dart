@@ -34,7 +34,8 @@ class ChannelWebviewScreen extends ConsumerStatefulWidget {
   final String channelUrl;
 
   @override
-  ConsumerState<ChannelWebviewScreen> createState() => _ChannelWebviewScreenState();
+  ConsumerState<ChannelWebviewScreen> createState() =>
+      _ChannelWebviewScreenState();
 }
 
 class _ChannelWebviewScreenState extends ConsumerState<ChannelWebviewScreen> {
@@ -91,11 +92,13 @@ class _ChannelWebviewScreenState extends ConsumerState<ChannelWebviewScreen> {
     final title = await controller.getTitle() ?? widget.channelName;
     if (!mounted) return;
     try {
-      await ref.read(favoriteVideosProvider.notifier).toggle(title: title, url: url);
+      await ref
+          .read(favoriteVideosProvider.notifier)
+          .toggle(title: title, url: url);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Couldn't update favorites — $e")));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Couldn't update favorites — $e")));
     }
   }
 
@@ -103,7 +106,10 @@ class _ChannelWebviewScreenState extends ConsumerState<ChannelWebviewScreen> {
   Widget build(BuildContext context) {
     final c = context.colors;
     final isFavoriteVideo = _currentUrl != null &&
-        ref.watch(favoriteVideosProvider).valueOrNull?.any((f) => f.url == _currentUrl) ==
+        ref
+                .watch(favoriteVideosProvider)
+                .valueOrNull
+                ?.any((f) => f.url == _currentUrl) ==
             true;
     return Scaffold(
       body: Column(
@@ -144,7 +150,8 @@ class _ChannelWebviewScreenState extends ConsumerState<ChannelWebviewScreen> {
                 ? _ChannelMessage(
                     icon: Icons.smart_display_outlined,
                     title: 'Open the channel',
-                    body: "The in-app channel viewer isn't available on web builds.",
+                    body:
+                        "The in-app channel viewer isn't available on web builds.",
                     actionLabel: 'Open in browser',
                     onAction: () => launchUrl(Uri.parse(widget.channelUrl),
                         mode: LaunchMode.externalApplication),
@@ -152,7 +159,8 @@ class _ChannelWebviewScreenState extends ConsumerState<ChannelWebviewScreen> {
                 : Stack(
                     children: [
                       WebViewWidget(controller: _controller!),
-                      if (_loading) const Center(child: CircularProgressIndicator()),
+                      if (_loading)
+                        const Center(child: CircularProgressIndicator()),
                       if (_error != null)
                         _ChannelMessage(
                           icon: Icons.wifi_off_rounded,
@@ -197,14 +205,15 @@ class _ChannelMessage extends StatelessWidget {
             Container(
               width: 64,
               height: 64,
-              decoration:
-                  BoxDecoration(color: c.tealSoft, borderRadius: BorderRadius.circular(20)),
+              decoration: BoxDecoration(
+                  color: c.tealSoft, borderRadius: BorderRadius.circular(20)),
               child: Icon(icon, size: 30, color: c.teal),
             ),
             const SizedBox(height: 16),
             Text(title,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+                style:
+                    const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
             Text(body,
                 textAlign: TextAlign.center,

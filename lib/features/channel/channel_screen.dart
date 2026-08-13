@@ -6,8 +6,8 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
 import '../../data/static/nigerian_churches.dart';
+import '../../state/custom_channels_provider.dart';
 import '../../state/favorite_channels_provider.dart';
-import '../../state/favorite_videos_provider.dart';
 import '../../widgets/pg_card.dart';
 import '../../widgets/pg_icon_badge.dart';
 
@@ -16,9 +16,14 @@ import '../../widgets/pg_icon_badge.dart';
 /// so a user can find one without scrolling through all of them. Tapping an
 /// entry opens `ChannelWebviewScreen` with that church's real channel; the
 /// heart on each row saves it to `favoriteChannelsProvider` (real Supabase
-/// row, not local-only) so it shows up in the "Favorite channels" section
-/// here on any device. Individual videos favorited from inside that WebView
-/// (`ChannelWebviewScreen`'s own heart) show up in "Favorite videos" above it.
+/// row, not local-only) so it shows up in the "Favorite channels" section.
+///
+/// The icon in front of the "Channel" title opens `FavoriteVideosScreen` —
+/// individual videos favorited from inside `ChannelWebviewScreen` live on
+/// their own page rather than inline here. The "+" button next to the
+/// search bar lets a user add their own channel (`custom_channels`,
+/// migration 0024) — shown in "Your channels", with its own delete button
+/// since, unlike the curated directory, these are entries the user owns.
 ///
 /// If `CHURCH_YOUTUBE_CHANNEL_URL` is set in `.env` (see SETUP.md), that
 /// channel is pinned above the directory as "Your church" — this repo's
@@ -52,30 +57,113 @@ class _ChannelScreenState extends ConsumerState<ChannelScreen> {
     return kNigerianChurches.where((ch) => ch.searchText.contains(q)).toList();
   }
 
-  void _open(BuildContext context, {required String name, required String url}) {
+  void _open(BuildContext context,
+      {required String name, required String url}) {
     context.push(
         '/channel/view?name=${Uri.encodeComponent(name)}&url=${Uri.encodeComponent(url)}');
   }
 
-  Future<void> _toggleFavorite({required String name, required String url}) async {
+  Future<void> _toggleFavorite(
+      {required String name, required String url}) async {
     try {
       await ref
           .read(favoriteChannelsProvider.notifier)
           .toggle(name: name, url: url);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Couldn't update favorites — $e")));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Couldn't update favorites — $e")));
     }
   }
 
-  Future<void> _toggleFavoriteVideo({required String title, required String url}) async {
+  Future<void> _addCustomChannel() async {
+    final nameCtrl = TextEditingController();
+    final urlCtrl = TextEditingController();
+    final c = context.colors;
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: c.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: const Text('Add a channel'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: nameCtrl,
+              autofocus: true,
+              decoration: const InputDecoration(labelText: 'Channel name'),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: urlCtrl,
+              keyboardType: TextInputType.url,
+              decoration:
+                  const InputDecoration(labelText: 'YouTube channel URL'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text('Add', style: TextStyle(color: c.teal)),
+          ),
+        ],
+      ),
+    );
+    if (result != true) return;
+
+    final name = nameCtrl.text.trim();
+    final url = urlCtrl.text.trim();
+    if (name.isEmpty || url.isEmpty) return;
+    if (!(url.startsWith('http://') || url.startsWith('https://'))) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Enter a full URL, starting with https://')));
+      return;
+    }
+
     try {
-      await ref.read(favoriteVideosProvider.notifier).toggle(title: title, url: url);
+      await ref.read(customChannelsProvider.notifier).add(name: name, url: url);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Couldn't update favorite videos — $e")));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Couldn't add that channel — $e")));
+    }
+  }
+
+  Future<void> _removeCustomChannel(String id, String name) async {
+    final c = context.colors;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: c.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Text('Remove $name?'),
+        content:
+            const Text("You can add it again later if you change your mind."),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text('Remove', style: TextStyle(color: c.danger)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await ref.read(customChannelsProvider.notifier).remove(id);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Couldn't remove that channel — $e")));
     }
   }
 
@@ -87,8 +175,9 @@ class _ChannelScreenState extends ConsumerState<ChannelScreen> {
     final favorites = ref.watch(favoriteChannelsProvider).valueOrNull ?? [];
     final favoriteUrls = favorites.map((f) => f.url).toSet();
     final showFavorites = favorites.isNotEmpty && _query.trim().isEmpty;
-    final favoriteVideos = ref.watch(favoriteVideosProvider).valueOrNull ?? [];
-    final showFavoriteVideos = favoriteVideos.isNotEmpty && _query.trim().isEmpty;
+    final customChannels = ref.watch(customChannelsProvider).valueOrNull ?? [];
+    final showCustomChannels =
+        customChannels.isNotEmpty && _query.trim().isEmpty;
 
     return SafeArea(
       bottom: false,
@@ -96,8 +185,28 @@ class _ChannelScreenState extends ConsumerState<ChannelScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(22, 6, 22, 12),
-            child: Text('Channel', style: PgText.serif(size: 26, weight: FontWeight.w600)),
+            padding: const EdgeInsets.fromLTRB(22, 6, 14, 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    IconButton(
+                      onPressed: () => context.push('/channel/favorites'),
+                      tooltip: 'Favorite videos',
+                      icon: Icon(Icons.favorite_rounded, color: c.danger),
+                    ),
+                    Text('Channel',
+                        style: PgText.serif(size: 26, weight: FontWeight.w600)),
+                  ],
+                ),
+                IconButton(
+                  onPressed: _addCustomChannel,
+                  tooltip: 'Add your own channel',
+                  icon: Icon(Icons.add_circle_rounded, color: c.teal, size: 28),
+                ),
+              ],
+            ),
           ),
           // Fixed search panel — stays put while the list below scrolls.
           Padding(
@@ -115,11 +224,13 @@ class _ChannelScreenState extends ConsumerState<ChannelScreen> {
                 decoration: InputDecoration(
                   hintText: 'Search for a church…',
                   hintStyle: TextStyle(color: c.faint, fontSize: 14.5),
-                  prefixIcon: Icon(Icons.search_rounded, color: c.faint, size: 20),
+                  prefixIcon:
+                      Icon(Icons.search_rounded, color: c.faint, size: 20),
                   suffixIcon: _query.isEmpty
                       ? null
                       : IconButton(
-                          icon: Icon(Icons.close_rounded, color: c.faint, size: 18),
+                          icon: Icon(Icons.close_rounded,
+                              color: c.faint, size: 18),
                           onPressed: () => setState(() {
                             _searchCtrl.clear();
                             _query = '';
@@ -136,23 +247,25 @@ class _ChannelScreenState extends ConsumerState<ChannelScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(22, 0, 22, 40),
               children: [
-                if (showFavoriteVideos) ...[
-                  Text('FAVORITE VIDEOS',
+                if (showCustomChannels) ...[
+                  Text('YOUR CHANNELS',
                       style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 1,
                           color: c.dim)),
                   const SizedBox(height: 10),
-                  for (final v in favoriteVideos) ...[
+                  for (final ch in customChannels) ...[
                     _ChurchTile(
-                      name: v.title,
-                      subtitle: 'Favorited video',
-                      icon: Icons.play_circle_fill_rounded,
-                      isFavorite: true,
-                      onTap: () => _open(context, name: v.title, url: v.url),
-                      onToggleFavorite: () =>
-                          _toggleFavoriteVideo(title: v.title, url: v.url),
+                      name: ch.name,
+                      subtitle: 'Added by you',
+                      onTap: () => _open(context, name: ch.name, url: ch.url),
+                      trailing: IconButton(
+                        onPressed: () => _removeCustomChannel(ch.id, ch.name),
+                        tooltip: 'Remove',
+                        icon: Icon(Icons.delete_outline_rounded,
+                            color: c.faint, size: 20),
+                      ),
                     ),
                     const SizedBox(height: 10),
                   ],
@@ -170,10 +283,11 @@ class _ChannelScreenState extends ConsumerState<ChannelScreen> {
                     _ChurchTile(
                       name: f.name,
                       subtitle: 'Favorited',
-                      isFavorite: true,
                       onTap: () => _open(context, name: f.name, url: f.url),
-                      onToggleFavorite: () =>
-                          _toggleFavorite(name: f.name, url: f.url),
+                      trailing: _FavoriteButton(
+                        isFavorite: true,
+                        onTap: () => _toggleFavorite(name: f.name, url: f.url),
+                      ),
                     ),
                     const SizedBox(height: 10),
                   ],
@@ -183,10 +297,13 @@ class _ChannelScreenState extends ConsumerState<ChannelScreen> {
                   _ChurchTile(
                     name: 'Your church',
                     subtitle: 'From this app\'s configuration',
-                    isFavorite: favoriteUrls.contains(customUrl),
-                    onTap: () => _open(context, name: 'Your church', url: customUrl),
-                    onToggleFavorite: () =>
-                        _toggleFavorite(name: 'Your church', url: customUrl),
+                    onTap: () =>
+                        _open(context, name: 'Your church', url: customUrl),
+                    trailing: _FavoriteButton(
+                      isFavorite: favoriteUrls.contains(customUrl),
+                      onTap: () =>
+                          _toggleFavorite(name: 'Your church', url: customUrl),
+                    ),
                   ),
                   const SizedBox(height: 18),
                   Text('TOP CHURCHES IN NIGERIA',
@@ -210,10 +327,13 @@ class _ChannelScreenState extends ConsumerState<ChannelScreen> {
                     _ChurchTile(
                       name: ch.name,
                       subtitle: '${ch.leader} · ${ch.city}',
-                      isFavorite: favoriteUrls.contains(ch.youtubeUrl),
-                      onTap: () => _open(context, name: ch.name, url: ch.youtubeUrl),
-                      onToggleFavorite: () =>
-                          _toggleFavorite(name: ch.name, url: ch.youtubeUrl),
+                      onTap: () =>
+                          _open(context, name: ch.name, url: ch.youtubeUrl),
+                      trailing: _FavoriteButton(
+                        isFavorite: favoriteUrls.contains(ch.youtubeUrl),
+                        onTap: () =>
+                            _toggleFavorite(name: ch.name, url: ch.youtubeUrl),
+                      ),
                     ),
                     const SizedBox(height: 10),
                   ],
@@ -226,22 +346,39 @@ class _ChannelScreenState extends ConsumerState<ChannelScreen> {
   }
 }
 
+class _FavoriteButton extends StatelessWidget {
+  const _FavoriteButton({required this.isFavorite, required this.onTap});
+
+  final bool isFavorite;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return IconButton(
+      onPressed: onTap,
+      tooltip: isFavorite ? 'Remove from favorites' : 'Add to favorites',
+      icon: Icon(
+        isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+        color: isFavorite ? c.danger : c.faint,
+        size: 20,
+      ),
+    );
+  }
+}
+
 class _ChurchTile extends StatelessWidget {
   const _ChurchTile({
     required this.name,
     required this.subtitle,
-    required this.isFavorite,
     required this.onTap,
-    required this.onToggleFavorite,
-    this.icon = Icons.smart_display_rounded,
+    required this.trailing,
   });
 
   final String name;
   final String subtitle;
-  final bool isFavorite;
   final VoidCallback onTap;
-  final VoidCallback onToggleFavorite;
-  final IconData icon;
+  final Widget trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -252,7 +389,10 @@ class _ChurchTile extends StatelessWidget {
       onTap: onTap,
       child: Row(
         children: [
-          PgIconBadge(icon: icon, color: c.teal, background: c.tealSoft),
+          PgIconBadge(
+              icon: Icons.smart_display_rounded,
+              color: c.teal,
+              background: c.tealSoft),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -261,7 +401,8 @@ class _ChurchTile extends StatelessWidget {
                 Text(name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700)),
+                    style: const TextStyle(
+                        fontSize: 14.5, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 2),
                 Text(subtitle,
                     maxLines: 1,
@@ -270,15 +411,7 @@ class _ChurchTile extends StatelessWidget {
               ],
             ),
           ),
-          IconButton(
-            onPressed: onToggleFavorite,
-            tooltip: isFavorite ? 'Remove from favorites' : 'Add to favorites',
-            icon: Icon(
-              isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-              color: isFavorite ? c.danger : c.faint,
-              size: 20,
-            ),
-          ),
+          trailing,
         ],
       ),
     );
