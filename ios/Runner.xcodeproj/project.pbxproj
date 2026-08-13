@@ -9,15 +9,23 @@
 /* Begin PBXBuildFile section */
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
 		154D65BFB99A8CD11404A350 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8E8E181569BC0D84CB733608 /* Pods_RunnerTests.framework */; };
+		1CC6911150CD429895768D21 /* PrayerTimerWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CD0F7DF3C3E63D298D2C1656 /* PrayerTimerWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		3612FD0DB3D34C3A0A0C2F14 /* PrayerTimerAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5306AD61251861E447EBB83 /* PrayerTimerAttributes.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
+		67FB6895FE40010B93D44EC1 /* ActivityKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 097BC99B4EA8132503220444 /* ActivityKit.framework */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
+		75059AC42A3223AC7E47737F /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 083B66942246568E8495AE64 /* WidgetKit.framework */; };
 		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
+		7E9803C26DB12A7539E6E041 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E8392C00D6F855C6162F74C /* Foundation.framework */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
+		9F6AC209F6D04DFE80490028 /* PrayerTimerWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4A82BFFC6481FA2735598D0 /* PrayerTimerWidgetBundle.swift */; };
+		A4C80CD588066194DB3408FD /* PrayerTimerAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5306AD61251861E447EBB83 /* PrayerTimerAttributes.swift */; };
+		A96F4BE4A2AF76033BB2BAF9 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7655BEFB5737FE310553131F /* SwiftUI.framework */; };
 		B9DEF61D87F5746E8ED9D573 /* LiveActivityChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FA6144035E9E486AE7A565 /* LiveActivityChannel.swift */; };
+		DAA7C243EDA8EF27BEBE5899 /* PrayerTimerLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF9927E8B54D71CE3BE8EA04 /* PrayerTimerLiveActivity.swift */; };
 		F1DF1D5952374FE78AE4A0E8 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6F4C5846BBA38C07A435FF30 /* Pods_Runner.framework */; };
 /* End PBXBuildFile section */
 
@@ -28,6 +36,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 97C146ED1CF9000F007C117D;
 			remoteInfo = Runner;
+		};
+		8BF7A10D1D966A3008D24FDF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A479F6C10F2B11AB7B6655A9;
+			remoteInfo = PrayerTimerWidget;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -42,20 +57,36 @@
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		ADFE3EC05809A99541F40BE2 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				1CC6911150CD429895768D21 /* PrayerTimerWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		083B66942246568E8495AE64 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		097BC99B4EA8132503220444 /* ActivityKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ActivityKit.framework; path = System/Library/Frameworks/ActivityKit.framework; sourceTree = SDKROOT; };
 		0F2707C6CF1126C2551345AF /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
+		1D2234503B0D0CF6A9C071D5 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = PrayerTimerWidget/Info.plist; sourceTree = "<group>"; };
 		331C807B294A618700263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
 		331C8081294A63A400263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
 		45B9E359BDFB71D8910C2A23 /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
+		6E8392C00D6F855C6162F74C /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		6F4C5846BBA38C07A435FF30 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		753C8AE9EB0C4EFC43740476 /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
+		7655BEFB5737FE310553131F /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		78E0A7A72DC9AD7400C4905E /* FlutterGeneratedPluginSwiftPackage */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = FlutterGeneratedPluginSwiftPackage; path = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
 		8E8E181569BC0D84CB733608 /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -66,14 +97,28 @@
 		97C146FD1CF9000F007C117D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		BF9927E8B54D71CE3BE8EA04 /* PrayerTimerLiveActivity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PrayerTimerWidget/PrayerTimerLiveActivity.swift; sourceTree = "<group>"; };
 		C11B9D63F9295766E4A34E34 /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
 		C3A926C8780C78D5EDB5DF7C /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 		C5306AD61251861E447EBB83 /* PrayerTimerAttributes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PrayerTimerAttributes.swift; path = PrayerTimerWidget/PrayerTimerAttributes.swift; sourceTree = "<group>"; };
 		C96F27777DA6C2C0FE288567 /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
+		CD0F7DF3C3E63D298D2C1656 /* PrayerTimerWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PrayerTimerWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3FA6144035E9E486AE7A565 /* LiveActivityChannel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LiveActivityChannel.swift; sourceTree = "<group>"; };
+		F4A82BFFC6481FA2735598D0 /* PrayerTimerWidgetBundle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PrayerTimerWidget/PrayerTimerWidgetBundle.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		56D58EFE79B5585911576A2D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7E9803C26DB12A7539E6E041 /* Foundation.framework in Frameworks */,
+				75059AC42A3223AC7E47737F /* WidgetKit.framework in Frameworks */,
+				A96F4BE4A2AF76033BB2BAF9 /* SwiftUI.framework in Frameworks */,
+				67FB6895FE40010B93D44EC1 /* ActivityKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		76055681370356F87E7BCDA0 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -98,6 +143,9 @@
 			isa = PBXGroup;
 			children = (
 				C5306AD61251861E447EBB83 /* PrayerTimerAttributes.swift */,
+				1D2234503B0D0CF6A9C071D5 /* Info.plist */,
+				BF9927E8B54D71CE3BE8EA04 /* PrayerTimerLiveActivity.swift */,
+				F4A82BFFC6481FA2735598D0 /* PrayerTimerWidgetBundle.swift */,
 			);
 			name = PrayerTimerWidget;
 			sourceTree = "<group>";
@@ -107,6 +155,10 @@
 			children = (
 				6F4C5846BBA38C07A435FF30 /* Pods_Runner.framework */,
 				8E8E181569BC0D84CB733608 /* Pods_RunnerTests.framework */,
+				ED3BF80CBC4302C7D4A5D828 /* iOS */,
+				083B66942246568E8495AE64 /* WidgetKit.framework */,
+				7655BEFB5737FE310553131F /* SwiftUI.framework */,
+				097BC99B4EA8132503220444 /* ActivityKit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -162,6 +214,7 @@
 			children = (
 				97C146EE1CF9000F007C117D /* Runner.app */,
 				331C8081294A63A400263BE5 /* RunnerTests.xctest */,
+				CD0F7DF3C3E63D298D2C1656 /* PrayerTimerWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -180,6 +233,14 @@
 				D3FA6144035E9E486AE7A565 /* LiveActivityChannel.swift */,
 			);
 			path = Runner;
+			sourceTree = "<group>";
+		};
+		ED3BF80CBC4302C7D4A5D828 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				6E8392C00D6F855C6162F74C /* Foundation.framework */,
+			);
+			name = iOS;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -214,12 +275,14 @@
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
+				ADFE3EC05809A99541F40BE2 /* Embed Foundation Extensions */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				FFF3EBC3199F12A75163E3EF /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				1A7A36F59BEB9D8E2F35278D /* PBXTargetDependency */,
 			);
 			name = Runner;
 			packageProductDependencies = (
@@ -228,6 +291,23 @@
 			productName = Runner;
 			productReference = 97C146EE1CF9000F007C117D /* Runner.app */;
 			productType = "com.apple.product-type.application";
+		};
+		A479F6C10F2B11AB7B6655A9 /* PrayerTimerWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 67A92FEBF750A61B52B21110 /* Build configuration list for PBXNativeTarget "PrayerTimerWidget" */;
+			buildPhases = (
+				EAA7DFEA8A39495D4339518B /* Sources */,
+				56D58EFE79B5585911576A2D /* Frameworks */,
+				71391A513C75924BAD24DD6E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PrayerTimerWidget;
+			productName = PrayerTimerWidget;
+			productReference = CD0F7DF3C3E63D298D2C1656 /* PrayerTimerWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -267,12 +347,20 @@
 			targets = (
 				97C146ED1CF9000F007C117D /* Runner */,
 				331C8080294A63A400263BE5 /* RunnerTests */,
+				A479F6C10F2B11AB7B6655A9 /* PrayerTimerWidget */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		331C807F294A63A400263BE5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		71391A513C75924BAD24DD6E /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -407,9 +495,25 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		EAA7DFEA8A39495D4339518B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A4C80CD588066194DB3408FD /* PrayerTimerAttributes.swift in Sources */,
+				DAA7C243EDA8EF27BEBE5899 /* PrayerTimerLiveActivity.swift in Sources */,
+				9F6AC209F6D04DFE80490028 /* PrayerTimerWidgetBundle.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		1A7A36F59BEB9D8E2F35278D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = PrayerTimerWidget;
+			target = A479F6C10F2B11AB7B6655A9 /* PrayerTimerWidget */;
+			targetProxy = 8BF7A10D1D966A3008D24FDF /* PBXContainerItemProxy */;
+		};
 		331C8086294A63A400263BE5 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 97C146ED1CF9000F007C117D /* Runner */;
@@ -561,6 +665,58 @@
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Runner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Runner";
 			};
 			name = Profile;
+		};
+		374900B720CCBC0AA5073642 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 3;
+				DEVELOPMENT_TEAM = A7WH8X965Z;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = PrayerTimerWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.1.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.prayerguide.prayerGuide.PrayerTimerWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Profile;
+		};
+		3F5E70BAC1E92602D68B38ED /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 3;
+				DEVELOPMENT_TEAM = A7WH8X965Z;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = PrayerTimerWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.1.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.prayerguide.prayerGuide.PrayerTimerWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
 		};
 		97C147031CF9000F007C117D /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -720,6 +876,31 @@
 			};
 			name = Release;
 		};
+		D761D159D86500E9B37AB47F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 3;
+				DEVELOPMENT_TEAM = A7WH8X965Z;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = PrayerTimerWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.1.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.prayerguide.prayerGuide.PrayerTimerWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -729,6 +910,16 @@
 				331C8088294A63A400263BE5 /* Debug */,
 				331C8089294A63A400263BE5 /* Release */,
 				331C808A294A63A400263BE5 /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		67A92FEBF750A61B52B21110 /* Build configuration list for PBXNativeTarget "PrayerTimerWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3F5E70BAC1E92602D68B38ED /* Release */,
+				D761D159D86500E9B37AB47F /* Debug */,
+				374900B720CCBC0AA5073642 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
