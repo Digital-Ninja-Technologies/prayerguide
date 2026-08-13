@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "958100344013",
+    "project_id": "prayerguide-128a2",
+    "storage_bucket": "prayerguide-128a2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:958100344013:android:7bacfbeb7b7df8f3e36d84",
+        "android_client_info": {
+          "package_name": "com.prayerguide.prayer_guide"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoVKMRnFSjvIyeUQR7hJ8y5AAiTbPJIgE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

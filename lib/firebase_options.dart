@@ -1,16 +1,7 @@
-// Placeholder Firebase config — push notifications (companion prayer
-// invites) stay disabled until this is replaced with the real thing.
-//
-// To enable: create a Firebase project, add it to this app, then from the
-// repo root run:
-//   dart pub global activate flutterfire_cli
-//   flutterfire configure
-// That overwrites this entire file with your project's real values (and
-// drops the platform config files it needs alongside it). See SETUP.md §3d.
-//
-// `PushService.isConfigured` treats a blank `projectId` as "not set up
-// yet" and skips calling Firebase.initializeApp() entirely, so leaving
-// this file as-is is safe — the app just won't have push notifications.
+// Real Firebase config for the `prayerguide-128a2` project (generated via
+// `flutterfire configure`) — android/ios are wired up; web is intentionally
+// left blank since this app doesn't ship push notifications on web.
+// Re-run `flutterfire configure` if the Firebase project ever changes.
 
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, TargetPlatform;
@@ -36,17 +27,18 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: '',
-    appId: '',
-    messagingSenderId: '',
-    projectId: '',
+    apiKey: 'AIzaSyDoVKMRnFSjvIyeUQR7hJ8y5AAiTbPJIgE',
+    appId: '1:958100344013:android:7bacfbeb7b7df8f3e36d84',
+    messagingSenderId: '958100344013',
+    projectId: 'prayerguide-128a2',
+    storageBucket: 'prayerguide-128a2.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: '',
-    appId: '',
-    messagingSenderId: '',
-    projectId: '',
+    apiKey: 'AIzaSyD3HMnJDfvbMCQgyQd2hI94M-qV2f4Of8Y',
+    appId: '1:958100344013:ios:7e87a2065eaab259e36d84',
+    messagingSenderId: '958100344013',
+    projectId: 'prayerguide-128a2',
+    storageBucket: 'prayerguide-128a2.firebasestorage.app',
     iosBundleId: 'com.prayerguide.prayerGuide',
   );
 }
