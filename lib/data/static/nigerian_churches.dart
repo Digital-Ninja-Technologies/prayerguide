@@ -96,6 +96,12 @@ const kNigerianChurches = <NigerianChurch>[
   ),
   NigerianChurch(
     name: 'Celebration Church International',
+    leader: 'Apostle Emmanuel Iren',
+    city: 'Lagos',
+    youtubeUrl: 'https://www.youtube.com/@CelebrationGlobalTV',
+  ),
+  NigerianChurch(
+    name: 'David Christian Centre',
     leader: 'Pastor Kingsley Okonkwo',
     city: 'Lagos',
     youtubeUrl: 'https://www.youtube.com/@KingsleyOkonkwo',
