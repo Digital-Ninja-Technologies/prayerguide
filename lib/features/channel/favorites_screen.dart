@@ -34,72 +34,75 @@ class FavoritesScreen extends ConsumerWidget {
     final loading = channelsAsync.isLoading || videosAsync.isLoading;
     final error = channelsAsync.error ?? videosAsync.error;
 
-    return SafeArea(
-      bottom: false,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(22, 6, 22, 16),
-            child: PgHeader(title: 'Favorites', onBack: () => context.pop()),
-          ),
-          Expanded(
-            child: loading
-                ? const Center(child: CircularProgressIndicator())
-                : error != null
-                    ? Center(
-                        child: PgErrorState(
-                          error: error,
-                          onRetry: () {
-                            ref.invalidate(favoriteChannelsProvider);
-                            ref.invalidate(favoriteVideosProvider);
-                          },
-                        ),
-                      )
-                    : (channels.isEmpty && videos.isEmpty)
-                        ? const _EmptyState()
-                        : ListView(
-                            padding: const EdgeInsets.fromLTRB(22, 0, 22, 40),
-                            children: [
-                              if (channels.isNotEmpty) ...[
-                                const _SectionLabel('CHANNELS'),
-                                const SizedBox(height: 10),
-                                for (final ch in channels) ...[
-                                  _FavoriteTile(
-                                    icon: Icons.smart_display_rounded,
-                                    title: ch.name,
-                                    subtitle: 'Favorited channel',
-                                    onTap: () => _open(context,
-                                        name: ch.name, url: ch.url),
-                                    onUnfavorite: () => ref
-                                        .read(favoriteChannelsProvider.notifier)
-                                        .toggle(name: ch.name, url: ch.url),
-                                  ),
-                                  const SizedBox(height: 10),
-                                ],
-                                const SizedBox(height: 16),
-                              ],
-                              if (videos.isNotEmpty) ...[
-                                const _SectionLabel('VIDEOS'),
-                                const SizedBox(height: 10),
-                                for (final v in videos) ...[
-                                  _FavoriteTile(
-                                    icon: Icons.play_circle_fill_rounded,
-                                    title: v.title,
-                                    subtitle: 'Favorited video',
-                                    onTap: () => _open(context,
-                                        name: v.title, url: v.url),
-                                    onUnfavorite: () => ref
-                                        .read(favoriteVideosProvider.notifier)
-                                        .toggle(title: v.title, url: v.url),
-                                  ),
-                                  const SizedBox(height: 10),
-                                ],
-                              ],
-                            ],
+    return Scaffold(
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(22, 6, 22, 16),
+              child: PgHeader(title: 'Favorites', onBack: () => context.pop()),
+            ),
+            Expanded(
+              child: loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : error != null
+                      ? Center(
+                          child: PgErrorState(
+                            error: error,
+                            onRetry: () {
+                              ref.invalidate(favoriteChannelsProvider);
+                              ref.invalidate(favoriteVideosProvider);
+                            },
                           ),
-          ),
-        ],
+                        )
+                      : (channels.isEmpty && videos.isEmpty)
+                          ? const _EmptyState()
+                          : ListView(
+                              padding: const EdgeInsets.fromLTRB(22, 0, 22, 40),
+                              children: [
+                                if (channels.isNotEmpty) ...[
+                                  const _SectionLabel('CHANNELS'),
+                                  const SizedBox(height: 10),
+                                  for (final ch in channels) ...[
+                                    _FavoriteTile(
+                                      icon: Icons.smart_display_rounded,
+                                      title: ch.name,
+                                      subtitle: 'Favorited channel',
+                                      onTap: () => _open(context,
+                                          name: ch.name, url: ch.url),
+                                      onUnfavorite: () => ref
+                                          .read(
+                                              favoriteChannelsProvider.notifier)
+                                          .toggle(name: ch.name, url: ch.url),
+                                    ),
+                                    const SizedBox(height: 10),
+                                  ],
+                                  const SizedBox(height: 16),
+                                ],
+                                if (videos.isNotEmpty) ...[
+                                  const _SectionLabel('VIDEOS'),
+                                  const SizedBox(height: 10),
+                                  for (final v in videos) ...[
+                                    _FavoriteTile(
+                                      icon: Icons.play_circle_fill_rounded,
+                                      title: v.title,
+                                      subtitle: 'Favorited video',
+                                      onTap: () => _open(context,
+                                          name: v.title, url: v.url),
+                                      onUnfavorite: () => ref
+                                          .read(favoriteVideosProvider.notifier)
+                                          .toggle(title: v.title, url: v.url),
+                                    ),
+                                    const SizedBox(height: 10),
+                                  ],
+                                ],
+                              ],
+                            ),
+            ),
+          ],
+        ),
       ),
     );
   }
