@@ -148,4 +148,10 @@ const kNigerianChurches = <NigerianChurch>[
     city: 'Ibadan',
     youtubeUrl: 'https://www.youtube.com/cacworldwide',
   ),
+  NigerianChurch(
+    name: 'Triumph30 International Ministries',
+    leader: 'Apostle Emmanuel Iren',
+    city: 'Lagos',
+    youtubeUrl: 'https://www.youtube.com/@t30devotion',
+  ),
 ];
