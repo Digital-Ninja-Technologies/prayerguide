@@ -9,6 +9,16 @@
 # packages, and plugins designed to encourage good coding practices.
 include: package:flutter_lints/flutter.yaml
 
+analyzer:
+  exclude:
+    # iOS's Swift Package Manager checks out full copies of Dart/Flutter
+    # dependencies here (e.g. flutterfire's own test suite), complete with
+    # their own pubspecs that this project never runs `pub get` against —
+    # analyzing them as part of this project produces thousands of
+    # unrelated "Target of URI doesn't exist" / "Undefined name" errors in
+    # code we don't own and can't fix.
+    - build/**
+
 linter:
   # The lint rules applied to this project can be customized in the
   # section below to disable rules from the `package:flutter_lints/flutter.yaml`
