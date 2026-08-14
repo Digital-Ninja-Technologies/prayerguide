@@ -7,6 +7,7 @@ import '../data/repositories/bible_notes_repository.dart';
 import '../data/repositories/custom_channels_repository.dart';
 import '../data/repositories/favorite_channels_repository.dart';
 import '../data/repositories/favorite_videos_repository.dart';
+import '../data/repositories/hidden_channels_repository.dart';
 import '../data/repositories/insights_repository.dart';
 import '../data/repositories/journal_repository.dart';
 import '../data/repositories/profile_repository.dart';
@@ -24,6 +25,8 @@ final favoriteVideosRepositoryProvider =
     Provider((ref) => FavoriteVideosRepository());
 final customChannelsRepositoryProvider =
     Provider((ref) => CustomChannelsRepository());
+final hiddenChannelsRepositoryProvider =
+    Provider((ref) => HiddenChannelsRepository());
 
 /// Emits whenever Supabase auth state changes (sign in / out / token refresh).
 final authStateChangesProvider = StreamProvider<AuthState>((ref) {

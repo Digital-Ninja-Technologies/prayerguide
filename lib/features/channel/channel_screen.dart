@@ -8,6 +8,7 @@ import '../../core/theme/pg_text.dart';
 import '../../data/static/nigerian_churches.dart';
 import '../../state/custom_channels_provider.dart';
 import '../../state/favorite_channels_provider.dart';
+import '../../state/hidden_channels_provider.dart';
 import '../../widgets/pg_card.dart';
 import '../../widgets/pg_icon_badge.dart';
 
@@ -51,16 +52,49 @@ class _ChannelScreenState extends ConsumerState<ChannelScreen> {
     return (url == null || url.isEmpty) ? null : url;
   }
 
-  List<NigerianChurch> get _filtered {
+  List<NigerianChurch> _filtered(Set<String> hiddenUrls) {
     final q = _query.trim().toLowerCase();
-    if (q.isEmpty) return kNigerianChurches;
-    return kNigerianChurches.where((ch) => ch.searchText.contains(q)).toList();
+    return kNigerianChurches
+        .where((ch) => !hiddenUrls.contains(ch.youtubeUrl))
+        .where((ch) => q.isEmpty || ch.searchText.contains(q))
+        .toList();
   }
 
   void _open(BuildContext context,
       {required String name, required String url}) {
     context.push(
         '/channel/view?name=${Uri.encodeComponent(name)}&url=${Uri.encodeComponent(url)}');
+  }
+
+  Future<void> _hideChannel(String name, String url) async {
+    final c = context.colors;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: c.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Text('Remove $name from your list?'),
+        content: const Text(
+            "It won't show up in your directory or favorites anymore. This can't be undone from within the app."),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text('Remove', style: TextStyle(color: c.danger)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await ref.read(hiddenChannelsProvider.notifier).hide(url);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Couldn't remove that channel — $e")));
+    }
   }
 
   Future<void> _toggleFavorite(
@@ -170,9 +204,14 @@ class _ChannelScreenState extends ConsumerState<ChannelScreen> {
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
+    final hiddenUrls = ref.watch(hiddenChannelsProvider).valueOrNull ?? {};
     final customUrl = _customChannelUrl;
-    final results = _filtered;
-    final favorites = ref.watch(favoriteChannelsProvider).valueOrNull ?? [];
+    final isCustomUrlHidden =
+        customUrl != null && hiddenUrls.contains(customUrl);
+    final results = _filtered(hiddenUrls);
+    final favorites = (ref.watch(favoriteChannelsProvider).valueOrNull ?? [])
+        .where((f) => !hiddenUrls.contains(f.url))
+        .toList();
     final favoriteUrls = favorites.map((f) => f.url).toSet();
     final showFavorites = favorites.isNotEmpty && _query.trim().isEmpty;
     final customChannels = ref.watch(customChannelsProvider).valueOrNull ?? [];
@@ -189,6 +228,8 @@ class _ChannelScreenState extends ConsumerState<ChannelScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                Text('Channel',
+                    style: PgText.serif(size: 26, weight: FontWeight.w600)),
                 Row(
                   children: [
                     IconButton(
@@ -196,14 +237,13 @@ class _ChannelScreenState extends ConsumerState<ChannelScreen> {
                       tooltip: 'Favorite videos',
                       icon: Icon(Icons.favorite_rounded, color: c.danger),
                     ),
-                    Text('Channel',
-                        style: PgText.serif(size: 26, weight: FontWeight.w600)),
+                    IconButton(
+                      onPressed: _addCustomChannel,
+                      tooltip: 'Add your own channel',
+                      icon: Icon(Icons.add_circle_rounded,
+                          color: c.teal, size: 28),
+                    ),
                   ],
-                ),
-                IconButton(
-                  onPressed: _addCustomChannel,
-                  tooltip: 'Add your own channel',
-                  icon: Icon(Icons.add_circle_rounded, color: c.teal, size: 28),
                 ),
               ],
             ),
@@ -284,25 +324,30 @@ class _ChannelScreenState extends ConsumerState<ChannelScreen> {
                       name: f.name,
                       subtitle: 'Favorited',
                       onTap: () => _open(context, name: f.name, url: f.url),
-                      trailing: _FavoriteButton(
+                      trailing: _ChannelActions(
                         isFavorite: true,
-                        onTap: () => _toggleFavorite(name: f.name, url: f.url),
+                        onToggleFavorite: () =>
+                            _toggleFavorite(name: f.name, url: f.url),
+                        onHide: () => _hideChannel(f.name, f.url),
                       ),
                     ),
                     const SizedBox(height: 10),
                   ],
                   const SizedBox(height: 8),
                 ],
-                if (customUrl != null && _query.trim().isEmpty) ...[
+                if (customUrl != null &&
+                    !isCustomUrlHidden &&
+                    _query.trim().isEmpty) ...[
                   _ChurchTile(
                     name: 'Your church',
                     subtitle: 'From this app\'s configuration',
                     onTap: () =>
                         _open(context, name: 'Your church', url: customUrl),
-                    trailing: _FavoriteButton(
+                    trailing: _ChannelActions(
                       isFavorite: favoriteUrls.contains(customUrl),
-                      onTap: () =>
+                      onToggleFavorite: () =>
                           _toggleFavorite(name: 'Your church', url: customUrl),
+                      onHide: () => _hideChannel('Your church', customUrl),
                     ),
                   ),
                   const SizedBox(height: 18),
@@ -329,10 +374,11 @@ class _ChannelScreenState extends ConsumerState<ChannelScreen> {
                       subtitle: '${ch.leader} · ${ch.city}',
                       onTap: () =>
                           _open(context, name: ch.name, url: ch.youtubeUrl),
-                      trailing: _FavoriteButton(
+                      trailing: _ChannelActions(
                         isFavorite: favoriteUrls.contains(ch.youtubeUrl),
-                        onTap: () =>
+                        onToggleFavorite: () =>
                             _toggleFavorite(name: ch.name, url: ch.youtubeUrl),
+                        onHide: () => _hideChannel(ch.name, ch.youtubeUrl),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -346,23 +392,42 @@ class _ChannelScreenState extends ConsumerState<ChannelScreen> {
   }
 }
 
-class _FavoriteButton extends StatelessWidget {
-  const _FavoriteButton({required this.isFavorite, required this.onTap});
+/// Heart (favorite/unlike toggle) + a small "remove from my list" action —
+/// used on every curated/favorited/"Your church" tile. Unliking just clears
+/// the favorite (the entry stays in the directory); hiding removes it from
+/// the directory entirely via `hiddenChannelsProvider`.
+class _ChannelActions extends StatelessWidget {
+  const _ChannelActions({
+    required this.isFavorite,
+    required this.onToggleFavorite,
+    required this.onHide,
+  });
 
   final bool isFavorite;
-  final VoidCallback onTap;
+  final VoidCallback onToggleFavorite;
+  final VoidCallback onHide;
 
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    return IconButton(
-      onPressed: onTap,
-      tooltip: isFavorite ? 'Remove from favorites' : 'Add to favorites',
-      icon: Icon(
-        isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-        color: isFavorite ? c.danger : c.faint,
-        size: 20,
-      ),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          onPressed: onToggleFavorite,
+          tooltip: isFavorite ? 'Remove from favorites' : 'Add to favorites',
+          icon: Icon(
+            isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+            color: isFavorite ? c.danger : c.faint,
+            size: 20,
+          ),
+        ),
+        IconButton(
+          onPressed: onHide,
+          tooltip: 'Remove from your list',
+          icon: Icon(Icons.close_rounded, color: c.faint, size: 20),
+        ),
+      ],
     );
   }
 }
