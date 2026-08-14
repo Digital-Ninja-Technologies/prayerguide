@@ -12,7 +12,7 @@ import '../../features/challenges/challenge_new_screen.dart';
 import '../../features/challenges/challenges_screen.dart';
 import '../../features/channel/channel_screen.dart';
 import '../../features/channel/channel_webview_screen.dart';
-import '../../features/channel/favorite_videos_screen.dart';
+import '../../features/channel/favorites_screen.dart';
 import '../../features/companion/companion_detail_screen.dart';
 import '../../features/companion/companion_list_screen.dart';
 import '../../features/companion/invite_screen.dart';
@@ -142,7 +142,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/channel/favorites',
-        builder: (c, s) => const FavoriteVideosScreen(),
+        builder: (c, s) => const FavoritesScreen(),
       ),
       GoRoute(
         path: '/guide',

@@ -17,14 +17,14 @@ import '../../widgets/pg_icon_badge.dart';
 /// so a user can find one without scrolling through all of them. Tapping an
 /// entry opens `ChannelWebviewScreen` with that church's real channel; the
 /// heart on each row saves it to `favoriteChannelsProvider` (real Supabase
-/// row, not local-only) so it shows up in the "Favorite channels" section.
+/// row, not local-only).
 ///
-/// The icon in front of the "Channel" title opens `FavoriteVideosScreen` —
-/// individual videos favorited from inside `ChannelWebviewScreen` live on
-/// their own page rather than inline here. The "+" button next to the
-/// search bar lets a user add their own channel (`custom_channels`,
-/// migration 0024) — shown in "Your channels", with its own delete button
-/// since, unlike the curated directory, these are entries the user owns.
+/// The heart icon beside "+" opens `FavoritesScreen` — every favorited
+/// channel and video, on its own page, rather than an inline section here.
+/// The "+" button next to the search bar lets a user add their own channel
+/// (`custom_channels`, migration 0024) — shown in "Your channels", with its
+/// own delete button since, unlike the curated directory, these are entries
+/// the user owns.
 ///
 /// If `CHURCH_YOUTUBE_CHANNEL_URL` is set in `.env` (see SETUP.md), that
 /// channel is pinned above the directory as "Your church" — this repo's
@@ -213,7 +213,6 @@ class _ChannelScreenState extends ConsumerState<ChannelScreen> {
         .where((f) => !hiddenUrls.contains(f.url))
         .toList();
     final favoriteUrls = favorites.map((f) => f.url).toSet();
-    final showFavorites = favorites.isNotEmpty && _query.trim().isEmpty;
     final customChannels = ref.watch(customChannelsProvider).valueOrNull ?? [];
     final showCustomChannels =
         customChannels.isNotEmpty && _query.trim().isEmpty;
@@ -234,7 +233,7 @@ class _ChannelScreenState extends ConsumerState<ChannelScreen> {
                   children: [
                     IconButton(
                       onPressed: () => context.push('/channel/favorites'),
-                      tooltip: 'Favorite videos',
+                      tooltip: 'Favorites',
                       icon: Icon(Icons.favorite_rounded, color: c.danger),
                     ),
                     IconButton(
@@ -305,30 +304,6 @@ class _ChannelScreenState extends ConsumerState<ChannelScreen> {
                         tooltip: 'Remove',
                         icon: Icon(Icons.delete_outline_rounded,
                             color: c.faint, size: 20),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                  ],
-                  const SizedBox(height: 8),
-                ],
-                if (showFavorites) ...[
-                  Text('FAVORITE CHANNELS',
-                      style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1,
-                          color: c.dim)),
-                  const SizedBox(height: 10),
-                  for (final f in favorites) ...[
-                    _ChurchTile(
-                      name: f.name,
-                      subtitle: 'Favorited',
-                      onTap: () => _open(context, name: f.name, url: f.url),
-                      trailing: _ChannelActions(
-                        isFavorite: true,
-                        onToggleFavorite: () =>
-                            _toggleFavorite(name: f.name, url: f.url),
-                        onHide: () => _hideChannel(f.name, f.url),
                       ),
                     ),
                     const SizedBox(height: 10),
