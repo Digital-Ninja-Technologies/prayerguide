@@ -342,7 +342,7 @@ class _LinkRow extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 15),
+        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 16),
         decoration: BoxDecoration(
             border:
                 showBorder ? Border(bottom: BorderSide(color: c.line)) : null),
