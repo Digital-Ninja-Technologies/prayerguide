@@ -11,9 +11,11 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_timezone
   flutter_tts
   flutter_webrtc
+  gal
   livekit_client
   permission_handler_windows
   record_windows
+  share_plus
   url_launcher_windows
 )
 
