@@ -18,6 +18,25 @@ set -e
 # move to the repo root Xcode Cloud checked out.
 cd "$CI_PRIMARY_REPOSITORY_PATH"
 
+# pubspec.yaml bundles `.env` as a Flutter asset (flutter_dotenv reads it at
+# runtime) — it's correctly gitignored, so a fresh checkout doesn't have
+# one, and the Flutter build phase that runs later inside Xcode fails
+# outright looking for a declared asset file that doesn't exist. Generate
+# one from Xcode Cloud's own Environment Variables instead of committing
+# secrets: App Store Connect → this app → Xcode Cloud → the workflow →
+# Environment → Environment Variables. Add SUPABASE_URL and
+# SUPABASE_ANON_KEY there (mark SUPABASE_ANON_KEY as Secret) — Xcode Cloud
+# injects whatever's configured into every script phase's environment,
+# including this one. The rest are optional, same names as .env.example.
+cat > .env <<EOF
+SUPABASE_URL=${SUPABASE_URL:-}
+SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY:-}
+GOOGLE_OAUTH_CLIENT_ID=${GOOGLE_OAUTH_CLIENT_ID:-}
+CHURCH_YOUTUBE_CHANNEL_URL=${CHURCH_YOUTUBE_CHANNEL_URL:-}
+IOS_APP_STORE_ID=${IOS_APP_STORE_ID:-}
+LIVEKIT_URL=${LIVEKIT_URL:-}
+EOF
+
 # Install Flutter (stable channel — matches this repo's .metadata) via a
 # shallow clone, since Xcode Cloud's VM is thrown away after every run.
 git clone https://github.com/flutter/flutter.git --depth 1 -b stable "$HOME/flutter"
