@@ -27,6 +27,18 @@ Flutter/flutter_export_environment.sh
 ServiceDefinitions.json
 Runner/GeneratedPluginRegistrant.*
 
+# Podfile.lock is intentionally untracked here — this repo's iOS pods can
+# only actually be resolved with a real CocoaPods/Xcode toolchain, which
+# isn't available in every environment that edits this codebase. A
+# committed-but-stale lock file (missing pods for a newly added plugin) is
+# worse than none: Xcode's "[CP] Check Pods Manifest.lock" build phase
+# fails outright if Podfile.lock and Pods/Manifest.lock disagree, which is
+# exactly what happened here. ci_post_clone.sh's `pod install` always
+# resolves fresh in CI instead. If you have CocoaPods locally and want
+# reproducible/pinned pod versions, remove this ignore rule and commit a
+# real `pod install`-generated Podfile.lock yourself.
+Podfile.lock
+
 # Exceptions to above rules.
 !default.mode1v3
 !default.mode2v3

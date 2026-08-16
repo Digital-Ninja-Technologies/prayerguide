@@ -54,5 +54,12 @@ flutter pub get
 # avoids a stale/missing version being the next failure.
 HOMEBREW_NO_AUTO_UPDATE=1 brew install cocoapods
 
+# ios/Podfile.lock is intentionally not committed (see ios/.gitignore) — it
+# can only be correctly regenerated with a real CocoaPods toolchain, and a
+# stale committed one (missing pods for a plugin added without one) is
+# worse than none: Xcode's "[CP] Check Pods Manifest.lock" build phase
+# fails the whole build if Podfile.lock and the freshly-installed
+# Pods/Manifest.lock disagree. Resolving fresh here every run avoids that
+# entirely.
 cd ios
 pod install

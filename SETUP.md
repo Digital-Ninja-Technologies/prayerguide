@@ -292,6 +292,14 @@ is otherwise missing entirely:
    without this step the later Flutter build phase fails looking for a
    declared asset file that simply isn't there.
 
+`ios/Podfile.lock` is also intentionally **not** committed (see
+`ios/.gitignore`) — it can only be correctly regenerated with a real
+CocoaPods toolchain, and a stale one (missing pods for a plugin that was
+added without one available) fails the build outright via Xcode's
+"[CP] Check Pods Manifest.lock" phase, which is exactly what happened the
+first few times this was set up. `pod install` in `ci_post_clone.sh`
+resolves fresh every CI run instead of relying on a pinned lock file.
+
 **Required setup in App Store Connect** (once, per workflow): your app →
 Xcode Cloud → the workflow → **Environment → Environment Variables** → add
 `SUPABASE_URL` and `SUPABASE_ANON_KEY` (mark `SUPABASE_ANON_KEY` as
