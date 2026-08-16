@@ -28,7 +28,14 @@ class GuideScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 6, 24, 0),
             child: PgHeader(
-                eyebrow: 'DAILY PRAYER GUIDE', onBack: () => context.pop()),
+              eyebrow: 'DAILY PRAYER GUIDE',
+              onBack: () => context.pop(),
+              trailing: IconButton(
+                onPressed: () => context.push('/guide-library'),
+                icon: Icon(Icons.grid_view_rounded, color: c.dim),
+                tooltip: 'Browse all categories',
+              ),
+            ),
           ),
           Expanded(
             child: Stack(

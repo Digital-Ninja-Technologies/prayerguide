@@ -13,6 +13,7 @@ import '../../data/static/pg_content.dart';
 import '../../state/bible_library_provider.dart';
 import '../../state/challenge_provider.dart';
 import '../../state/companion_provider.dart';
+import '../../state/fasting_provider.dart';
 import '../../state/groups_provider.dart';
 import '../../state/notifications_provider.dart';
 import '../../state/profile_provider.dart';
@@ -88,6 +89,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             null,
             (best, p) =>
                 best == null || p.startedAt.isAfter(best.startedAt) ? p : best);
+    final fastingAsync = ref.watch(fastingProvider);
+    final activeFast = fastingAsync.valueOrNull?.session;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,6 +157,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ref.refresh(companionsProvider.future),
               ref.refresh(groupsProvider.future),
               ref.refresh(challengeProvider.future),
+              ref.refresh(fastingProvider.future),
             ]),
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -362,6 +366,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 ? groups.first.name
                                 : '${groups.length} groups',
                         onTap: () => context.push('/groups'),
+                      ),
+                      _MiniTile(
+                        icon: Icons.no_food_outlined,
+                        color: c.amber,
+                        title: 'Fasting',
+                        subtitle: activeFast == null
+                            ? 'Start a fast'
+                            : () {
+                                final remaining = activeFast.targetHours -
+                                    DateTime.now()
+                                        .difference(activeFast.startedAt)
+                                        .inMinutes /
+                                        60;
+                                return remaining > 0
+                                    ? '${remaining.ceil()}h left'
+                                    : 'Fast complete';
+                              }(),
+                        onTap: () => context.push('/fasting'),
                       ),
                     ],
                   ),

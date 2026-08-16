@@ -42,7 +42,7 @@ a screen (except where noted).
 | `/channel/view` | `ChannelWebviewScreen` | `name`, `url` (query) | `channel_screen.dart` (`_open`, tapping a channel/video), `favorites_screen.dart` (`_open`, tapping a favorited item) |
 | `/channel/favorites` | `FavoritesScreen` | — | `channel_screen.dart` (favorites button in the header) |
 | `/guide` | `GuideScreen` | `category` (query) | `home_screen.dart` ("Start today's prayer"), `challenge_detail_screen.dart`, `guide_library_screen.dart` (category tap) |
-| `/guide-library` | `GuideLibraryScreen` | — | **Nothing.** See [Unreachable routes](#unreachable-routes-no-in-app-entry-point). |
+| `/guide-library` | `GuideLibraryScreen` | — | `guide_screen.dart` (browse-all icon in the header) |
 | `/timer` | `TimerScreen` | `category`, `minutes` (query) | `devotional_screen.dart`, `scripture_screen.dart`, `guide_screen.dart` |
 | `/scripture` | `ScriptureScreen` | — | `home_screen.dart` (Scripture of the Day card) |
 | `/journal/new` | `JournalNewScreen` | — | `journal_screen.dart` (`_createEntry`) |
@@ -57,7 +57,7 @@ a screen (except where noted).
 | `/privacy-policy` | `PrivacyPolicyScreen` | — | `privacy_screen.dart` |
 | `/terms-of-use` | `TermsOfUseScreen` | — | `privacy_screen.dart` |
 | `/about` | `AboutHelpScreen` | — | `settings_screen.dart` |
-| `/insights` | `InsightsScreen` | — | **Nothing.** See [Unreachable routes](#unreachable-routes-no-in-app-entry-point). |
+| `/insights` | `InsightsScreen` | — | `settings_screen.dart` ("Growth insights" row) |
 | `/focus/setup` | `FocusSetupScreen` | — | `timer_screen.dart` (Focus Mode button) |
 | `/focus/active` | `FocusActiveScreen` | — | `focus_setup_screen.dart` (`_begin`) |
 | `/companion` | `CompanionListScreen` | — | `home_screen.dart`, `groups_screen.dart` ("Pray together") |
@@ -70,7 +70,7 @@ a screen (except where noted).
 | `/plans` | `PlansScreen` | — | `bible_screen.dart` (Reading plans pill) |
 | `/plans/:key` | `PlanDetailScreen` | `key` (path) | `plans_screen.dart` |
 | `/devotional` | `DevotionalScreen` | — | `home_screen.dart`, `bible_screen.dart` (Devotional pill) |
-| `/fasting` | `FastingScreen` | — | **Nothing.** See [Unreachable routes](#unreachable-routes-no-in-app-entry-point). |
+| `/fasting` | `FastingScreen` | — | `home_screen.dart` ("More ways to pray" grid) |
 | `/together/:id` | `TogetherScreen` | `id` (path), `inviteId` (query, optional) | `companion_detail_screen.dart` ("Pray live"); `push_service.dart` (notification tap / in-app accept) |
 | `/groups` | `GroupsScreen` | — | `home_screen.dart` |
 | `/groups/new` | `GroupNewScreen` | — | `groups_screen.dart` (New button + empty state) |
@@ -80,22 +80,7 @@ a screen (except where noted).
 
 ## Unreachable routes (no in-app entry point)
 
-Three fully-built, fully-wired screens have a route but nothing in the app
-currently navigates to them — reachable only by typing the path directly
-(e.g. via a deep link), not through any tap target:
-
-- **`/fasting`** (`FastingScreen`) — the Fasting Companion feature is real
-  (`fasting_sessions` table, `fasting_provider.dart`), but there's no
-  "Fasting" entry point on Home, Settings, or anywhere else.
-- **`/insights`** (`InsightsScreen`) — Growth Insights is real
-  (`insights_provider.dart`, real `prayer_sessions` data), but nothing
-  links to it, not even Settings.
-- **`/guide-library`** (`GuideLibraryScreen`) — the full 6-category guide
-  library screen exists, but Home's guide card only ever routes straight
-  into a single category (`/guide`) rather than this list first.
-
-None of these are broken — each screen works fine if you land on it — they
-just have no discoverable way in from the current UI. Worth either adding
-a real entry point (a card on Home, a row in Settings, etc.) or, if a
-screen is genuinely meant to be retired, removing its route and import
-from `app_router.dart`.
+None currently. `/fasting`, `/insights`, and `/guide-library` were each
+missing a tap target as of the previous pass — fixed by adding a "Fasting"
+tile to Home's "More ways to pray" grid, a "Growth insights" row in
+Settings, and a browse-all icon on the Guide screen's header, respectively.
