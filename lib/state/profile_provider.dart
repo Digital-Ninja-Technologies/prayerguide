@@ -28,6 +28,15 @@ class ProfileNotifier extends AsyncNotifier<PgProfile> {
     await repo.update({'theme_preference': pref});
   }
 
+  /// Throws on failure (e.g. a race where someone else just took the same
+  /// username) — the calling screen's try/catch surfaces that.
+  Future<void> setUsername(String username) async {
+    final repo = ref.read(profileRepositoryProvider);
+    await repo.update({'username': username});
+    ref.invalidateSelf();
+    await future;
+  }
+
   /// Logs a completed prayer session (feeds the streak via DB trigger), then
   /// refreshes the profile so `streak_count` reflects the new value.
   Future<void> completeSession(

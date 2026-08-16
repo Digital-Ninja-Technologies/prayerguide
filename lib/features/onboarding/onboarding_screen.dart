@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show AuthResponse;
 
 import '../../core/errors/friendly_error.dart';
 import '../../core/theme/pg_colors.dart';
@@ -11,6 +12,7 @@ import '../../widgets/pg_back_button.dart';
 import '../../widgets/pg_button.dart';
 import '../../widgets/pg_form_error.dart';
 import '../../widgets/pg_text_field.dart';
+import '../../widgets/username_field.dart';
 
 enum _Step { slide0, slide1, slide2, auth, email, reset, create }
 
@@ -56,6 +58,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _passwordCtrl = TextEditingController();
   final _firstNameCtrl = TextEditingController();
   final _lastNameCtrl = TextEditingController();
+  final _usernameCtrl = TextEditingController();
+  UsernameFieldStatus _usernameStatus = UsernameFieldStatus.empty;
 
   int get _slideIndex => _step.index;
 
@@ -90,6 +94,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     _passwordCtrl.dispose();
     _firstNameCtrl.dispose();
     _lastNameCtrl.dispose();
+    _usernameCtrl.dispose();
     super.dispose();
   }
 
@@ -433,6 +438,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ],
           ),
           const SizedBox(height: 14),
+          Text('USERNAME', style: PgText.eyebrow(color: c.dim)),
+          const SizedBox(height: 8),
+          UsernameField(
+            controller: _usernameCtrl,
+            onStatusChanged: (s) => setState(() => _usernameStatus = s),
+          ),
+          const SizedBox(height: 14),
           Text('EMAIL', style: PgText.eyebrow(color: c.dim)),
           const SizedBox(height: 8),
           PgTextField(
@@ -454,18 +466,39 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           const SizedBox(height: 28),
           PgButton(
             label: _loading ? 'Creating…' : 'Create account',
-            onPressed: _loading
+            onPressed: _loading || _usernameStatus != UsernameFieldStatus.available
                 ? null
                 : () => _run(() async {
-                      final response = await ref
-                          .read(authRepositoryProvider)
-                          .signUpWithEmail(
-                            email: _emailCtrl.text.trim(),
-                            password: _passwordCtrl.text,
-                            name:
-                                '${_firstNameCtrl.text.trim()} ${_lastNameCtrl.text.trim()}'
-                                    .trim(),
-                          );
+                      final AuthResponse response;
+                      try {
+                        response = await ref
+                            .read(authRepositoryProvider)
+                            .signUpWithEmail(
+                              email: _emailCtrl.text.trim(),
+                              password: _passwordCtrl.text,
+                              name:
+                                  '${_firstNameCtrl.text.trim()} ${_lastNameCtrl.text.trim()}'
+                                      .trim(),
+                              username: _usernameCtrl.text.trim(),
+                            );
+                      } catch (e) {
+                        // The username is inserted in the same DB transaction
+                        // as the account itself (see handle_new_user()) — if
+                        // someone else grabbed it between the live check and
+                        // this submit, the whole signUp() call fails (no
+                        // orphan account is left) with a Postgres-trigger
+                        // error wrapped in an AuthException, not the clean
+                        // PostgrestException friendlyErrorMessage() expects.
+                        final msg = e.toString().toLowerCase();
+                        if (msg.contains('username') || msg.contains('duplicate')) {
+                          if (mounted) {
+                            setState(() =>
+                                _error = 'That username was just taken — try another.');
+                          }
+                          return;
+                        }
+                        rethrow;
+                      }
                       if (!mounted) return;
                       if (response.session == null) {
                         setState(() => _info =

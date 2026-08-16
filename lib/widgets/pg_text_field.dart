@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../core/theme/pg_colors.dart';
 
@@ -14,10 +15,12 @@ class PgTextField extends StatefulWidget {
     this.serif = false,
     this.fontWeight = FontWeight.w600,
     this.errorText,
+    this.inputFormatters,
   });
 
   final TextEditingController? controller;
   final String? hint;
+  final List<TextInputFormatter>? inputFormatters;
 
   /// When true, this is a password-style field: text starts hidden and an
   /// eye icon lets the user reveal/hide it.
@@ -51,6 +54,7 @@ class _PgTextFieldState extends State<PgTextField> {
       obscureText: _obscured,
       keyboardType: widget.keyboardType,
       maxLines: widget.obscureText ? 1 : widget.maxLines,
+      inputFormatters: widget.inputFormatters,
       style: TextStyle(
         color: c.text,
         fontSize: 15.5,

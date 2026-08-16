@@ -94,6 +94,12 @@ class SettingsScreen extends ConsumerWidget {
                       Text(displayName,
                           style: const TextStyle(
                               fontSize: 17, fontWeight: FontWeight.w700)),
+                      if (profile?.username != null)
+                        Text('@${profile!.username}',
+                            style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: c.teal)),
                       Text(profile?.email ?? '',
                           style: TextStyle(fontSize: 13, color: c.dim)),
                     ],
@@ -167,6 +173,12 @@ class SettingsScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(18)),
             child: Column(
               children: [
+                _LinkRow(
+                  icon: Icons.alternate_email_rounded,
+                  label: 'Change username',
+                  onTap: () => context.push('/settings/username'),
+                  showBorder: true,
+                ),
                 _LinkRow(
                   icon: Icons.local_fire_department_outlined,
                   label: 'Your streak',

@@ -12,11 +12,17 @@ class PgProfile {
     required this.appOpenStreakCount,
     required this.appOpenLongestStreak,
     required this.lastOpenedOn,
+    this.username,
   });
 
   final String id;
   final String name;
   final String? email;
+
+  /// The public @handle other users find/share with — null until the user
+  /// picks one, either at signup or via the forced one-time gate
+  /// (ChooseUsernameScreen) for pre-existing accounts.
+  final String? username;
 
   /// Consecutive days with a qualifying prayer session.
   final int streakCount;
@@ -51,6 +57,7 @@ class PgProfile {
         lastOpenedOn: m['last_opened_on'] == null
             ? null
             : DateTime.tryParse(m['last_opened_on'] as String),
+        username: m['username'] as String?,
       );
 
   static PgProfile empty(String id, {String? email}) => PgProfile(
@@ -66,5 +73,6 @@ class PgProfile {
         appOpenStreakCount: 0,
         appOpenLongestStreak: 0,
         lastOpenedOn: null,
+        username: null,
       );
 }

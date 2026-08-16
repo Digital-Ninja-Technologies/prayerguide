@@ -17,6 +17,15 @@ class ProfileRepository {
     await supa.from('profiles').update(patch).eq('id', uid);
   }
 
+  /// Works even before the caller has a session — the onboarding
+  /// create-account form checks this ahead of signUp(), where there's no
+  /// user yet.
+  Future<bool> isUsernameAvailable(String username) async {
+    final available = await supa
+        .rpc('is_username_available', params: {'check_username': username});
+    return available as bool;
+  }
+
   /// Records a completed prayer session. A DB trigger recomputes the streak.
   Future<void> logSession(
       {required int durationSeconds, String? category}) async {

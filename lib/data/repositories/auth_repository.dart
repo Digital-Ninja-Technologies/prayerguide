@@ -38,15 +38,20 @@ class AuthRepository {
   User? get currentUser => _auth.currentUser;
   Stream<AuthState> get onAuthStateChange => _auth.onAuthStateChange;
 
+  /// [username] is inserted into `profiles` by `handle_new_user()` in the
+  /// same transaction as the `auth.users` row — if it's already taken, the
+  /// whole signUp() call fails (no orphan account is left behind) and the
+  /// caller should let the user pick another one.
   Future<AuthResponse> signUpWithEmail({
     required String email,
     required String password,
     required String name,
+    required String username,
   }) {
     return _auth.signUp(
       email: email,
       password: password,
-      data: {'name': name},
+      data: {'name': name, 'username': username},
     );
   }
 

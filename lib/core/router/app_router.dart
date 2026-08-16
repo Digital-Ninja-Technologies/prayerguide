@@ -14,11 +14,11 @@ import '../../features/channel/channel_screen.dart';
 import '../../features/channel/channel_webview_screen.dart';
 import '../../features/channel/favorites_screen.dart';
 import '../../features/companion/companion_detail_screen.dart';
+import '../../features/onboarding/choose_username_screen.dart';
 import '../../features/companion/companion_list_screen.dart';
 import '../../features/companion/invite_screen.dart';
 import '../../features/companion/qr_scan_screen.dart';
 import '../../features/devotional/devotional_screen.dart';
-import '../../features/fasting/fasting_screen.dart';
 import '../../features/focus/focus_active_screen.dart';
 import '../../features/focus/focus_setup_screen.dart';
 import '../../features/groups/group_new_screen.dart';
@@ -39,6 +39,7 @@ import '../../features/scripture/scripture_screen.dart';
 import '../../features/sermons/sermon_note_detail_screen.dart';
 import '../../features/sermons/sermon_note_new_screen.dart';
 import '../../features/sermons/sermon_notes_screen.dart';
+import '../../features/sermons/sermon_shares_inbox_screen.dart';
 import '../../features/settings/insights_screen.dart';
 import '../../features/settings/notification_day_times_screen.dart';
 import '../../features/settings/notifications_screen.dart';
@@ -52,6 +53,8 @@ import '../../features/splash/splash_screen.dart';
 import '../../features/streak/streak_screen.dart';
 import '../../features/timer/timer_screen.dart';
 import '../../features/together/together_screen.dart';
+import '../../data/models/pg_profile.dart';
+import '../../state/profile_provider.dart';
 import '../supabase/supabase_config.dart';
 
 /// The root navigator, exposed so code outside the widget tree (the push
@@ -77,7 +80,10 @@ final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: '/splash',
-    refreshListenable: GoRouterRefreshStream(supa.auth.onAuthStateChange),
+    refreshListenable: Listenable.merge([
+      GoRouterRefreshStream(supa.auth.onAuthStateChange),
+      _ProfileListenable(ref),
+    ]),
     redirect: (context, state) {
       final loc = state.matchedLocation;
       if (passwordRecovery) {
@@ -90,6 +96,22 @@ final routerProvider = Provider<GoRouter>((ref) {
           loc == '/reset-password-confirm';
       if (!loggedIn && !isAuthFlow) return '/onboarding';
       if (loggedIn && loc == '/onboarding') return '/home';
+
+      // Forced one-time gate: every account needs a username before it can
+      // reach the rest of the app — new signups already collect one in the
+      // create-account form, so in practice this only ever fires for
+      // pre-existing accounts and OAuth signups. `hasValue` guards against
+      // flashing to the gate before profileProvider has actually resolved.
+      if (loggedIn && !isAuthFlow) {
+        final profileAsync = ref.read(profileProvider);
+        final username = profileAsync.valueOrNull?.username;
+        final missingUsername =
+            profileAsync.hasValue && (username == null || username.isEmpty);
+        if (loc != '/choose-username' && missingUsername) return '/choose-username';
+        if (loc == '/choose-username' && !missingUsername && profileAsync.hasValue) {
+          return '/home';
+        }
+      }
       return null;
     },
     routes: [
@@ -98,6 +120,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/reset-password-confirm',
         builder: (c, s) => const ResetPasswordConfirmScreen(),
+      ),
+      GoRoute(
+        path: '/choose-username',
+        builder: (c, s) => const ChooseUsernameScreen(),
+      ),
+      GoRoute(
+        path: '/settings/username',
+        builder: (c, s) => const ChooseUsernameScreen(canGoBack: true),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => AppShell(shell: shell),
@@ -222,7 +252,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (c, s) => PlanDetailScreen(planKey: s.pathParameters['key']!),
       ),
       GoRoute(path: '/devotional', builder: (c, s) => const DevotionalScreen()),
-      GoRoute(path: '/fasting', builder: (c, s) => const FastingScreen()),
       GoRoute(
         path: '/together/:id',
         builder: (c, s) => TogetherScreen(
@@ -239,6 +268,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
           path: '/sermons/new', builder: (c, s) => const SermonNoteNewScreen()),
+      GoRoute(
+          path: '/sermons/shares',
+          builder: (c, s) => const SermonSharesInboxScreen()),
       GoRoute(
         path: '/sermons/:id',
         builder: (c, s) =>
@@ -258,6 +290,25 @@ extension SafePush on BuildContext {
     if (GoRouterState.of(this).uri.toString() != location) {
       push(location);
     }
+  }
+}
+
+/// Re-runs go_router's `redirect` whenever `profileProvider` changes — not
+/// just on auth-stream events, which is all [GoRouterRefreshStream] covers.
+/// Needed for the username gate: `redirect` can't act on a profile that
+/// hasn't finished loading yet, or on a username that was just set, without
+/// something telling go_router to re-evaluate.
+class _ProfileListenable extends ChangeNotifier {
+  _ProfileListenable(Ref ref) {
+    _sub = ref.listen(profileProvider, (_, __) => notifyListeners());
+  }
+
+  late final ProviderSubscription<AsyncValue<PgProfile>> _sub;
+
+  @override
+  void dispose() {
+    _sub.close();
+    super.dispose();
   }
 }
 
