@@ -55,8 +55,12 @@ class _ScriptureScreenState extends ConsumerState<ScriptureScreen> {
       await Gal.putImageBytes(bytes,
           name: 'prayer_guide_scripture_${DateTime.now().millisecondsSinceEpoch}');
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Saved to your photos')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Saved to your photos'),
+            action: SnackBarAction(label: 'View', onPressed: () => Gal.open()),
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
