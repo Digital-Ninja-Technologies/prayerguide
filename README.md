@@ -22,7 +22,7 @@ The app covers all four phases of the product spec
   Notifications preferences, Settings/Profile.
 - **Phase 2 — depth & accountability.** Focus Mode (setup + gentle in-session
   overlay), Prayer Companion + invite flow, Prayer Challenges (list, detail,
-  create), Bible reading plans, Daily Devotional, Fasting Companion.
+  create), Bible reading plans, Daily Devotional.
 - **Phase 3 — live & community.** Prayer Together (synced session), Prayer
   Groups, Audio Prayer Room.
 - **Phase 4 — intelligence.** Growth Insights.
@@ -106,7 +106,7 @@ lib/
     devotional/  local devotional content + date-based daily rotation
     models/      plain Dart data classes
     repositories/  Supabase CRUD per feature (auth, journal, requests, profile,
-                    bible notes, challenges, companion, fasting, focus, insights,
+                    bible notes, challenges, companion, focus, insights,
                     reading plans)
     static/      reference content (guide categories, challenge catalog, ...)
   state/         Riverpod providers wiring repositories to the UI
@@ -133,7 +133,7 @@ Google/Apple auth — is in **[SETUP.md](SETUP.md)**.
 Nearly everything is wired to Supabase now — auth, Journal, Prayer
 Requests (with companion sharing), Profile/Settings, Prayer Streak, Bible
 reader/notes/plans/devotional, Scripture of the Day, Growth Insights,
-Fasting, Focus Mode session logging, Challenges, Companion/Invite
+Focus Mode session logging, Challenges, Companion/Invite
 (unlimited companions, free for everyone), Guide Library, real scheduled
 Notifications, Groups, Prayer Together, and the Sermon Note Taker (real
 audio recording + notes, uploaded to private Storage) — all live via

@@ -49,7 +49,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                         "Apple, the name and email they share with us. Profile data: display name, theme "
                         "preference, and streak settings you choose. Activity data: prayer session "
                         "timestamps and durations (used to compute your streak and Growth Insights), "
-                        "reading-plan and challenge progress, fasting session times, and focus-mode "
+                        "reading-plan and challenge progress, and focus-mode "
                         "session times. Content you create: journal entries, prayer requests, Bible "
                         "highlights/bookmarks/notes, and devotional/challenge activity.",
                   ),

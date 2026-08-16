@@ -70,7 +70,6 @@ a screen (except where noted).
 | `/plans` | `PlansScreen` | — | `bible_screen.dart` (Reading plans pill) |
 | `/plans/:key` | `PlanDetailScreen` | `key` (path) | `plans_screen.dart` |
 | `/devotional` | `DevotionalScreen` | — | `home_screen.dart`, `bible_screen.dart` (Devotional pill) |
-| `/fasting` | `FastingScreen` | — | `home_screen.dart` ("More ways to pray" grid) |
 | `/together/:id` | `TogetherScreen` | `id` (path), `inviteId` (query, optional) | `companion_detail_screen.dart` ("Pray live"); `push_service.dart` (notification tap / in-app accept) |
 | `/groups` | `GroupsScreen` | — | `home_screen.dart` |
 | `/groups/new` | `GroupNewScreen` | — | `groups_screen.dart` (New button + empty state) |
@@ -80,7 +79,8 @@ a screen (except where noted).
 
 ## Unreachable routes (no in-app entry point)
 
-None currently. `/fasting`, `/insights`, and `/guide-library` were each
-missing a tap target as of the previous pass — fixed by adding a "Fasting"
-tile to Home's "More ways to pray" grid, a "Growth insights" row in
-Settings, and a browse-all icon on the Guide screen's header, respectively.
+None currently. `/insights` and `/guide-library` were each missing a tap
+target as of the previous pass — fixed by adding a "Growth insights" row
+in Settings and a browse-all icon on the Guide screen's header,
+respectively. (The Fasting feature and its `/fasting` route were removed
+entirely.)

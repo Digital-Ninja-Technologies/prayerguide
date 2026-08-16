@@ -26,7 +26,9 @@ order — `0001_init.sql` first, then `0002`, `0003`, `0004`, ...).
 This creates `profiles`, `journal_entries`, `prayer_requests`,
 `prayer_sessions` (feeds the streak via a DB trigger), `bible_notes`,
 `notification_prefs`, `companions`/`companion_invites`/`companion_checkins`,
-`challenge_progress`, `reading_plan_progress`, `fasting_sessions`,
+`challenge_progress`, `reading_plan_progress`, `fasting_sessions` (unused —
+the Fasting feature itself was removed, but `0001_init.sql` isn't rewritten
+after the fact, per this repo's no-migration-down policy),
 `focus_sessions`, `groups`, `subscriptions`, and `sermon_notes` — all with
 RLS policies scoping rows to their owner. (An early migration also created
 `encryption_keys` for passphrase-based key escrow; migration `0009` drops
@@ -375,16 +377,13 @@ and track progress per user in `reading_plan_progress`. The Devotional
 rotates through 14 curated entries by day-of-year, pulling its scripture
 text live from the bundled Bible rather than retyping it.
 
-**Growth Insights, Fasting, Focus Mode session tracking, Challenges, and
+**Growth Insights, Focus Mode session tracking, Challenges, and
 Companion/Invite are also real** now:
 
 - **Growth Insights** — the weekly bar chart, total time, and "gentle
   insight" text are computed from actual `prayer_sessions` rows (this
   week's per-day totals, most-visited category, most common time of day),
   not hardcoded.
-- **Fasting** — start/end a real fast (`fasting_sessions`), with a live
-  elapsed/remaining ring and real prayer-session/journal-entry counts
-  during the fast window.
 - **Focus Mode** — start/end is tracked for real (`focus_sessions`, new
   migration `0005`) with a live elapsed timer on the overlay. This is
   session *tracking* only — actual app-blocking still needs the OS
