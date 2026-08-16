@@ -15,6 +15,11 @@
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30"/>
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
+    <!-- Sermon-note recording keeps running (and its ongoing notification
+         keeps showing) when the app is minimized — see
+         SermonRecordingForegroundService.kt. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE"/>
     <application
         android:label="prayer_guide"
         android:name="${applicationName}"
@@ -63,6 +68,15 @@
                 <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
             </intent-filter>
         </receiver>
+        <!-- Ongoing "Recording sermon note" notification + keeps the process
+             (and the mic capture running inside it) alive while backgrounded. -->
+        <service
+            android:name=".SermonRecordingForegroundService"
+            android:foregroundServiceType="microphone"
+            android:exported="false" />
+        <!-- Posts the "prayer time is up" notification when a running timer's
+             countdown ends, even if the app is backgrounded/killed. -->
+        <receiver android:name=".TimerAlarmReceiver" android:exported="false" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

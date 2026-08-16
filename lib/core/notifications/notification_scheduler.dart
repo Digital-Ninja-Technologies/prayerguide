@@ -19,6 +19,7 @@ class NotificationScheduler {
   static const _eveningIdBase = 1200; // + weekday (1..7) => 1201..1207
   static const _scriptureId = 1003;
   static const _streakId = 1004;
+  static const _timerCompletionId = 1005;
 
   /// No time field exists for this one in notification_prefs — a single
   /// fixed daily time is a reasonable default for a "scripture of the day"
@@ -173,6 +174,42 @@ class NotificationScheduler {
     await init();
     await _plugin.cancel(id: id);
   }
+
+  /// One-shot fallback for when the app process itself gets suspended
+  /// through the end of a running prayer timer — the Live Activity (iOS) or
+  /// foreground service (Android) keeps the on-screen countdown correct
+  /// regardless, but this is what actually taps the user on the shoulder if
+  /// they don't reopen the app right at the moment it ends. Re-scheduling
+  /// (pause/resume/preset change) just calls this again — same fixed id as
+  /// every other notification kind here, so it can never duplicate.
+  Future<void> scheduleTimerCompletion({
+    required DateTime endDate,
+    required String category,
+  }) async {
+    if (kIsWeb) return;
+    await init();
+    final scheduled = tz.TZDateTime.from(endDate, tz.local);
+    if (scheduled.isBefore(tz.TZDateTime.now(tz.local))) return;
+    await _plugin.zonedSchedule(
+      id: _timerCompletionId,
+      scheduledDate: scheduled,
+      title: 'Your prayer time is up',
+      body: '$category — well prayed. Come back to close it out.',
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'prayer_reminders',
+          'Prayer reminders',
+          channelDescription: 'Daily prayer and scripture reminders',
+          importance: Importance.high,
+          priority: Priority.high,
+        ),
+        iOS: DarwinNotificationDetails(),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    );
+  }
+
+  Future<void> cancelTimerCompletion() => cancel(_timerCompletionId);
 
   /// Applies [prefs] to real scheduled notifications. [lastPrayedOn], when
   /// today's date, cancels the streak-protection nudge for today (the user

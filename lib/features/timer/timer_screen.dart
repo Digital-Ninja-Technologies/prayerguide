@@ -1,11 +1,14 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/live_activity/live_activity_service.dart';
+import '../../core/notifications/notification_scheduler.dart';
 import '../../core/rating/rating_prompt.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
@@ -16,6 +19,13 @@ import '../../widgets/pg_pill.dart';
 import '../../widgets/pg_text_field.dart';
 import 'ambience_player.dart';
 
+/// Persisted so the countdown can be reconciled against wall-clock time if
+/// the app is suspended/killed while a timer is running — Dart's
+/// `Timer.periodic` doesn't tick in the background, so [_remaining] alone
+/// would go stale, while this stores the one thing that's always correct:
+/// when the countdown actually ends.
+const _sessionPrefsKey = 'active_timer_session_v1';
+
 class TimerScreen extends ConsumerStatefulWidget {
   const TimerScreen({super.key, this.category, this.presetMinutes});
   final String? category;
@@ -25,7 +35,8 @@ class TimerScreen extends ConsumerStatefulWidget {
   ConsumerState<TimerScreen> createState() => _TimerScreenState();
 }
 
-class _TimerScreenState extends ConsumerState<TimerScreen> {
+class _TimerScreenState extends ConsumerState<TimerScreen>
+    with WidgetsBindingObserver {
   late final String _category = widget.category ?? 'Thanksgiving';
   late int _preset = widget.presetMinutes ?? 10;
   late int _remaining = _preset * 60;
@@ -34,6 +45,72 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
   String? _ambience;
   Timer? _timer;
   final _ambiencePlayer = AmbiencePlayer();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
+    _reconcileWithPersistedSession();
+  }
+
+  /// Runs on every app resume — recomputes where the countdown actually is
+  /// from the persisted `endDate` rather than trusting [_remaining], which
+  /// only ticked while the app was in the foreground. If the countdown
+  /// already ran out while backgrounded, this lands on the exact same
+  /// "Complete" screen state a foreground expiry would (see the `t.cancel()`
+  /// branch in [_toggleRun]) — the user still taps Done to actually log the
+  /// session, so background-vs-foreground expiry behave identically.
+  Future<void> _reconcileWithPersistedSession() async {
+    if (!_running || _done) return;
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_sessionPrefsKey);
+    if (raw == null || !mounted) return;
+    try {
+      final session = jsonDecode(raw) as Map<String, dynamic>;
+      if (session['isPaused'] == true) return;
+      final endDate =
+          DateTime.fromMillisecondsSinceEpoch(session['endDateMillis'] as int);
+      final secondsLeft = endDate.difference(DateTime.now()).inSeconds;
+      if (secondsLeft <= 0) {
+        _timer?.cancel();
+        setState(() {
+          _remaining = 0;
+          _running = false;
+          _done = true;
+        });
+      } else {
+        setState(() => _remaining = secondsLeft);
+      }
+    } catch (_) {
+      // Corrupt/outdated persisted session — nothing to reconcile against.
+    }
+  }
+
+  Future<void> _persistSession({
+    required bool isPaused,
+    required DateTime endDate,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      _sessionPrefsKey,
+      jsonEncode({
+        'category': _category,
+        'endDateMillis': endDate.millisecondsSinceEpoch,
+        'isPaused': isPaused,
+        'remainingSecondsWhenPaused': _remaining,
+      }),
+    );
+  }
+
+  Future<void> _clearPersistedSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_sessionPrefsKey);
+  }
 
   static String _formatMinutes(int min) {
     final h = min ~/ 60;
@@ -73,12 +150,18 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
 
   void _setPreset(int min) {
     _timer?.cancel();
+    final wasRunning = _running;
     setState(() {
       _preset = min;
       _remaining = min * 60;
       _running = false;
       _done = false;
     });
+    if (wasRunning) {
+      LiveActivityService.instance.end();
+      NotificationScheduler.instance.cancelTimerCompletion();
+      _clearPersistedSession();
+    }
   }
 
   Future<void> _promptCustomDuration() async {
@@ -157,11 +240,14 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
     if (_running) {
       _timer?.cancel();
       setState(() => _running = false);
+      final endDate = DateTime.now().add(Duration(seconds: _remaining));
       LiveActivityService.instance.updatePaused(
         isPaused: true,
         remainingSeconds: _remaining,
-        endDate: DateTime.now().add(Duration(seconds: _remaining)),
+        endDate: endDate,
       );
+      NotificationScheduler.instance.cancelTimerCompletion();
+      _persistSession(isPaused: true, endDate: endDate);
       return;
     }
     final firstStart = _remaining == _preset * 60;
@@ -173,6 +259,9 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
       LiveActivityService.instance
           .updatePaused(isPaused: false, remainingSeconds: _remaining, endDate: endDate);
     }
+    NotificationScheduler.instance
+        .scheduleTimerCompletion(endDate: endDate, category: _category);
+    _persistSession(isPaused: false, endDate: endDate);
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
       setState(() {
         if (_remaining <= 1) {
@@ -190,6 +279,8 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
   Future<void> _finish() async {
     final duration = _preset * 60;
     await LiveActivityService.instance.end();
+    await NotificationScheduler.instance.cancelTimerCompletion();
+    await _clearPersistedSession();
     await ref.read(profileProvider.notifier).completeSession(
           durationSeconds: duration,
           category: _category,
@@ -203,9 +294,18 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
     _ambiencePlayer.dispose();
     LiveActivityService.instance.end();
+    if (_running && !_done) {
+      // Screen closed mid-run (the X button, not the Done flow) — nothing
+      // else would ever cancel the scheduled completion notification or
+      // clear the persisted session otherwise, since both are keyed off
+      // this screen's lifecycle.
+      NotificationScheduler.instance.cancelTimerCompletion();
+      _clearPersistedSession();
+    }
     super.dispose();
   }
 

@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/audio/sermon_recorder.dart';
+import '../../core/live_activity/live_activity_service.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../state/sermon_notes_provider.dart';
 import '../../widgets/pg_header.dart';
@@ -215,6 +216,9 @@ class _SermonNoteNewScreenState extends ConsumerState<SermonNoteNewScreen> {
         _recordState = _RecordState.recording;
         _error = null;
       });
+      final title = _title.text.trim();
+      LiveActivityService.instance
+          .startRecording(title: title.isEmpty ? 'Sermon note' : title);
     } else if (_recordState == _RecordState.recording) {
       await _recorder.pause();
       _ticker?.cancel();
@@ -232,6 +236,7 @@ class _SermonNoteNewScreenState extends ConsumerState<SermonNoteNewScreen> {
   /// now a real recorded file worth not losing.
   Future<void> _stopRecording() async {
     _ticker?.cancel();
+    LiveActivityService.instance.endRecording();
     final path = await _recorder.stop();
     if (path != null) {
       _takes.add(_Take(path: path, durationSeconds: _elapsedSeconds));
@@ -274,6 +279,7 @@ class _SermonNoteNewScreenState extends ConsumerState<SermonNoteNewScreen> {
     if (_recordState == _RecordState.recording ||
         _recordState == _RecordState.paused) {
       _recorder.cancel();
+      LiveActivityService.instance.endRecording();
     }
     _recorder.dispose();
     _title.dispose();

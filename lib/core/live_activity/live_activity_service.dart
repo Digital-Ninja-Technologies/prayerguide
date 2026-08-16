@@ -59,4 +59,22 @@ class LiveActivityService {
       debugPrint('LiveActivityService.end: $e');
     }
   }
+
+  Future<void> startRecording({required String title}) async {
+    if (!isSupported) return;
+    try {
+      await _channel.invokeMethod('startRecording', {'title': title});
+    } catch (e) {
+      debugPrint('LiveActivityService.startRecording: $e');
+    }
+  }
+
+  Future<void> endRecording() async {
+    if (!isSupported) return;
+    try {
+      await _channel.invokeMethod('endRecording');
+    } catch (e) {
+      debugPrint('LiveActivityService.endRecording: $e');
+    }
+  }
 }

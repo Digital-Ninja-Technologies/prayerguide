@@ -15,6 +15,7 @@ import Foundation
 @available(iOS 16.2, *)
 enum LiveActivityChannel {
   private static var currentActivity: Activity<PrayerTimerAttributes>?
+  private static var currentRecordingActivity: Activity<SermonRecordingAttributes>?
 
   static func register(with messenger: FlutterBinaryMessenger) {
     let channel = FlutterMethodChannel(
@@ -29,6 +30,10 @@ enum LiveActivityChannel {
         update(call: call, result: result)
       case "end":
         end(result: result)
+      case "startRecording":
+        startRecording(call: call, result: result)
+      case "endRecording":
+        endRecording(result: result)
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -96,6 +101,43 @@ enum LiveActivityChannel {
     Task {
       await activity.end(nil, dismissalPolicy: .immediate)
       currentActivity = nil
+      result(true)
+    }
+  }
+
+  private static func startRecording(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    guard ActivityAuthorizationInfo().areActivitiesEnabled else {
+      result(false)
+      return
+    }
+    guard let args = call.arguments as? [String: Any],
+      let title = args["title"] as? String
+    else {
+      result(FlutterError(code: "bad_args", message: "Missing title", details: nil))
+      return
+    }
+
+    let attributes = SermonRecordingAttributes(title: title)
+    let state = SermonRecordingAttributes.ContentState(startDate: Date())
+    do {
+      currentRecordingActivity = try Activity.request(
+        attributes: attributes,
+        content: .init(state: state, staleDate: nil)
+      )
+      result(true)
+    } catch {
+      result(FlutterError(code: "start_recording_failed", message: error.localizedDescription, details: nil))
+    }
+  }
+
+  private static func endRecording(result: @escaping FlutterResult) {
+    guard let activity = currentRecordingActivity else {
+      result(false)
+      return
+    }
+    Task {
+      await activity.end(nil, dismissalPolicy: .immediate)
+      currentRecordingActivity = nil
       result(true)
     }
   }
