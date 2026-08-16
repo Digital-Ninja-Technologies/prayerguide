@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Xcode Cloud runs this automatically after cloning the repo, before the
 # build/archive step — see
@@ -12,13 +12,18 @@
 # fails immediately with "Could not resolve package dependencies ... doesn't
 # exist in file system" before it ever gets to compiling anything.
 #
-# Every step below echoes a marker on entry — Xcode Cloud's failure
-# notifications only ever report "ci_post_clone.sh failed (exited with code
-# N)" with no further detail, so the last marker printed before a failure
-# is often the only way to tell which command actually failed without
-# digging into the full log on the desktop App Store Connect site.
+# Xcode Cloud's failure notifications only ever report "ci_post_clone.sh
+# failed (exited with code N)" with zero command output, even though the
+# script's stdout/stderr IS captured in the full build log on the desktop
+# App Store Connect site (Xcode Cloud → the build → this action → View log).
+# `set -x` below echoes every command before it runs, and the ERR trap
+# prints exactly which line/command failed and with what exit code, so that
+# log — once opened — pinpoints the failure instead of just confirming it
+# happened.
 
-set -e
+set -eo pipefail
+set -x
+trap 'echo "== ci_post_clone: FAILED at line $LINENO (exit $?): $BASH_COMMAND =="' ERR
 
 echo "== ci_post_clone: starting =="
 
