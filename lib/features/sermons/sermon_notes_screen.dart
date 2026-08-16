@@ -7,6 +7,7 @@ import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
 import '../../data/models/sermon_note.dart';
 import '../../state/sermon_notes_provider.dart';
+import '../../state/sermon_shares_provider.dart';
 import '../../widgets/pg_button.dart';
 import '../../widgets/pg_card.dart';
 import '../../widgets/pg_error_state.dart';
@@ -28,10 +29,18 @@ class _SermonNotesScreenState extends ConsumerState<SermonNotesScreen> {
     _navigating = false;
   }
 
+  Future<void> _openShares() async {
+    if (_navigating) return;
+    _navigating = true;
+    await context.push('/sermons/shares');
+    _navigating = false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
     final notesAsync = ref.watch(sermonNotesProvider);
+    final pendingCount = ref.watch(pendingSermonSharesCountProvider).valueOrNull ?? 0;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(22, 6, 22, 0),
@@ -45,12 +54,18 @@ class _SermonNotesScreenState extends ConsumerState<SermonNotesScreen> {
               children: [
                 Text('Sermon Notes',
                     style: PgText.serif(size: 26, weight: FontWeight.w600)),
-                PgButton(
-                  label: 'New',
-                  expand: false,
-                  dense: true,
-                  icon: Icon(Icons.add_rounded, color: c.onTeal, size: 16),
-                  onPressed: _createNote,
+                Row(
+                  children: [
+                    _SharesInboxButton(count: pendingCount, onTap: _openShares),
+                    const SizedBox(width: 10),
+                    PgButton(
+                      label: 'New',
+                      expand: false,
+                      dense: true,
+                      icon: Icon(Icons.add_rounded, color: c.onTeal, size: 16),
+                      onPressed: _createNote,
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -82,6 +97,51 @@ class _SermonNotesScreenState extends ConsumerState<SermonNotesScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _SharesInboxButton extends StatelessWidget {
+  const _SharesInboxButton({required this.count, required this.onTap});
+  final int count;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return Material(
+      color: c.surface,
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: SizedBox(
+          width: 38,
+          height: 38,
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
+            children: [
+              Icon(Icons.inbox_outlined, size: 19, color: c.dim),
+              if (count > 0)
+                Positioned(
+                  top: 2,
+                  right: 4,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                    decoration: BoxDecoration(
+                        color: c.danger, borderRadius: BorderRadius.circular(100)),
+                    child: Text('$count',
+                        style: const TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white)),
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }

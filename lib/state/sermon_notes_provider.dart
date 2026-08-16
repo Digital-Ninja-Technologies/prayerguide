@@ -93,6 +93,7 @@ class SermonNotesNotifier extends AsyncNotifier<List<SermonNote>> {
         notes: notes ?? n.notes,
         recordings: recordings ?? n.recordings,
         createdAt: n.createdAt,
+        sharedFromName: n.sharedFromName,
       );
 }
 

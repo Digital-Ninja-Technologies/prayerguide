@@ -82,7 +82,9 @@ class PushService {
   }
 
   void _handleForegroundMessage(RemoteMessage message) {
-    if (message.data['type'] != 'companion_prayer_invite') return;
+    final type = message.data['type'];
+    if (type == 'sermon_share') return; // surfaced via the in-app pending-shares badge instead
+    if (type != 'companion_prayer_invite') return;
     final context = rootNavigatorKey.currentContext;
     if (context == null) return;
     _showInviteDialog(
@@ -94,11 +96,19 @@ class PushService {
   }
 
   /// A tap on the system notification (app was backgrounded or cold-started
-  /// from it) is treated as an implicit accept — there's no interactive UI
-  /// available from outside the app without native notification action
-  /// buttons, which this doesn't set up.
+  /// from it) is treated as an implicit accept for a live prayer invite —
+  /// there's no interactive UI available from outside the app without
+  /// native notification action buttons, which this doesn't set up. A
+  /// sermon share is different: accepting actually copies audio/notes into
+  /// the recipient's own account, so a tap only opens the inbox — the user
+  /// still has to explicitly tap Accept in-app.
   void _handleNotificationTap(RemoteMessage message) {
-    if (message.data['type'] != 'companion_prayer_invite') return;
+    final type = message.data['type'];
+    if (type == 'sermon_share') {
+      rootNavigatorKey.currentContext?.push('/sermons/shares');
+      return;
+    }
+    if (type != 'companion_prayer_invite') return;
     final inviteId = message.data['inviteId'] as String?;
     final companionId = message.data['companionId'] as String?;
     if (companionId == null) return;

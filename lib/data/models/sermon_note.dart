@@ -28,6 +28,7 @@ class SermonNote {
     required this.notes,
     required this.recordings,
     required this.createdAt,
+    this.sharedFromName,
   });
 
   final String id;
@@ -37,6 +38,11 @@ class SermonNote {
   final String notes;
   final List<SermonRecording> recordings;
   final DateTime createdAt;
+
+  /// Set only on a note that arrived via sermon sharing — a snapshot of the
+  /// original sender's name at the moment it was accepted, for a "Shared by
+  /// X" label. The copy itself is otherwise a fully independent note.
+  final String? sharedFromName;
 
   bool get hasAudio => recordings.isNotEmpty;
 
@@ -51,5 +57,6 @@ class SermonNote {
             .toList()
           ..sort((a, b) => a.createdAt.compareTo(b.createdAt)),
         createdAt: DateTime.parse(m['created_at'] as String),
+        sharedFromName: m['shared_from_name'] as String?,
       );
 }

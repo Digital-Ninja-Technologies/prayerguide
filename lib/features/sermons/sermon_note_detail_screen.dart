@@ -14,6 +14,7 @@ import '../../data/models/sermon_note.dart';
 import '../../state/sermon_notes_provider.dart';
 import '../../widgets/pg_header.dart';
 import '../../widgets/pg_text_field.dart';
+import 'sermon_share_sheet.dart';
 
 class SermonNoteDetailScreen extends ConsumerWidget {
   const SermonNoteDetailScreen({super.key, required this.noteId});
@@ -368,6 +369,10 @@ class _NoteDetailState extends ConsumerState<_NoteDetail> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
+                        onPressed: () => showShareSermonSheet(context,
+                            sermonNoteId: note.id),
+                        icon: Icon(Icons.ios_share_rounded, color: c.dim)),
+                    IconButton(
                         onPressed: _startEdit,
                         icon: Icon(Icons.edit_outlined, color: c.dim)),
                     IconButton(
@@ -428,6 +433,14 @@ class _NoteDetailState extends ConsumerState<_NoteDetail> {
                               fontWeight: FontWeight.w600)),
                     ],
                   ),
+                  if (note.sharedFromName != null) ...[
+                    const SizedBox(height: 4),
+                    Text('Shared by ${note.sharedFromName}',
+                        style: TextStyle(
+                            fontSize: 12.5,
+                            color: c.teal,
+                            fontWeight: FontWeight.w700)),
+                  ],
                   if (note.speaker != null && note.speaker!.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(note.speaker!,
