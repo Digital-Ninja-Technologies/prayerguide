@@ -14,11 +14,13 @@ import '../../state/bible_library_provider.dart';
 import '../../state/challenge_provider.dart';
 import '../../state/companion_provider.dart';
 import '../../state/groups_provider.dart';
+import '../../state/insights_provider.dart';
 import '../../state/notifications_provider.dart';
 import '../../state/profile_provider.dart';
 import '../../widgets/pg_button.dart';
 import '../../widgets/pg_card.dart';
 import '../../widgets/pg_section_label.dart';
+import '../streak/streak_share.dart';
 
 const _kStreakPopupDateKey = 'streak_popup_last_shown_date';
 
@@ -40,10 +42,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (prefs.getString(_kStreakPopupDateKey) == todayKey) return;
     await prefs.setString(_kStreakPopupDateKey, todayKey);
     if (!mounted) return;
+    final longestStreak = ref.read(profileProvider).valueOrNull?.longestStreak ?? prayerStreak;
+    final weekTimeLabel =
+        ref.read(insightsProvider).valueOrNull?.totalTimeLabel ?? '0m';
     showDialog<void>(
       context: context,
-      builder: (context) => _StreakPopup(
-          prayerStreak: prayerStreak, appOpenStreak: appOpenStreak),
+      builder: (dialogContext) => _StreakPopup(
+        prayerStreak: prayerStreak,
+        appOpenStreak: appOpenStreak,
+        // The dialog's own context becomes deactivated the moment it pops
+        // itself — Share needs this screen's still-live context afterward
+        // to build the off-screen card via an Overlay.
+        onShare: prayerStreak <= 0
+            ? null
+            : () {
+                Navigator.of(dialogContext).pop();
+                shareStreakCard(
+                  context: context,
+                  streak: prayerStreak,
+                  longestStreak: longestStreak,
+                  weekTimeLabel: weekTimeLabel,
+                );
+              },
+      ),
     );
   }
 
@@ -414,9 +435,14 @@ class _HeaderStreakChip extends StatelessWidget {
 /// streaks: the app-open streak (today's visit is what earns this one) and
 /// the prayer streak (only earned by actually praying).
 class _StreakPopup extends StatelessWidget {
-  const _StreakPopup({required this.prayerStreak, required this.appOpenStreak});
+  const _StreakPopup({
+    required this.prayerStreak,
+    required this.appOpenStreak,
+    required this.onShare,
+  });
   final int prayerStreak;
   final int appOpenStreak;
+  final VoidCallback? onShare;
 
   @override
   Widget build(BuildContext context) {
@@ -464,6 +490,13 @@ class _StreakPopup extends StatelessWidget {
               label: 'Continue',
               onPressed: () => Navigator.of(context).pop(),
             ),
+            if (onShare != null) ...[
+              const SizedBox(height: 10),
+              TextButton(
+                onPressed: onShare,
+                child: Text('Share your streak', style: TextStyle(color: c.teal)),
+              ),
+            ],
           ],
         ),
       ),

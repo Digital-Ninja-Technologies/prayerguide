@@ -10,8 +10,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/live_activity/live_activity_service.dart';
 import '../../core/notifications/notification_scheduler.dart';
 import '../../core/rating/rating_prompt.dart';
+import '../../core/streak/streak_share_prompt.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
+import '../../state/insights_provider.dart';
 import '../../state/profile_provider.dart';
 import '../../widgets/pg_back_button.dart';
 import '../../widgets/pg_button.dart';
@@ -285,9 +287,20 @@ class _TimerScreenState extends ConsumerState<TimerScreen>
           durationSeconds: duration,
           category: _category,
         );
-    final streakCount = ref.read(profileProvider).valueOrNull?.streakCount ?? 0;
+    final updatedProfile = ref.read(profileProvider).valueOrNull;
+    final streakCount = updatedProfile?.streakCount ?? 0;
     if (mounted) {
       await maybeShowRatingPrompt(context, streakCount: streakCount);
+    }
+    if (mounted) {
+      final weekTimeLabel =
+          ref.read(insightsProvider).valueOrNull?.totalTimeLabel ?? '0m';
+      await maybeShowStreakSharePrompt(
+        context,
+        streakCount: streakCount,
+        longestStreak: updatedProfile?.longestStreak ?? streakCount,
+        weekTimeLabel: weekTimeLabel,
+      );
     }
     if (mounted) context.go('/home');
   }
