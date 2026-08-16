@@ -11,12 +11,22 @@
 # (FlutterGeneratedPluginSwiftPackage), so without this script `xcodebuild`
 # fails immediately with "Could not resolve package dependencies ... doesn't
 # exist in file system" before it ever gets to compiling anything.
+#
+# Every step below echoes a marker on entry — Xcode Cloud's failure
+# notifications only ever report "ci_post_clone.sh failed (exited with code
+# N)" with no further detail, so the last marker printed before a failure
+# is often the only way to tell which command actually failed without
+# digging into the full log on the desktop App Store Connect site.
 
 set -e
+
+echo "== ci_post_clone: starting =="
 
 # The default working directory for this script is ios/ci_scripts/ itself —
 # move to the repo root Xcode Cloud checked out.
 cd "$CI_PRIMARY_REPOSITORY_PATH"
+
+echo "== ci_post_clone: writing .env =="
 
 # pubspec.yaml bundles `.env` as a Flutter asset (flutter_dotenv reads it at
 # runtime) — it's correctly gitignored, so a fresh checkout doesn't have
@@ -37,23 +47,37 @@ IOS_APP_STORE_ID=${IOS_APP_STORE_ID:-}
 LIVEKIT_URL=${LIVEKIT_URL:-}
 EOF
 
+echo "== ci_post_clone: installing Flutter =="
+
 # Install Flutter (stable channel — matches this repo's .metadata) via a
-# shallow clone, since Xcode Cloud's VM is thrown away after every run.
+# shallow clone. Removes any pre-existing $HOME/flutter first — Xcode Cloud
+# is documented to give each run a clean VM, but `git clone` refuses to
+# clone into a non-empty directory, and that's a cheap, harmless guard
+# against a leftover/partial clone from a prior attempt either way.
+rm -rf "$HOME/flutter"
 git clone https://github.com/flutter/flutter.git --depth 1 -b stable "$HOME/flutter"
 export PATH="$PATH:$HOME/flutter/bin"
 
-# Pulls down the iOS engine artifacts for this Flutter version.
+echo "== ci_post_clone: flutter precache --ios =="
 flutter precache --ios
 
+echo "== ci_post_clone: flutter pub get =="
 # Regenerates ios/Flutter/ephemeral/ — this is the step that actually fixes
 # the missing-package error above.
 flutter pub get
 
-# Xcode Cloud images generally already have CocoaPods, but installing
-# defensively here matches Flutter's own documented Xcode Cloud recipe and
-# avoids a stale/missing version being the next failure.
-HOMEBREW_NO_AUTO_UPDATE=1 brew install cocoapods
+echo "== ci_post_clone: checking for CocoaPods =="
+# Xcode Cloud's macOS images ship with CocoaPods already installed — only
+# fall back to installing it if that's somehow not the case, rather than
+# unconditionally `brew install`ing over a working install (a real,
+# previously-seen source of failures here: Homebrew erroring on a
+# conflicting/pre-existing gem-based `pod`).
+if ! command -v pod >/dev/null 2>&1; then
+  echo "== ci_post_clone: pod not found, installing via Homebrew =="
+  HOMEBREW_NO_AUTO_UPDATE=1 brew install cocoapods
+fi
 
+echo "== ci_post_clone: pod install =="
 # ios/Podfile.lock is intentionally not committed (see ios/.gitignore) — it
 # can only be correctly regenerated with a real CocoaPods toolchain, and a
 # stale committed one (missing pods for a plugin added without one) is
@@ -62,4 +86,6 @@ HOMEBREW_NO_AUTO_UPDATE=1 brew install cocoapods
 # Pods/Manifest.lock disagree. Resolving fresh here every run avoids that
 # entirely.
 cd ios
-pod install
+pod install --repo-update
+
+echo "== ci_post_clone: done =="
