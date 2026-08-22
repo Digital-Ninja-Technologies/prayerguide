@@ -45,6 +45,8 @@
 	<string>Prayer Guide uses your microphone so others in an Audio Prayer Room can hear you speak, and to record sermon notes.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Prayer Guide saves scripture cards to your photos when you tap Save.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Prayer Guide saves scripture cards to your photos when you tap Save.</string>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
 	<key>UIBackgroundModes</key>
