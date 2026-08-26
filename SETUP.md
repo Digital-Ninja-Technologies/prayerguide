@@ -38,14 +38,26 @@ it now that cloud backup replaced that scheme — see below.) Migration
 Note Taker's recordings — nothing extra to configure, `supabase db push`
 sets it up along with everything else.
 
-**Social auth (Google / Apple) via Supabase** — the app code side is done:
-`AuthRepository.signInWithGoogle/signInWithApple` call `signInWithOAuth` with
+**Social auth (Google / Apple) via Supabase** — the app code side is done.
+`AuthRepository.signInWithGoogle` calls `signInWithOAuth` with
 `redirectTo: kOAuthRedirect` (`io.supabase.prayerguide://login-callback/`,
 defined in `lib/data/repositories/auth_repository.dart`), and that URL scheme
 is already registered on both platforms (`android/app/src/main/AndroidManifest.xml`'s
 `login-callback` intent-filter, `ios/Runner/Info.plist`'s `CFBundleURLTypes`).
 `supabase_flutter` handles the incoming deep link and session exchange
-automatically — no extra Dart wiring needed. What's left is dashboard +
+automatically — no extra Dart wiring needed.
+
+`AuthRepository.signInWithApple` is different on purpose: it does *not* use
+`signInWithOAuth`. App Store guideline 4.8 requires Sign in with Apple to be
+offered as an equivalent to Google here, and App Review does not recognize a
+browser-based OAuth redirect through Apple's web endpoint as satisfying
+that — it must be the native AuthenticationServices sheet. So it uses the
+`sign_in_with_apple` package to get a native Apple ID credential, then hands
+its identity token to `signInWithIdToken` for Supabase to verify directly (no
+redirect involved). The onboarding screen only shows the "Continue with
+Apple" button on iOS (`_showAppleSignIn` in `onboarding_screen.dart`) — this
+repo doesn't currently wire up the package's web/Android flow, since 4.8 is
+an iOS App Store requirement only. What's left is dashboard +
 provider-console configuration, which can't be done from this repo:
 
 1. **Supabase Dashboard → Authentication → URL Configuration → Redirect URLs**
@@ -66,16 +78,24 @@ provider-console configuration, which can't be done from this repo:
    `https://<project-ref>.supabase.co/auth/v1/callback` as an authorized
    redirect URI on that client. Paste the client ID + secret into Supabase
    Dashboard → Authentication → Providers → Google, and enable it.
-3. **Apple** — in [Apple Developer](https://developer.apple.com/account/resources/identifiers/list/serviceId),
-   create a Services ID, enable "Sign in with Apple", and set its return URL
-   to `https://<project-ref>.supabase.co/auth/v1/callback`. Generate a
-   private key for Sign in with Apple, and enter the Services ID, Team ID,
-   Key ID, and private key into Supabase Dashboard → Authentication →
-   Providers → Apple. Separately, add the **Sign in with Apple capability**
-   to the iOS target in Xcode (`ios/Runner.xcodeproj`) — Apple requires this
-   entitlement for the native app regardless of Supabase's config, and (per
-   App Store guideline 4.8) requires it if the app offers other social
-   logins at all.
+3. **Apple** — two separate things need enabling, since sign-in is native
+   now (see above), not Supabase's hosted OAuth redirect:
+   - **Apple Developer → Certificates, Identifiers & Profiles → Identifiers**
+     → this app's App ID (`com.prayerguide.prayer_guide`) → turn on the
+     **Sign in with Apple** capability. This is what actually authorizes the
+     `com.apple.developer.applesignin` entitlement already committed in
+     `ios/Runner/Runner.entitlements` — without enabling it on the App ID,
+     Xcode Cloud's code signing will reject the entitlement at archive time.
+   - **Supabase Dashboard → Authentication → Providers → Apple** — enable
+     the provider and add `com.prayerguide.prayer_guide` (this app's bundle
+     id) to its **Client IDs** field, since that's the audience the native
+     identity token is issued for — not a Services ID, since there's no web
+     redirect flow being used here. Supabase's Apple provider form may also
+     ask for a Services ID + Team ID + Key ID + private key even for this
+     native-only setup (from [Apple Developer → Keys](https://developer.apple.com/account/resources/authkeys/list)
+     with "Sign in with Apple" enabled) — follow whatever the dashboard form
+     currently requires; only the Client IDs value matters functionally for
+     the native flow this app actually uses.
 4. If you ever change the bundle ID / package name from `com.prayerguide.*`,
    update `kOAuthRedirect`'s scheme (`io.supabase.prayerguide`) to match, in
    all three places: `auth_repository.dart`, the Android intent-filter, and

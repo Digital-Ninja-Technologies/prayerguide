@@ -1,7 +1,25 @@
+import 'dart:convert';
+import 'dart:math';
+
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/supabase/supabase_config.dart';
+
+const _nonceCharset =
+    '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+
+/// A random string passed through Apple's native sign-in and echoed back
+/// (hashed) inside the identity token, so Supabase can confirm the token
+/// it's verifying was minted for this exact sign-in attempt.
+String _generateNonce([int length = 32]) {
+  final random = Random.secure();
+  return List.generate(
+      length, (_) => _nonceCharset[random.nextInt(_nonceCharset.length)])
+      .join();
+}
 
 /// Deep link Supabase redirects back to after a Google/Apple OAuth flow on
 /// iOS/Android. Must be registered as a URL scheme on both platforms (see
@@ -89,15 +107,43 @@ class AuthRepository {
     );
   }
 
-  /// Requires the Apple provider to be configured in the Supabase dashboard,
-  /// its redirect URL added to the dashboard's allowed Redirect URLs (see
-  /// [signInWithGoogle]), and the Sign in with Apple capability enabled on
-  /// the iOS target.
-  Future<bool> signInWithApple() {
-    return _auth.signInWithOAuth(
-      OAuthProvider.apple,
-      redirectTo: _oauthRedirect,
-      authScreenLaunchMode: _oauthLaunchMode,
+  /// Native "Sign in with Apple" (AuthenticationServices), offered as the
+  /// equivalent login option App Store guideline 4.8 requires wherever a
+  /// third-party login (Google, here) is offered. This deliberately does
+  /// *not* go through [signInWithGoogle]'s `signInWithOAuth` browser flow —
+  /// App Review does not recognize a generic OAuth redirect through Apple's
+  /// web endpoint as a compliant "Sign in with Apple"; it must be the native
+  /// system sheet, which is what `sign_in_with_apple` drives.
+  ///
+  /// Requires the "Sign in with Apple" capability enabled on the iOS App ID
+  /// (Apple Developer portal) — mirrored locally by the
+  /// `com.apple.developer.applesignin` entitlement in
+  /// `ios/Runner/Runner.entitlements` — and the Apple provider configured in
+  /// the Supabase dashboard (Authentication → Providers → Apple) with this
+  /// app's bundle id as an authorized client id, same as the Google flow's
+  /// prerequisite in [signInWithGoogle].
+  Future<AuthResponse> signInWithApple() async {
+    final rawNonce = _generateNonce();
+    final hashedNonce = sha256.convert(utf8.encode(rawNonce)).toString();
+
+    final credential = await SignInWithApple.getAppleIDCredential(
+      scopes: [
+        AppleIDAuthorizationScopes.email,
+        AppleIDAuthorizationScopes.fullName,
+      ],
+      nonce: hashedNonce,
+    );
+
+    final idToken = credential.identityToken;
+    if (idToken == null) {
+      throw const AuthException(
+          'Apple sign-in did not return an identity token.');
+    }
+
+    return _auth.signInWithIdToken(
+      provider: OAuthProvider.apple,
+      idToken: idToken,
+      nonce: rawNonce,
     );
   }
 

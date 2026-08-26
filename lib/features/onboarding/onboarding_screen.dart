@@ -1,6 +1,10 @@
+import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show AuthResponse;
 
 import '../../core/errors/friendly_error.dart';
@@ -13,6 +17,8 @@ import '../../widgets/pg_button.dart';
 import '../../widgets/pg_form_error.dart';
 import '../../widgets/pg_text_field.dart';
 import '../../widgets/username_field.dart';
+
+final bool _showAppleSignIn = !kIsWeb && Platform.isIOS;
 
 enum _Step { slide0, slide1, slide2, auth, email, reset, create }
 
@@ -241,6 +247,28 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
           ),
           PgFormError(_error, topSpacing: 0, bottomSpacing: 10),
+          if (_showAppleSignIn) ...[
+            PgButton(
+              label: _loading ? 'Continuing…' : 'Continue with Apple',
+              variant: PgButtonVariant.outline,
+              icon: const Icon(Icons.apple, size: 20),
+              onPressed: _loading
+                  ? null
+                  : () => _run(() async {
+                        try {
+                          await ref
+                              .read(authRepositoryProvider)
+                              .signInWithApple();
+                        } on SignInWithAppleAuthorizationException catch (e) {
+                          if (e.code == AuthorizationErrorCode.canceled) {
+                            return;
+                          }
+                          rethrow;
+                        }
+                      }),
+            ),
+            const SizedBox(height: 10),
+          ],
           PgButton(
             label: _loading ? 'Continuing…' : 'Continue with Google',
             variant: PgButtonVariant.outline,
