@@ -53,6 +53,19 @@ const _guideContentList = [
     reflection: "Where have you seen God's hand at work this week?",
   ),
   GuideContent(
+    category: 'Thanksgiving',
+    intro: "Some days gratitude is easy to find; other days it takes searching. Either way, thanksgiving opens the door to everything else.",
+    verse: 'O give thanks unto the LORD; for he is good: for his mercy endureth for ever.',
+    reference: 'Psalm 107:1',
+    prayerPoints: [
+      'Thank God for something specific from the last 24 hours.',
+      'Give thanks for a person who showed you kindness recently.',
+      "Praise him for strength he gave you when you didn't feel strong.",
+      'Thank him in advance for what he is already working out.',
+    ],
+    reflection: "What's one thing you almost forgot to thank God for?",
+  ),
+  GuideContent(
     category: 'Worship',
     intro: 'Set your eyes on who God is before anything else. Worship makes room for everything that follows.',
     verse: 'Bless the LORD, O my soul: and all that is within me, bless his holy name.',
@@ -64,6 +77,19 @@ const _guideContentList = [
       'Sit quietly in his presence without asking for anything.',
     ],
     reflection: 'What is one attribute of God you want to praise him for today?',
+  ),
+  GuideContent(
+    category: 'Worship',
+    intro: "Worship isn't about finding the right words — it's about turning your attention toward him and staying there a moment longer than feels natural.",
+    verse: 'O come, let us worship and bow down: let us kneel before the LORD our maker.',
+    reference: 'Psalm 95:6',
+    prayerPoints: [
+      "Worship God for his faithfulness, even when you couldn't see it.",
+      'Thank him for being the same yesterday, today, and forever.',
+      'Praise him for his patience with you.',
+      "Let go of the need to perform — just be still before him.",
+    ],
+    reflection: "When did you most recently sense God's presence — and why?",
   ),
   GuideContent(
     category: 'Repentance',
@@ -79,6 +105,19 @@ const _guideContentList = [
     reflection: 'Is there anything you have been avoiding bringing to God?',
   ),
   GuideContent(
+    category: 'Repentance',
+    intro: "God isn't asking you to clean yourself up before you come — he's asking you to come as you are and let him do the cleaning.",
+    verse: 'Create in me a clean heart, O God; and renew a right spirit within me.',
+    reference: 'Psalm 51:10',
+    prayerPoints: [
+      'Ask God to show you where pride has crept in.',
+      'Confess a specific pattern, not just a general feeling of guilt.',
+      'Thank him that his mercy is new, not just for today but every day.',
+      "Ask for the courage to make one thing right that you've been avoiding.",
+    ],
+    reflection: "Is there a relationship you need to make right, not just with God, but with someone else?",
+  ),
+  GuideContent(
     category: 'Family',
     intro: 'Carry the people closest to you before the Father who loves them even more than you do.',
     verse: 'As for me and my house, we will serve the LORD.',
@@ -90,6 +129,19 @@ const _guideContentList = [
       'Thank God for one thing about your family right now.',
     ],
     reflection: 'Who in your family needs your prayer most today?',
+  ),
+  GuideContent(
+    category: 'Family',
+    intro: 'Your family may be the hardest place to be patient and the most important place to be faithful. Bring them honestly before God today.',
+    verse: 'Train up a child in the way he should go: and when he is old, he will not depart from it.',
+    reference: 'Proverbs 22:6',
+    prayerPoints: [
+      'Pray for unity in your household, even amid disagreement.',
+      'Ask God to soften a strained relationship.',
+      'Pray for the children in your life — yours, or ones you love.',
+      'Thank God for the family he has given you, imperfect as it is.',
+    ],
+    reflection: "Is there a family member you've been meaning to call or check in on?",
   ),
   GuideContent(
     category: 'Healing',
@@ -105,6 +157,19 @@ const _guideContentList = [
     reflection: 'What would it look like to trust God with something still unhealed?',
   ),
   GuideContent(
+    category: 'Healing',
+    intro: "Healing doesn't always come on our timeline. Bring what hurts honestly, and let him carry what you can't.",
+    verse: 'Beloved, I wish above all things that thou mayest prosper and be in health, even as thy soul prospereth.',
+    reference: '3 John 1:2',
+    prayerPoints: [
+      'Pray specifically for your own body, mind, or heart today.',
+      'Intercede for someone facing a diagnosis or illness.',
+      "Ask for peace in a situation that medicine or time hasn't fixed yet.",
+      'Thank God for the doctors, friends, and caregivers he provides.',
+    ],
+    reflection: "Where do you need God's healing touch most right now — even if you've prayed this before?",
+  ),
+  GuideContent(
     category: 'Spiritual Growth',
     intro: 'Ask God to grow roots that go deeper than a single good day — a faith that lasts.',
     verse: 'That ye might walk worthy of the Lord unto all pleasing, being fruitful in every good work, and increasing in the knowledge of God.',
@@ -117,11 +182,75 @@ const _guideContentList = [
     ],
     reflection: 'Where do you sense God inviting you to grow right now?',
   ),
+  GuideContent(
+    category: 'Spiritual Growth',
+    intro: "Growth is rarely dramatic. It's showing up again tomorrow, even after a day you didn't feel like it.",
+    verse: 'But grow in grace, and in the knowledge of our Lord and Saviour Jesus Christ.',
+    reference: '2 Peter 3:18',
+    prayerPoints: [
+      'Ask God to help you finish something you started spiritually.',
+      'Pray for hunger for his Word, not just discipline to read it.',
+      "Ask him to prune something in your life that's crowding him out.",
+      'Thank him for the growth you can already see, even if it is small.',
+    ],
+    reflection: "What would 'one step further' look like in your walk with God this week?",
+  ),
 ];
 
-final Map<String, GuideContent> guideContentByCategory = {
-  for (final g in _guideContentList) g.category: g,
+/// Multiple content variants per category (not just one fixed set of
+/// verse/points/reflection) so returning to the same category on a
+/// different day doesn't show byte-identical content — see
+/// [todaysGuide], which rotates both the category and the variant.
+final Map<String, List<GuideContent>> guideContentByCategory = {
+  for (final g in _guideContentList)
+    g.category: [
+      for (final v in _guideContentList)
+        if (v.category == g.category) v,
+    ],
 };
+
+enum PrayerTimeOfDay { morning, afternoon, evening }
+
+/// The raw key for `AppLocalizations.homeGreeting`'s ICU `select` argument —
+/// callers with a `BuildContext` should localize the display label via
+/// `AppLocalizations` directly rather than a hardcoded English word.
+String prayerTimeOfDayKey(PrayerTimeOfDay t) => switch (t) {
+      PrayerTimeOfDay.morning => 'morning',
+      PrayerTimeOfDay.afternoon => 'afternoon',
+      PrayerTimeOfDay.evening => 'evening',
+    };
+
+PrayerTimeOfDay prayerTimeOfDayFor(DateTime now) {
+  if (now.hour < 12) return PrayerTimeOfDay.morning;
+  if (now.hour < 18) return PrayerTimeOfDay.afternoon;
+  return PrayerTimeOfDay.evening;
+}
+
+/// Which categories are on-theme for each part of the day — morning leans
+/// toward gratitude and worship, afternoon toward the people and needs
+/// around you, evening toward reflection and growth.
+const _categoriesByTimeOfDay = {
+  PrayerTimeOfDay.morning: ['Thanksgiving', 'Worship'],
+  PrayerTimeOfDay.afternoon: ['Family', 'Healing'],
+  PrayerTimeOfDay.evening: ['Repentance', 'Spiritual Growth'],
+};
+
+/// Today's featured category and its content for "Start today's prayer" —
+/// picks both from the current time of day, rotating by day of year (same
+/// technique as `devotionalForDate`/`scriptureOfDayForDate`) so it's stable
+/// for the whole day but changes daily rather than always defaulting to the
+/// same category and text.
+({GuideCategory category, GuideContent content, PrayerTimeOfDay timeOfDay})
+    todaysGuide(DateTime now) {
+  final timeOfDay = prayerTimeOfDayFor(now);
+  final names = _categoriesByTimeOfDay[timeOfDay]!;
+  final dayOfYear = now.difference(DateTime(now.year, 1, 1)).inDays;
+  final categoryName = names[dayOfYear % names.length];
+  final category = guideCategories.firstWhere((g) => g.name == categoryName);
+  final variants = guideContentByCategory[categoryName]!;
+  final content = variants[dayOfYear % variants.length];
+  return (category: category, content: content, timeOfDay: timeOfDay);
+}
 
 class ChallengeInfo {
   const ChallengeInfo(this.key, this.name, this.lengthDays, this.focusToday, this.description);

@@ -4,12 +4,20 @@ class SermonRecording {
     required this.audioPath,
     required this.durationSeconds,
     required this.createdAt,
+    this.pendingUpload = false,
   });
 
   final String id;
   final String audioPath;
   final int? durationSeconds;
   final DateTime createdAt;
+
+  /// True for a recording that only exists on this device so far — it's
+  /// safely saved locally, just hasn't finished uploading to Supabase yet
+  /// (offline, or the upload is still retrying). Never set from
+  /// [fromMap]: a row that came back from Supabase is, by definition,
+  /// already synced.
+  final bool pendingUpload;
 
   factory SermonRecording.fromMap(Map<String, dynamic> m) => SermonRecording(
         id: m['id'] as String,

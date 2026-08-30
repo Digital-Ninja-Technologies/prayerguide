@@ -46,34 +46,13 @@ class GroupsScreen extends ConsumerWidget {
                                   size: 26, weight: FontWeight.w600)),
                         ],
                       ),
-                      Row(
-                        children: [
-                          TextButton(
-                            onPressed: () => context.push('/companion'),
-                            style: TextButton.styleFrom(
-                              backgroundColor: c.surface,
-                              side: BorderSide(color: c.line),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 13, vertical: 9),
-                            ),
-                            child: Text('Pray together',
-                                style: TextStyle(
-                                    color: c.dim,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700)),
-                          ),
-                          const SizedBox(width: 8),
-                          PgButton(
-                            label: 'New',
-                            expand: false,
-                            dense: true,
-                            icon: Icon(Icons.add_rounded,
-                                color: c.onTeal, size: 16),
-                            onPressed: () => context.push('/groups/new'),
-                          ),
-                        ],
+                      PgButton(
+                        label: 'New',
+                        expand: false,
+                        dense: true,
+                        icon:
+                            Icon(Icons.add_rounded, color: c.onTeal, size: 16),
+                        onPressed: () => context.push('/groups/new'),
                       ),
                     ],
                   ),

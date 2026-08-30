@@ -38,6 +38,10 @@ migrate_working_dir/
 **/doc/api/
 **/ios/Flutter/.last_build_id
 .dart_tool/
+# Regenerated from lib/l10n/*.arb by `flutter pub get` (generate: true in
+# pubspec.yaml) — same reasoning as Podfile.lock below: CI runs `flutter pub
+# get` before every build, which rewrites this from the committed ARB files.
+lib/l10n/gen/
 .flutter-plugins
 .flutter-plugins-dependencies
 .pub-cache/

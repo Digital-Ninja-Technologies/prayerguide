@@ -1,0 +1,57 @@
+{
+  "@@locale": "fr",
+
+  "navHome": "Accueil",
+  "navBible": "Bible",
+  "navJournal": "Journal",
+  "navSermons": "Sermons",
+  "navChannel": "Chaîne",
+  "navProfile": "Profil",
+
+  "onboardSlide1Title": "Bâtis une vie de prière durable",
+  "onboardSlide1Body": "Un rythme quotidien et paisible d'Écriture, de prière guidée et de silence — un moment calme à la fois.",
+  "onboardSlide2Title": "L'Écriture au centre",
+  "onboardSlide2Body": "Chaque séance commence dans la Parole. Lis, médite, et laisse le texte guider ta prière.",
+  "onboardSlide3Title": "Reviens, sans pression",
+  "onboardSlide3Body": "Les séries encouragent — elles ne culpabilisent jamais. Manque un jour, utilise une pause, et recommence simplement.",
+  "onboardSkip": "Passer",
+  "onboardContinue": "Continuer",
+  "onboardGetStarted": "Commencer",
+
+  "timeOfDayMorning": "Matin",
+  "timeOfDayAfternoon": "Après-midi",
+  "timeOfDayEvening": "Soir",
+
+  "homeGreeting": "{timeOfDay, select, morning{Bonjour} afternoon{Bon après-midi} evening{Bonsoir} other{Salut}},\n{name}",
+  "@homeGreeting": {
+    "placeholders": {
+      "timeOfDay": {"type": "String"},
+      "name": {"type": "String"}
+    }
+  },
+  "homeScriptureOfDay": "VERSET DU JOUR",
+  "homeStartTodaysPrayer": "Commence la prière du jour",
+  "homeJournal": "Journal",
+  "homeJournalSub": "Entrées privées",
+  "homeRequests": "Demandes",
+  "homeRequestsSub": "Suivre et prier",
+  "homeMoreWaysToPray": "D'autres façons de prier",
+  "homeDevotional": "Dévotion",
+  "homeChallenges": "Défis",
+  "homeCompanion": "Compagnon",
+  "homeGroups": "Groupes",
+
+  "settingsProfile": "Profil",
+  "settingsNotifications": "NOTIFICATIONS",
+  "settingsAppearance": "APPARENCE",
+  "settingsDark": "Sombre",
+  "settingsLight": "Clair",
+  "settingsLanguage": "Langue",
+  "settingsChooseLanguage": "Choisir une langue",
+  "settingsChangeUsername": "Changer le nom d'utilisateur",
+  "settingsYourStreak": "Ta série",
+  "settingsGrowthInsights": "Progrès spirituel",
+  "settingsPrivacyEncryption": "Confidentialité et chiffrement",
+  "settingsAboutHelp": "À propos et aide",
+  "settingsSignOut": "Se déconnecter"
+}

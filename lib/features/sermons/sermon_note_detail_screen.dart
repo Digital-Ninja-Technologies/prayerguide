@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/audio/local_recording_store.dart';
 import '../../core/audio/sermon_recorder.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
@@ -117,10 +119,18 @@ class _NoteDetailState extends ConsumerState<_NoteDetail> {
       _duration = Duration.zero;
     });
     try {
-      final url = await ref
-          .read(sermonNotesRepositoryProvider)
-          .signedAudioUrl(recording.audioPath);
-      await _player.play(UrlSource(url));
+      // Local-first: a recording already on this device — whether still
+      // pending upload or already synced but kept locally too — plays back
+      // straight from disk, no network needed.
+      final local = await localRecordingStore.get(recording.id);
+      if (local != null && await File(local.localPath).exists()) {
+        await _player.play(DeviceFileSource(local.localPath));
+      } else {
+        final url = await ref
+            .read(sermonNotesRepositoryProvider)
+            .signedAudioUrl(recording.audioPath);
+        await _player.play(UrlSource(url));
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -598,11 +608,19 @@ class _RecordingRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Take $index',
-                    style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700,
-                        color: c.dim)),
+                Row(
+                  children: [
+                    Text('Take $index',
+                        style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                            color: c.dim)),
+                    if (recording.pendingUpload) ...[
+                      const SizedBox(width: 6),
+                      Icon(Icons.cloud_off_rounded, size: 12, color: c.faint),
+                    ],
+                  ],
+                ),
                 Text(
                   isActive && duration > Duration.zero
                       ? '${fmt(position)} / ${fmt(duration)}'
@@ -612,6 +630,9 @@ class _RecordingRow extends StatelessWidget {
                   style: TextStyle(
                       fontSize: 13, fontWeight: FontWeight.w700, color: c.text),
                 ),
+                if (recording.pendingUpload)
+                  Text('Saved on this device — will sync when online',
+                      style: TextStyle(fontSize: 10.5, color: c.faint)),
               ],
             ),
           ),

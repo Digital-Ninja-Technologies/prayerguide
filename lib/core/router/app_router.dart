@@ -152,7 +152,19 @@ final routerProvider = Provider<GoRouter>((ref) {
           ]),
           StatefulShellBranch(routes: [
             GoRoute(
-                path: '/sermons', builder: (c, s) => const SermonNotesScreen()),
+              path: '/sermons',
+              builder: (c, s) => const SermonNotesScreen(),
+              routes: [
+                GoRoute(
+                    path: 'new',
+                    builder: (c, s) => const SermonNoteNewScreen()),
+                GoRoute(
+                  path: ':id',
+                  builder: (c, s) => SermonNoteDetailScreen(
+                      noteId: s.pathParameters['id']!),
+                ),
+              ],
+            ),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(path: '/channel', builder: (c, s) => const ChannelScreen()),
@@ -267,15 +279,8 @@ final routerProvider = Provider<GoRouter>((ref) {
             RoomScreen(groupId: s.uri.queryParameters['groupId'] ?? ''),
       ),
       GoRoute(
-          path: '/sermons/new', builder: (c, s) => const SermonNoteNewScreen()),
-      GoRoute(
           path: '/sermons/shares',
           builder: (c, s) => const SermonSharesInboxScreen()),
-      GoRoute(
-        path: '/sermons/:id',
-        builder: (c, s) =>
-            SermonNoteDetailScreen(noteId: s.pathParameters['id']!),
-      ),
     ],
   );
 });

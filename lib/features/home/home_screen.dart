@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
+import '../../l10n/gen/app_localizations.dart';
 import '../../data/devotional/devotional_library.dart';
 import '../../data/models/challenge_progress.dart';
 import '../../data/scripture/scripture_of_day_library.dart';
@@ -89,12 +90,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       WidgetsBinding.instance.addPostFrameCallback(
           (_) => _maybeShowStreakPopup(streak, appOpenStreak));
     }
+    final l = AppLocalizations.of(context)!;
     final greetingName =
         (name == null || name.isEmpty) ? 'friend' : name.split(' ').first;
     final now = DateTime.now();
     final dateStr = DateFormat('EEEE · MMMM d').format(now);
-    final timeOfDay =
-        now.hour < 12 ? 'Morning' : (now.hour < 18 ? 'Afternoon' : 'Evening');
+    final todaysPrayer = todaysGuide(now);
+    final timeOfDayKey = prayerTimeOfDayKey(todaysPrayer.timeOfDay);
+    final timeOfDay = switch (todaysPrayer.timeOfDay) {
+      PrayerTimeOfDay.morning => l.timeOfDayMorning,
+      PrayerTimeOfDay.afternoon => l.timeOfDayAfternoon,
+      PrayerTimeOfDay.evening => l.timeOfDayEvening,
+    };
     final scriptureEntry = scriptureOfDayForDate(now);
     final devotionalEntry = devotionalForDate(now);
     final libraryAsync = ref.watch(bibleLibraryProvider);
@@ -132,7 +139,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 color: c.dim,
                                 letterSpacing: .6)),
                         const SizedBox(height: 5),
-                        Text('Good $timeOfDay,\n$greetingName',
+                        Text(l.homeGreeting(timeOfDayKey, greetingName),
                             style: PgText.serif(
                                 size: 27,
                                 weight: FontWeight.w600,
@@ -196,7 +203,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('SCRIPTURE OF THE DAY',
+                            Text(l.homeScriptureOfDay,
                                 style: PgText.sans(
                                     size: 11,
                                     weight: FontWeight.w700,
@@ -246,7 +253,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     borderColor: c.teal,
                     padding: const EdgeInsets.symmetric(
                         horizontal: 22, vertical: 20),
-                    onTap: () => context.push('/guide'),
+                    onTap: () => context
+                        .push('/guide?category=${todaysPrayer.category.name}'),
                     child: Row(
                       children: [
                         Container(
@@ -264,14 +272,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text("Start today's prayer",
+                              Text(l.homeStartTodaysPrayer,
                                   style: TextStyle(
                                       fontSize: 17,
                                       fontWeight: FontWeight.w800,
                                       color: c.onTeal)),
                               const SizedBox(height: 3),
                               Text(
-                                  '$timeOfDay · ${guideCategories.first.name} · ${guideCategories.first.duration}',
+                                  '$timeOfDay · ${todaysPrayer.category.name} · ${todaysPrayer.category.duration}',
                                   style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
@@ -296,12 +304,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               Icon(Icons.edit_note_rounded,
                                   color: c.teal, size: 24),
                               const SizedBox(height: 12),
-                              const Text('Journal',
-                                  style: TextStyle(
+                              Text(l.homeJournal,
+                                  style: const TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w700)),
                               const SizedBox(height: 2),
-                              Text('Private entries',
+                              Text(l.homeJournalSub,
                                   style:
                                       TextStyle(fontSize: 12.5, color: c.dim)),
                             ],
@@ -320,12 +328,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               Icon(Icons.favorite_border_rounded,
                                   color: c.amber, size: 24),
                               const SizedBox(height: 12),
-                              const Text('Requests',
-                                  style: TextStyle(
+                              Text(l.homeRequests,
+                                  style: const TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w700)),
                               const SizedBox(height: 2),
-                              Text('Track & pray',
+                              Text(l.homeRequestsSub,
                                   style:
                                       TextStyle(fontSize: 12.5, color: c.dim)),
                             ],
@@ -335,8 +343,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  const PgSectionLabel('More ways to pray',
-                      padding: EdgeInsets.only(bottom: 12)),
+                  PgSectionLabel(l.homeMoreWaysToPray,
+                      padding: const EdgeInsets.only(bottom: 12)),
                   GridView.count(
                     crossAxisCount: 2,
                     shrinkWrap: true,
@@ -348,14 +356,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       _MiniTile(
                         icon: Icons.menu_book_outlined,
                         color: c.amber,
-                        title: 'Devotional',
+                        title: l.homeDevotional,
                         subtitle: 'Today · ${devotionalEntry.title}',
                         onTap: () => context.push('/devotional'),
                       ),
                       _MiniTile(
                         icon: Icons.emoji_events_outlined,
                         color: c.teal,
-                        title: 'Challenges',
+                        title: l.homeChallenges,
                         subtitle: activeChallenge == null
                             ? 'Start a challenge'
                             : '${activeChallenge.totalDays} Days · Day ${activeChallenge.currentDay + 1}',
@@ -364,7 +372,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       _MiniTile(
                         icon: Icons.diversity_1_outlined,
                         color: c.teal,
-                        title: 'Companion',
+                        title: l.homeCompanion,
                         subtitle: companions.isEmpty
                             ? 'Invite a companion'
                             : companions.length == 1
@@ -375,7 +383,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       _MiniTile(
                         icon: Icons.groups_outlined,
                         color: c.amber,
-                        title: 'Groups',
+                        title: l.homeGroups,
                         subtitle: groups.isEmpty
                             ? 'Join a group'
                             : groups.length == 1

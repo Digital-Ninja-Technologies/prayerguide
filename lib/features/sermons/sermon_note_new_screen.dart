@@ -170,10 +170,26 @@ class _SermonNoteNewScreenState extends ConsumerState<SermonNoteNewScreen> {
       _speaker.text = draft['speaker'] as String? ?? '';
       _scripture.text = draft['scripture'] as String? ?? '';
       _notes.text = draft['notes'] as String? ?? '';
-      if (_title.text.isNotEmpty || _notes.text.isNotEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Restored your unsaved draft')),
-        );
+      // Recorded takes from a note that never made it past this screen
+      // (app killed, or offline before the first save could go through) —
+      // recorded into a persistent directory, so they're still here to
+      // recover as long as the file wasn't explicitly deleted.
+      final takes = (draft['takes'] as List?) ?? const [];
+      var recoveredAudio = false;
+      for (final t in takes) {
+        final map = t as Map<String, dynamic>;
+        final path = map['path'] as String?;
+        if (path == null || !await File(path).exists()) continue;
+        _takes.add(_Take(
+            path: path, durationSeconds: (map['durationSeconds'] as num?)?.toInt() ?? 0));
+        recoveredAudio = true;
+      }
+      if (mounted && (_title.text.isNotEmpty || _notes.text.isNotEmpty || recoveredAudio)) {
+        setState(() {});
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(recoveredAudio
+                ? 'Restored your unsaved draft, including its recording'
+                : 'Restored your unsaved draft')));
       }
     } catch (_) {
       // Corrupt or outdated draft shape — ignore it rather than crash.
@@ -194,6 +210,9 @@ class _SermonNoteNewScreenState extends ConsumerState<SermonNoteNewScreen> {
         'speaker': _speaker.text,
         'scripture': _scripture.text,
         'notes': _notes.text,
+        'takes': [
+          for (final t in _takes) {'path': t.path, 'durationSeconds': t.durationSeconds},
+        ],
       }),
     );
   }
@@ -240,6 +259,11 @@ class _SermonNoteNewScreenState extends ConsumerState<SermonNoteNewScreen> {
     final path = await _recorder.stop();
     if (path != null) {
       _takes.add(_Take(path: path, durationSeconds: _elapsedSeconds));
+      // Persist the take to the draft immediately — recorded into a
+      // persistent (non-temp) directory, so as long as the draft points to
+      // it, it survives even if the app is killed before `_autoSave` below
+      // gets a chance to succeed (e.g. no connection yet).
+      await _saveDraft();
     }
     setState(() {
       _elapsedSeconds = 0;
@@ -258,10 +282,11 @@ class _SermonNoteNewScreenState extends ConsumerState<SermonNoteNewScreen> {
   Future<void> _deleteTake(int index) async {
     final take = _takes[index];
     setState(() => _takes.removeAt(index));
+    await _saveDraft();
     try {
       await File(take.path).delete();
     } catch (_) {
-      // Best-effort — a leftover temp file isn't worth surfacing to the user.
+      // Best-effort — a leftover local file isn't worth surfacing to the user.
     }
   }
 

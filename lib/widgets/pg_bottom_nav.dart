@@ -3,22 +3,30 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../core/theme/pg_colors.dart';
+import '../l10n/gen/app_localizations.dart';
 
 class PgNavItem {
-  const PgNavItem(this.icon, this.label, this.route);
+  const PgNavItem(this.icon, this.labelOf, this.route);
   final IconData icon;
-  final String label;
+  final String Function(AppLocalizations l) labelOf;
   final String route;
 }
 
 const pgNavItems = [
-  PgNavItem(Icons.home_rounded, 'Home', '/home'),
-  PgNavItem(Icons.menu_book_rounded, 'Bible', '/bible'),
-  PgNavItem(Icons.edit_note_rounded, 'Journal', '/journal'),
-  PgNavItem(Icons.mic_rounded, 'Sermons', '/sermons'),
-  PgNavItem(Icons.smart_display_rounded, 'Channel', '/channel'),
-  PgNavItem(Icons.person_rounded, 'Profile', '/settings'),
+  PgNavItem(Icons.home_rounded, _navHome, '/home'),
+  PgNavItem(Icons.menu_book_rounded, _navBible, '/bible'),
+  PgNavItem(Icons.edit_note_rounded, _navJournal, '/journal'),
+  PgNavItem(Icons.mic_rounded, _navSermons, '/sermons'),
+  PgNavItem(Icons.smart_display_rounded, _navChannel, '/channel'),
+  PgNavItem(Icons.person_rounded, _navProfile, '/settings'),
 ];
+
+String _navHome(AppLocalizations l) => l.navHome;
+String _navBible(AppLocalizations l) => l.navBible;
+String _navJournal(AppLocalizations l) => l.navJournal;
+String _navSermons(AppLocalizations l) => l.navSermons;
+String _navChannel(AppLocalizations l) => l.navChannel;
+String _navProfile(AppLocalizations l) => l.navProfile;
 
 /// Bottom tab bar: Home / Bible / Journal / Sermons / Channel / Profile.
 ///
@@ -105,7 +113,7 @@ class _NavButton extends StatelessWidget {
             Icon(item.icon, size: 21, color: color),
             const SizedBox(height: 3),
             Text(
-              item.label,
+              item.labelOf(AppLocalizations.of(context)!),
               style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: color),
             ),
           ],

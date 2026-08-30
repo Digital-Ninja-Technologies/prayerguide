@@ -2,26 +2,25 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/pg_text.dart';
 
-/// The image saved/shared for a prayer streak — Strava-style: a fixed,
-/// self-contained visual (not the on-screen StreakScreen, which has
-/// navigation chrome that makes no sense outside the app). Colors are
-/// hardcoded to the dark palette rather than read from `context.colors`
-/// deliberately — this image travels outside the app (saved to a photo
-/// library, shared to WhatsApp/Instagram/etc.), so it needs to look the
-/// same regardless of the sharer's or viewer's device theme. Mirrors
-/// scripture_share_card.dart's exact structure/branding.
-class StreakShareCard extends StatelessWidget {
-  const StreakShareCard({
+/// The image saved/shared for a devotional — a fixed, self-contained visual
+/// (not the on-screen DevotionalScreen, which has navigation chrome that
+/// makes no sense outside the app). Colors are hardcoded to the dark
+/// palette rather than read from `context.colors` deliberately: this image
+/// travels outside the app, so it needs to look the same regardless of the
+/// sharer's or viewer's device theme. Mirrors scripture_share_card.dart's
+/// exact structure/branding.
+class DevotionalShareCard extends StatelessWidget {
+  const DevotionalShareCard({
     super.key,
-    required this.streak,
-    required this.longestStreak,
-    required this.weekTimeLabel,
+    required this.title,
+    required this.question,
+    required this.reference,
     required this.dateLabel,
   });
 
-  final int streak;
-  final int longestStreak;
-  final String weekTimeLabel;
+  final String title;
+  final String question;
+  final String reference;
   final String dateLabel;
 
   static const width = 360.0;
@@ -69,36 +68,34 @@ class StreakShareCard extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.local_fire_department_rounded,
-                      size: 44, color: _amber),
-                  const SizedBox(height: 8),
-                  Text('$streak',
-                      style: const TextStyle(
-                          fontSize: 72,
-                          fontWeight: FontWeight.w800,
-                          color: _text,
-                          height: 1)),
-                  const SizedBox(height: 6),
-                  const Text('DAY PRAYER STREAK',
+                  const Text('DEVOTIONAL',
                       style: TextStyle(
-                          fontSize: 13,
+                          fontSize: 11,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 2,
-                          color: _dim)),
-                  const SizedBox(height: 28),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _StatBlock(
-                          value: '$longestStreak', label: 'LONGEST STREAK'),
-                      Container(
-                          width: 1,
-                          height: 34,
-                          color: _line,
-                          margin: const EdgeInsets.symmetric(horizontal: 24)),
-                      _StatBlock(value: weekTimeLabel, label: 'THIS WEEK'),
-                    ],
+                          color: _teal)),
+                  const SizedBox(height: 10),
+                  Text(title,
+                      textAlign: TextAlign.center,
+                      style: PgText.serif(
+                          size: 22, weight: FontWeight.w600, color: _text)),
+                  const SizedBox(height: 16),
+                  Text(
+                    '"$question"',
+                    textAlign: TextAlign.center,
+                    maxLines: 6,
+                    overflow: TextOverflow.ellipsis,
+                    style: PgText.serif(
+                        size: 17,
+                        weight: FontWeight.w500,
+                        style: FontStyle.italic,
+                        height: 1.45,
+                        color: _text),
                   ),
+                  const SizedBox(height: 14),
+                  Text(reference,
+                      style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w700, color: _amber)),
                 ],
               ),
             ),
@@ -114,8 +111,7 @@ class StreakShareCard extends StatelessWidget {
               children: [
                 Text('Build a prayer life that lasts',
                     textAlign: TextAlign.center,
-                    style: PgText.serif(
-                        size: 14, weight: FontWeight.w600, color: _text)),
+                    style: PgText.serif(size: 14, weight: FontWeight.w600, color: _text)),
                 const SizedBox(height: 4),
                 const Text('Download Prayer Guide free to enjoy this every day',
                     textAlign: TextAlign.center,
@@ -126,8 +122,7 @@ class StreakShareCard extends StatelessWidget {
                   children: [
                     _StorePill(icon: Icons.apple, label: 'App Store'),
                     SizedBox(width: 10),
-                    _StorePill(
-                        icon: Icons.android_rounded, label: 'Google Play'),
+                    _StorePill(icon: Icons.android_rounded, label: 'Google Play'),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -146,32 +141,6 @@ class StreakShareCard extends StatelessWidget {
   }
 }
 
-class _StatBlock extends StatelessWidget {
-  const _StatBlock({required this.value, required this.label});
-  final String value;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(value,
-            style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: StreakShareCard._text)),
-        const SizedBox(height: 4),
-        Text(label,
-            style: const TextStyle(
-                fontSize: 9.5,
-                fontWeight: FontWeight.w700,
-                letterSpacing: .5,
-                color: StreakShareCard._dim)),
-      ],
-    );
-  }
-}
-
 class _StorePill extends StatelessWidget {
   const _StorePill({required this.icon, required this.label});
   final IconData icon;
@@ -182,20 +151,20 @@ class _StorePill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
-        color: StreakShareCard._teal.withValues(alpha: 0.14),
+        color: DevotionalShareCard._teal.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: StreakShareCard._teal.withValues(alpha: 0.4)),
+        border: Border.all(color: DevotionalShareCard._teal.withValues(alpha: 0.4)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 13, color: StreakShareCard._teal),
+          Icon(icon, size: 13, color: DevotionalShareCard._teal),
           const SizedBox(width: 5),
           Text(label,
               style: const TextStyle(
                   fontSize: 10.5,
                   fontWeight: FontWeight.w700,
-                  color: StreakShareCard._teal)),
+                  color: DevotionalShareCard._teal)),
         ],
       ),
     );

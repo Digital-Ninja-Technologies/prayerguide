@@ -12,15 +12,15 @@ class SermonNotesRepository {
     return (rows as List).map((r) => SermonNote.fromMap(r as Map<String, dynamic>)).toList();
   }
 
-  /// Creates the note row, then uploads and attaches [initialRecordingPaths]
-  /// (one or more local files, oldest take first) as separate recordings —
-  /// each stopped take is locked in rather than overwriting a prior one.
+  /// Creates the note row only — attaching any recordings is the caller's
+  /// job (`SermonNotesNotifier.add`), so each take goes through the same
+  /// local-first, retry-on-failure path a take added later does, instead of
+  /// this method's own all-or-nothing loop.
   Future<SermonNote> create({
     required String title,
     String? speaker,
     String? scriptureRef,
     required String notes,
-    List<({String path, int? durationSeconds})> initialRecordingPaths = const [],
   }) async {
     final uid = supa.auth.currentUser!.id;
     final row = await supa
@@ -34,18 +34,7 @@ class SermonNotesRepository {
         })
         .select()
         .single();
-    final noteId = row['id'] as String;
-
-    final recordings = <SermonRecording>[];
-    for (final rec in initialRecordingPaths) {
-      recordings.add(await addRecording(
-        noteId: noteId,
-        localFilePath: rec.path,
-        durationSeconds: rec.durationSeconds,
-      ));
-    }
-
-    return SermonNote.fromMap({...row, 'sermon_note_recordings': recordings.map(_recordingToMap).toList()});
+    return SermonNote.fromMap({...row, 'sermon_note_recordings': const []});
   }
 
   /// Uploads a local recording and attaches it to an existing note — used
@@ -74,16 +63,17 @@ class SermonNotesRepository {
     return SermonRecording.fromMap(row);
   }
 
-  Map<String, dynamic> _recordingToMap(SermonRecording r) => {
-        'id': r.id,
-        'audio_path': r.audioPath,
-        'duration_seconds': r.durationSeconds,
-        'created_at': r.createdAt.toIso8601String(),
-      };
-
   Future<void> delete(SermonNote note) async {
-    if (note.recordings.isNotEmpty) {
-      await supa.storage.from('sermon-audio').remove(note.recordings.map((r) => r.audioPath).toList());
+    // Pending (not-yet-synced) recordings have no real storage object —
+    // only ever-synced ones need cleaning up here; the local files/index
+    // for pending ones are the caller's responsibility (see
+    // `SermonNotesNotifier.delete`).
+    final syncedPaths = note.recordings
+        .where((r) => !r.pendingUpload && r.audioPath.isNotEmpty)
+        .map((r) => r.audioPath)
+        .toList();
+    if (syncedPaths.isNotEmpty) {
+      await supa.storage.from('sermon-audio').remove(syncedPaths);
     }
     await supa.from('sermon_notes').delete().eq('id', note.id);
   }

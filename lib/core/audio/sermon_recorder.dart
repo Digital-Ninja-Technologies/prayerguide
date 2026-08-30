@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 
@@ -20,8 +22,15 @@ class SermonRecorder {
   Future<bool> hasPermission() => _recorder.hasPermission();
 
   Future<void> start() async {
-    final dir = await getTemporaryDirectory();
-    _path = '${dir.path}/sermon_${DateTime.now().microsecondsSinceEpoch}.m4a';
+    // Application-support, not temporary: the recording has to survive
+    // between "stop" and a (possibly retried, possibly offline) upload —
+    // temp directories can be purged by the OS at any point, which is how
+    // sermon audio was silently going missing before.
+    final dir = await getApplicationSupportDirectory();
+    final audioDir = Directory('${dir.path}/sermon_audio');
+    if (!await audioDir.exists()) await audioDir.create(recursive: true);
+    _path =
+        '${audioDir.path}/sermon_${DateTime.now().microsecondsSinceEpoch}.m4a';
     await _recorder.start(_config, path: _path!);
   }
 

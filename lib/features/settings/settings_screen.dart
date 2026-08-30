@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../core/errors/friendly_error.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
+import '../../l10n/gen/app_localizations.dart';
+import '../../state/locale_provider.dart';
 import '../../state/profile_provider.dart';
 import '../../state/repo_providers.dart';
 import '../../state/theme_provider.dart';
@@ -35,16 +37,79 @@ Future<void> _confirmSignOut(BuildContext context, WidgetRef ref) async {
   }
 }
 
+/// Each language's own name for itself — endonyms aren't translated (a
+/// Yoruba speaker sees "Yorùbá" no matter which language the app is
+/// currently in, same as any other app's language picker).
+const _languageEndonyms = {
+  null: 'English', // null = "follow device", shown as English until picked
+  'en': 'English',
+  'es': 'Español',
+  'fr': 'Français',
+  'pt': 'Português',
+  'yo': 'Yorùbá',
+  'ig': 'Igbo',
+};
+
+String _languageEndonym(String? code) => _languageEndonyms[code] ?? 'English';
+
+void _showLanguagePicker(BuildContext context, WidgetRef ref, AppLocalizations l) {
+  final c = context.colors;
+  final current = ref.read(localeProvider)?.languageCode;
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: c.surface,
+    shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+    builder: (sheetContext) => Padding(
+      padding: const EdgeInsets.fromLTRB(22, 22, 22, 34),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l.settingsChooseLanguage,
+              style: PgText.serif(size: 19, weight: FontWeight.w600)),
+          const SizedBox(height: 14),
+          for (final code in const ['en', 'es', 'fr', 'pt', 'yo', 'ig'])
+            InkWell(
+              onTap: () {
+                ref.read(localeProvider.notifier).setLocale(Locale(code));
+                Navigator.of(sheetContext).pop();
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 13),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(_languageEndonym(code),
+                          style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: c.text)),
+                    ),
+                    if (current == code)
+                      Icon(Icons.check_rounded, color: c.teal, size: 20),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    ),
+  );
+}
+
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.colors;
+    final l = AppLocalizations.of(context)!;
     final profileAsync = ref.watch(profileProvider);
     final profile = profileAsync.valueOrNull;
     final themeMode = ref.watch(themeModeProvider);
     final isDark = themeMode == ThemeMode.dark;
+    final locale = ref.watch(localeProvider);
 
     final displayName =
         (profile?.name.isNotEmpty ?? false) ? profile!.name : 'Your name';
@@ -57,7 +122,7 @@ class SettingsScreen extends ConsumerWidget {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Text('Profile',
+            child: Text(l.settingsProfile,
                 style: PgText.serif(size: 26, weight: FontWeight.w600)),
           ),
           const SizedBox(height: 16),
@@ -109,7 +174,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 22),
-          Text('NOTIFICATIONS',
+          Text(l.settingsNotifications,
               style: PgText.sans(
                   size: 12,
                   weight: FontWeight.w700,
@@ -129,7 +194,7 @@ class SettingsScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 20),
-          Text('APPEARANCE',
+          Text(l.settingsAppearance,
               style: PgText.sans(
                   size: 12,
                   weight: FontWeight.w700,
@@ -146,7 +211,7 @@ class SettingsScreen extends ConsumerWidget {
               children: [
                 Expanded(
                   child: _ThemeButton(
-                    label: 'Dark',
+                    label: l.settingsDark,
                     icon: Icons.dark_mode_outlined,
                     active: isDark,
                     onTap: () => ref.read(themeModeProvider.notifier).setDark(),
@@ -155,7 +220,7 @@ class SettingsScreen extends ConsumerWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: _ThemeButton(
-                    label: 'Light',
+                    label: l.settingsLight,
                     icon: Icons.light_mode_outlined,
                     active: !isDark,
                     onTap: () =>
@@ -171,35 +236,49 @@ class SettingsScreen extends ConsumerWidget {
                 color: c.surface,
                 border: Border.all(color: c.line),
                 borderRadius: BorderRadius.circular(18)),
+            child: _LinkRow(
+              icon: Icons.translate_rounded,
+              label:
+                  '${l.settingsLanguage} · ${_languageEndonym(locale?.languageCode)}',
+              onTap: () => _showLanguagePicker(context, ref, l),
+              showBorder: false,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Container(
+            decoration: BoxDecoration(
+                color: c.surface,
+                border: Border.all(color: c.line),
+                borderRadius: BorderRadius.circular(18)),
             child: Column(
               children: [
                 _LinkRow(
                   icon: Icons.alternate_email_rounded,
-                  label: 'Change username',
+                  label: l.settingsChangeUsername,
                   onTap: () => context.push('/settings/username'),
                   showBorder: true,
                 ),
                 _LinkRow(
                   icon: Icons.local_fire_department_outlined,
-                  label: 'Your streak',
+                  label: l.settingsYourStreak,
                   onTap: () => context.push('/streak'),
                   showBorder: true,
                 ),
                 _LinkRow(
                   icon: Icons.insights_outlined,
-                  label: 'Growth insights',
+                  label: l.settingsGrowthInsights,
                   onTap: () => context.push('/insights'),
                   showBorder: true,
                 ),
                 _LinkRow(
                   icon: Icons.lock_outline_rounded,
-                  label: 'Privacy & encryption',
+                  label: l.settingsPrivacyEncryption,
                   onTap: () => context.push('/privacy'),
                   showBorder: true,
                 ),
                 _LinkRow(
                     icon: Icons.help_outline_rounded,
-                    label: 'About & help',
+                    label: l.settingsAboutHelp,
                     onTap: () => context.push('/about'),
                     showBorder: false),
               ],
@@ -216,7 +295,7 @@ class SettingsScreen extends ConsumerWidget {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14)),
               ),
-              child: Text('Sign out',
+              child: Text(l.settingsSignOut,
                   style: TextStyle(
                       color: c.danger,
                       fontSize: 14.5,

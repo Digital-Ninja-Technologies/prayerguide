@@ -9,6 +9,7 @@ import '../../data/devotional/devotional_library.dart';
 import '../../state/bible_library_provider.dart';
 import '../../widgets/pg_button.dart';
 import '../../widgets/pg_header.dart';
+import 'devotional_share.dart';
 
 class DevotionalScreen extends ConsumerWidget {
   const DevotionalScreen({super.key});
@@ -27,9 +28,21 @@ class DevotionalScreen extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(22, 6, 22, 0),
             child: PgHeader(
-                eyebrow:
-                    'DEVOTIONAL · ${DateFormat('MMMM d').format(today).toUpperCase()}',
-                onBack: () => context.pop()),
+              eyebrow:
+                  'DEVOTIONAL · ${DateFormat('MMMM d').format(today).toUpperCase()}',
+              onBack: () => context.pop(),
+              trailing: IconButton(
+                onPressed: () => shareDevotionalCard(
+                  context: context,
+                  title: entry.title,
+                  question: entry.question,
+                  reference: entry.reference,
+                  dateLabel: DateFormat('MMMM d').format(today),
+                ),
+                icon: Icon(Icons.ios_share_rounded, color: c.dim),
+                tooltip: 'Share',
+              ),
+            ),
           ),
           Expanded(
             child: SingleChildScrollView(

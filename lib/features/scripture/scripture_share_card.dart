@@ -106,6 +106,13 @@ class ScriptureShareCard extends StatelessWidget {
                     _StorePill(icon: Icons.android_rounded, label: 'Google Play'),
                   ],
                 ),
+                const SizedBox(height: 10),
+                const Text('prayerguide.thedigitalninjatech.com',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w600,
+                        color: _dim)),
               ],
             ),
           ),

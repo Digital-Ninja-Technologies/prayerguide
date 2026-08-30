@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'l10n/gen/app_localizations.dart';
+import 'state/locale_provider.dart';
 import 'state/theme_provider.dart';
 
 class PrayerGuideApp extends ConsumerWidget {
@@ -12,6 +14,7 @@ class PrayerGuideApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
     final themeMode = ref.watch(themeModeProvider);
+    final locale = ref.watch(localeProvider);
 
     return MaterialApp.router(
       title: 'Prayer Guide',
@@ -19,6 +22,17 @@ class PrayerGuideApp extends ConsumerWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: themeMode,
+      locale: locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localeResolutionCallback: (deviceLocale, supported) {
+        if (locale != null) return locale;
+        if (deviceLocale != null &&
+            supported.any((l) => l.languageCode == deviceLocale.languageCode)) {
+          return deviceLocale;
+        }
+        return const Locale('en');
+      },
       routerConfig: router,
     );
   }

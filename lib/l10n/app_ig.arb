@@ -1,0 +1,57 @@
+{
+  "@@locale": "ig",
+
+  "navHome": "Ụlọ",
+  "navBible": "Baịbụl",
+  "navJournal": "Akwụkwọ Ndetu",
+  "navSermons": "Ozizi",
+  "navChannel": "Ọwa",
+  "navProfile": "Profaịlụ",
+
+  "onboardSlide1Title": "Wuo ndụ ekpere nke ga-adịgide",
+  "onboardSlide1Body": "Usoro kwa ụbọchị dị nro nke Akwụkwọ Nsọ, ekpere a na-eduzi, na obi zuru oke — otu ntabi anya n'oge.",
+  "onboardSlide2Title": "Akwụkwọ Nsọ dị n'etiti",
+  "onboardSlide2Body": "Nnọkọ ọ bụla na-amalite n'Okwu ahụ. Gụọ, tụgharịa uche, ma hapụ ka ederede ahụ duzie otú ị na-ekpe ekpere.",
+  "onboardSlide3Title": "Laghachi, na-enweghị mmanye",
+  "onboardSlide3Body": "Usoro ụbọchị na-agba ume — ha adịghị eme ihere. Ọ bụrụ na ị hapụ otu ụbọchị, jiri oge izu ike ma malitegharịa ọzọ.",
+  "onboardSkip": "Wụpụ",
+  "onboardContinue": "Gaa n'ihu",
+  "onboardGetStarted": "Malite",
+
+  "timeOfDayMorning": "Ụtụtụ",
+  "timeOfDayAfternoon": "Ehihie",
+  "timeOfDayEvening": "Mgbede",
+
+  "homeGreeting": "{timeOfDay, select, morning{Ụtụtụ ọma} afternoon{Ehihie ọma} evening{Mgbede ọma} other{Ndewo}},\n{name}",
+  "@homeGreeting": {
+    "placeholders": {
+      "timeOfDay": {"type": "String"},
+      "name": {"type": "String"}
+    }
+  },
+  "homeScriptureOfDay": "AKWỤKWỌ NSỌ NKE ỤBỌCHỊ TAA",
+  "homeStartTodaysPrayer": "Malite ekpere taa",
+  "homeJournal": "Akwụkwọ Ndetu",
+  "homeJournalSub": "Ndetu nzuzo",
+  "homeRequests": "Arịrịọ",
+  "homeRequestsSub": "Soro ma kpee ekpere",
+  "homeMoreWaysToPray": "Ụzọ ọzọ isi kpee ekpere",
+  "homeDevotional": "Nraahụ Kwa Ụbọchị",
+  "homeChallenges": "Ihe Ịma Aka",
+  "homeCompanion": "Onye Ibe",
+  "homeGroups": "Ìgwè",
+
+  "settingsProfile": "Profaịlụ",
+  "settingsNotifications": "ỌKWA",
+  "settingsAppearance": "NGOSIPỤTA",
+  "settingsDark": "Ojii",
+  "settingsLight": "Ìhè",
+  "settingsLanguage": "Asụsụ",
+  "settingsChooseLanguage": "Họrọ Asụsụ",
+  "settingsChangeUsername": "Gbanwee aha njirimara",
+  "settingsYourStreak": "Usoro gị",
+  "settingsGrowthInsights": "Nghọta Uto",
+  "settingsPrivacyEncryption": "Nzuzo na Nchekwa",
+  "settingsAboutHelp": "Gbasara na Enyemaka",
+  "settingsSignOut": "Pụọ"
+}
