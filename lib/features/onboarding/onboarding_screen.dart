@@ -10,7 +10,6 @@ import 'package:supabase_flutter/supabase_flutter.dart' show AuthResponse;
 import '../../core/errors/friendly_error.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
-import '../../l10n/gen/app_localizations.dart';
 import '../../state/repo_providers.dart';
 import '../../widgets/google_logo.dart';
 import '../../widgets/pg_back_button.dart';
@@ -24,24 +23,29 @@ final bool _showAppleSignIn = !kIsWeb && Platform.isIOS;
 enum _Step { slide0, slide1, slide2, auth, email, reset, create }
 
 class _SlideData {
-  const _SlideData(this.icon, this.titleOf, this.bodyOf);
+  const _SlideData(this.icon, this.title, this.body);
   final IconData icon;
-  final String Function(AppLocalizations l) titleOf;
-  final String Function(AppLocalizations l) bodyOf;
+  final String title;
+  final String body;
 }
 
 const _slides = [
-  _SlideData(Icons.wb_sunny_outlined, _slide1Title, _slide1Body),
-  _SlideData(Icons.menu_book_outlined, _slide2Title, _slide2Body),
-  _SlideData(Icons.replay_outlined, _slide3Title, _slide3Body),
+  _SlideData(
+    Icons.wb_sunny_outlined,
+    'Build a prayer life that lasts',
+    'A gentle daily rhythm of Scripture, guided prayer, and stillness — one quiet moment at a time.',
+  ),
+  _SlideData(
+    Icons.menu_book_outlined,
+    'Scripture at the center',
+    'Every session begins in the Word. Read, reflect, and let the text shape how you pray.',
+  ),
+  _SlideData(
+    Icons.replay_outlined,
+    'Return, without pressure',
+    'Streaks encourage — they never shame. Miss a day, use a freeze, and simply begin again.',
+  ),
 ];
-
-String _slide1Title(AppLocalizations l) => l.onboardSlide1Title;
-String _slide1Body(AppLocalizations l) => l.onboardSlide1Body;
-String _slide2Title(AppLocalizations l) => l.onboardSlide2Title;
-String _slide2Body(AppLocalizations l) => l.onboardSlide2Body;
-String _slide3Title(AppLocalizations l) => l.onboardSlide3Title;
-String _slide3Body(AppLocalizations l) => l.onboardSlide3Body;
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -144,7 +148,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   Widget _buildSlide(PgColors c) {
-    final l = AppLocalizations.of(context)!;
     final data = _slides[_slideIndex];
     return Padding(
       padding: const EdgeInsets.fromLTRB(32, 20, 32, 30),
@@ -154,7 +157,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             alignment: Alignment.centerRight,
             child: TextButton(
               onPressed: () => setState(() => _step = _Step.auth),
-              child: Text(l.onboardSkip,
+              child: Text('Skip',
                   style: PgText.sans(
                       size: 13.5, weight: FontWeight.w600, color: c.faint)),
             ),
@@ -177,7 +180,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 ),
                 const SizedBox(height: 26),
                 Text(
-                  data.titleOf(l),
+                  data.title,
                   textAlign: TextAlign.center,
                   style: PgText.serif(
                       size: 28, weight: FontWeight.w600, height: 1.25),
@@ -186,7 +189,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 SizedBox(
                   width: 270,
                   child: Text(
-                    data.bodyOf(l),
+                    data.body,
                     textAlign: TextAlign.center,
                     style: PgText.sans(size: 15.5, height: 1.6, color: c.dim),
                   ),
@@ -213,7 +216,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
           ),
           PgButton(
-            label: _slideIndex >= 2 ? l.onboardGetStarted : l.onboardContinue,
+            label: _slideIndex >= 2 ? 'Get started' : 'Continue',
             onPressed: _next,
           ),
         ],

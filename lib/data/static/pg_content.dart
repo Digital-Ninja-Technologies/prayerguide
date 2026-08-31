@@ -211,13 +211,10 @@ final Map<String, List<GuideContent>> guideContentByCategory = {
 
 enum PrayerTimeOfDay { morning, afternoon, evening }
 
-/// The raw key for `AppLocalizations.homeGreeting`'s ICU `select` argument —
-/// callers with a `BuildContext` should localize the display label via
-/// `AppLocalizations` directly rather than a hardcoded English word.
-String prayerTimeOfDayKey(PrayerTimeOfDay t) => switch (t) {
-      PrayerTimeOfDay.morning => 'morning',
-      PrayerTimeOfDay.afternoon => 'afternoon',
-      PrayerTimeOfDay.evening => 'evening',
+String prayerTimeOfDayLabel(PrayerTimeOfDay t) => switch (t) {
+      PrayerTimeOfDay.morning => 'Morning',
+      PrayerTimeOfDay.afternoon => 'Afternoon',
+      PrayerTimeOfDay.evening => 'Evening',
     };
 
 PrayerTimeOfDay prayerTimeOfDayFor(DateTime now) {

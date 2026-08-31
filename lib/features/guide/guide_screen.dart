@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/pg_colors.dart';
 import '../../core/theme/pg_text.dart';
 import '../../data/static/pg_content.dart';
-import '../../l10n/gen/app_localizations.dart';
 import '../../widgets/pg_button.dart';
 import '../../widgets/pg_header.dart';
 import '../../widgets/pg_pill.dart';
@@ -16,7 +15,6 @@ class GuideScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    final l = AppLocalizations.of(context)!;
     final now = DateTime.now();
     final meta = guideCategories.firstWhere(
       (g) => g.name == category,
@@ -63,11 +61,7 @@ class GuideScreen extends StatelessWidget {
                         children: [
                           PgPill(
                               label:
-                                  '$timeOfDayEmoji ${switch (timeOfDay) {
-                                PrayerTimeOfDay.morning => l.timeOfDayMorning,
-                                PrayerTimeOfDay.afternoon => l.timeOfDayAfternoon,
-                                PrayerTimeOfDay.evening => l.timeOfDayEvening,
-                              }}',
+                                  '$timeOfDayEmoji ${prayerTimeOfDayLabel(timeOfDay)}',
                               active: true),
                           const SizedBox(width: 8),
                           PgPill(
