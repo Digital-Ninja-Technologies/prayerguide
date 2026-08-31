@@ -293,6 +293,7 @@
 				ADFE3EC05809A99541F40BE2 /* Embed Foundation Extensions */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				FFF3EBC3199F12A75163E3EF /* [CP] Embed Pods Frameworks */,
+				E05B12AF16D978D8B5477668 /* Generate WebRTC.framework dSYM */,
 			);
 			buildRules = (
 			);
@@ -432,6 +433,22 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" build";
+		};
+		E05B12AF16D978D8B5477668 /* Generate WebRTC.framework dSYM */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/WebRTC.framework/WebRTC",
+			);
+			name = "Generate WebRTC.framework dSYM";
+			outputPaths = (
+				"${DWARF_DSYM_FOLDER_PATH}/WebRTC.framework.dSYM",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# livekit_client/flutter_webrtc vendors WebRTC.framework as a prebuilt\n# binary with no dSYM of its own, so App Store Connect rejects the archive\n# for a missing/mismatched dSYM UUID. The binary has no full debug info\n# either (it's release-stripped upstream), but dsymutil can still extract\n# a symbol-only dSYM with the matching UUID, which is what Apple needs to\n# symbolicate crashes by function name.\nif [ \"${CONFIGURATION}\" = \"Release\" ] || [ \"${CONFIGURATION}\" = \"Profile\" ]; then\n  WEBRTC_BINARY=\"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/WebRTC.framework/WebRTC\"\n  if [ -f \"$WEBRTC_BINARY\" ]; then\n    echo \"Generating dSYM for WebRTC.framework\"\n    dsymutil \"$WEBRTC_BINARY\" -o \"${DWARF_DSYM_FOLDER_PATH}/WebRTC.framework.dSYM\"\n  else\n    echo \"warning: WebRTC.framework not found at $WEBRTC_BINARY — skipping dSYM generation\"\n  fi\nfi\n";
 		};
 		F164B6450F55876E25B8570D /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
