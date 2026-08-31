@@ -32,6 +32,14 @@
 				<string>io.supabase.prayerguide</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.prayerguide.prayerGuide.widget</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>prayerguide</string>
+			</array>
+		</dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>

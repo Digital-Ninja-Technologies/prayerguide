@@ -25,6 +25,7 @@
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		9F6AC209F6D04DFE80490028 /* PrayerTimerWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4A82BFFC6481FA2735598D0 /* PrayerTimerWidgetBundle.swift */; };
+		F11588F5EBC1ECFF57FCC892 /* PrayerGuideWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E924DC2048B67BDB020A862 /* PrayerGuideWidget.swift */; };
 		A4C80CD588066194DB3408FD /* PrayerTimerAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5306AD61251861E447EBB83 /* PrayerTimerAttributes.swift */; };
 		A66DEA5BCC333369711EF6FB /* SermonRecordingLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7E493B5A0ABC6CB7668DF06 /* SermonRecordingLiveActivity.swift */; };
 		A96F4BE4A2AF76033BB2BAF9 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7655BEFB5737FE310553131F /* SwiftUI.framework */; };
@@ -106,6 +107,7 @@
 		A7E493B5A0ABC6CB7668DF06 /* SermonRecordingLiveActivity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PrayerTimerWidget/SermonRecordingLiveActivity.swift; sourceTree = "<group>"; };
 		AFDD3A5AF63A4126A75DF3B7 /* Runner.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
 		BF9927E8B54D71CE3BE8EA04 /* PrayerTimerLiveActivity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PrayerTimerWidget/PrayerTimerLiveActivity.swift; sourceTree = "<group>"; };
+		3E924DC2048B67BDB020A862 /* PrayerGuideWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PrayerTimerWidget/PrayerGuideWidget.swift; sourceTree = "<group>"; };
 		C11B9D63F9295766E4A34E34 /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
 		C3A926C8780C78D5EDB5DF7C /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 		C5306AD61251861E447EBB83 /* PrayerTimerAttributes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PrayerTimerAttributes.swift; path = PrayerTimerWidget/PrayerTimerAttributes.swift; sourceTree = "<group>"; };
@@ -152,6 +154,7 @@
 			children = (
 				C5306AD61251861E447EBB83 /* PrayerTimerAttributes.swift */,
 				1D2234503B0D0CF6A9C071D5 /* Info.plist */,
+				3E924DC2048B67BDB020A862 /* PrayerGuideWidget.swift */,
 				BF9927E8B54D71CE3BE8EA04 /* PrayerTimerLiveActivity.swift */,
 				F4A82BFFC6481FA2735598D0 /* PrayerTimerWidgetBundle.swift */,
 				8EAC6AC716A3A83D44058D31 /* SermonRecordingAttributes.swift */,
@@ -518,6 +521,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F11588F5EBC1ECFF57FCC892 /* PrayerGuideWidget.swift in Sources */,
 				A4C80CD588066194DB3408FD /* PrayerTimerAttributes.swift in Sources */,
 				DAA7C243EDA8EF27BEBE5899 /* PrayerTimerLiveActivity.swift in Sources */,
 				9F6AC209F6D04DFE80490028 /* PrayerTimerWidgetBundle.swift in Sources */,
